@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<meta name="Content-type" content="text/html;charset=utf8">
+<title>{title}</title>
+<style type="text/css">
+@-webkit-keyframes pop {
+	0% { -webkit-transform: scale(0) rotate(0deg); }
+	20% { -webkit-transform: scale(0) rotate(0deg); }
+	60% { -webkit-transform: scale(1.15) rotate(0deg); }
+	100% { -webkit-transform: scale(1.0) rotate(0deg); }
+}
+
+	html {
+		display: table;
+		#position: relative;
+		overflow: hidden;
+		height: 100%;
+		width: 100%;
+		background: url('error.jpg') no-repeat center center;
+		-webkit-background-size: cover;
+		-moz-background-size: cover;
+		-o-background-size: cover;
+		background-size: cover;
+	}
+	body {
+		#position: absolute;
+		#top: 50%;
+		display: table-cell;
+		vertical-align: middle;
+		text-align: center;
+		font-family: "Lucida Grande", "Helvetica", "Verdana", sans-serif;
+	}
+	div {
+		display: inline-block;
+		
+		background: #eee;
+		background: -moz-linear-gradient(top, #fefefe, #efefef);
+		background: -webkit-gradient(linear, left top, left bottom, from(#fefefe), to(#efefef));
+		filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr=#fefefe, EndColorStr=#efefef, GradientType=0);
+		border-radius: 0.5em;
+		border-top: 0.1em solid white;
+		border-bottom: 0.1em solid gray;
+		box-shadow: 0 0.125em 0.25em 0em black;
+		padding: 0.128em 1em 1em 1em;
+		margin: 0;
+		max-width: 35em;
+		
+		-webkit-animation: 1s 0 1 ease-in-out;
+		-webkit-animation-name: pop;
+	}
+	.label {
+		text-align: left;
+		font-size: 0.65em;
+	}
+	p {
+		font-size: 0.8em;
+		text-align: left;
+	}
+	pre {
+		margin: 0;
+		text-align: left;
+		border-radius: 0.4em;
+		padding: 0.5em;
+		color: black;
+		background: white;
+		border-top: 0.1em solid gray;
+		box-shadow: inset 0 0.0625em 0.125em 0em gray;
+	}
+	h1:before {
+		content: url('error.png');
+		float: left;
+		margin-right: 0.5em;
+	}
+	h1 {
+		text-align: left;
+	}
+	h1, .label {
+		color: #888;
+		text-shadow: #fff 0.0625em 0.0625em 0;
+		clear: left;
+	}
+	.buttons {
+		text-align: center;
+	}
+	a {
+		display: inline-block;
+		color: #484848;
+		text-decoration: none;
+		text-shadow: 0 1px 0 #fff;
+		font: bold 12px Helvetica, Arial, sans-serif;
+		line-height: 35px;
+		height: 35px;
+		margin-right: 10px;
+		padding: 0 10px;
+		background: #f0f0f0;
+		background: -webkit-linear-gradient(top, #f7f7f7, #d1d1d1);
+		background: -moz-linear-gradient(top, #f7f7f7, #d1d1d1);
+		background: -ms-linear-gradient(top, #f7f7f7, #d1d1d1);
+		background: -o-linear-gradient(top, #f7f7f7, #d1d1d1);
+		border: solid 1px #7f7f7f;
+		border-radius: 4px;
+		-webkit-border-radius: 4px;
+		-moz-border-radius: 4px;
+		-moz-box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+		-webkit-box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+		box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+		-ms-filter: "progid:DXImageTransform.Microsoft.Shadow(Strength=1, Direction=90, Color='#ffffff')";
+		filter: progid:DXImageTransform.Microsoft.Shadow(Strength=1, Direction=90, Color='#ffffff');
+		-webkit-transition: border-color .218s;
+		-moz-transition: border .218s;
+		-o-transition: border-color .218s;
+		transition: border-color .218s;
+	}
+	a:hover {
+		border: solid 1px #333;
+		color: #282828;
+		background: -webkit-linear-gradient(top, #ffffff, #dfdfdf);
+		background: -moz-linear-gradient(top, #ffffff, #dfdfdf);
+		background: -ms-linear-gradient(top, #ffffff, #dfdfdf);
+		background: -o-linear-gradient(top, #ffffff, #dfdfdf);
+	}
+	a:active {
+		border: solid 1px #7f7f7f;
+		background: #d0d0d0;
+		background: -webkit-gradient(linear, left top, left bottom, from(#a8a8a8), color-stop(0.15, #c6c6c6), to(#d8d8d8));
+		background: -webkit-linear-gradient(top, #a8a8a8, #c6c6c6 15%, #d8d8d8);
+		background: -moz-linear-gradient(top, #a8a8a8, #c6c6c6 15%, #d8d8d8);
+		background: -ms-linear-gradient(top, #a8a8a8, #c6c6c6 15%, #d8d8d8);
+		background: -o-linear-gradient(top, #a8a8a8, #c6c6c6 15%, #d8d8d8);
+	}
+	
+</style>
+
+<div>
+
+<h1 onmousedown="return false;">{title}</h1>
+
+<p>{message}</p>
+
+<p class="label" onmousedown="return false;">Stacktrace:</p>
+<pre>{stacktrace}</pre>
+
+<p class="buttons" onmousedown="return false;">
+	<a href="javascript:history.go(-1)">Go back</a>
+	<a href="javascript:location.reload(true)">&nbsp; Retry &nbsp;</a>
+</p>
+
+</div>

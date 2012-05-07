@@ -1,0 +1,1 @@
+<?php exit; ?>a:4:{s:5:"dbDSN";s:34:"mysql:host=localhost;dbname=nexxos";s:6:"dbUser";s:4:"root";s:6:"dbPass";s:0:"";s:5:"dbOpt";a:0:{}}
