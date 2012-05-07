@@ -4,14 +4,9 @@ namespace Nexxos\Core\Module {
 		protected $isMain;
 		private $urlManager;
 		
-		public static function getInstanceFor($hostname, $internalPath) {
+		public static function getInstanceFor($hostGroup, $internalPath) {
 			$path = trim($internalPath, '/');
 			$dbh = \Nexxos\Core\Core::getDatabaseConnection();
-			$stmt = $dbh->prepare('SELECT `hostGroupId`, `type` FROM `hostGroup` where `hostName` = ? OR `hostName` = ""');
-			if ($stmt->execute(array($hostname)) && $hostGroupEntry = $stmt->fetch()) {
-				if ($hostGroupEntry['type'] == 'redirect') {/* fixme */}
-				$hostGroup = $hostGroupEntry['hostGroupId'];
-			}
 			$options = \Nexxos\Core\URL\AbstractUrlManager::pathOptions($path);
 			$stmt = $dbh->prepare('SELECT `moduleInstanceId`, `module`, `root` FROM `moduleInstance` where `root` IN('.str_repeat('\'?\',', sizeof($options)-1).'\'?\')');
 			if ($stmt->execute($options) && $instanceEntry = $stmt->fetch()) {

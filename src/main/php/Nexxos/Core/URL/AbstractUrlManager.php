@@ -58,7 +58,14 @@ namespace Nexxos\Core\URL {
 			return $result ? $result : './';
 		}
 		
-		public abstract function getHostGroup();
+		public final function getHostGroup() {
+			$dbh = \Nexxos\Core\Core::getDatabaseConnection();
+			$stmt = $dbh->prepare('SELECT `hostGroupId`, `type` FROM `hostGroup` where `hostName` = ? OR `hostName` = ""');
+			if ($stmt->execute(array($this->server['HTTP_HOST'])) && $hostGroupEntry = $stmt->fetch()) {
+				if ($hostGroupEntry['type'] == 'redirect') {/* fixme */}
+				$hostGroup = $hostGroupEntry['hostGroupId'];
+			}
+		}
 		
 		public abstract function getPath();
 		

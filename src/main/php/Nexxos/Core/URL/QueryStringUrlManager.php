@@ -28,10 +28,6 @@ namespace Nexxos\Core\URL {
 			
 		}
 		
-		public function getHostGroup() {
-			
-		}
-		
 		public function getPath() {
 			
 		}
