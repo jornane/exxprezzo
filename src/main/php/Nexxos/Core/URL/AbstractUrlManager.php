@@ -26,7 +26,7 @@ namespace Nexxos\Core\URL {
 		 *
 		 * @return array
 		 */
-		public static function pathOptions($path, $separator = '/') {
+		public static final function pathOptions($path, $separator = '/') {
 			$result = array();
 			$thispath = '';
 			if (substr($path, 0-strlen($separator)) !== $separator) $path .= $separator;
@@ -40,7 +40,7 @@ namespace Nexxos\Core\URL {
 			return $result;
 		}
 		
-		public static function abs2relative($from, $to) {
+		public static final function abs2relative($from, $to) {
 			$from = explode('/', $from);
 			$to = explode('/', $to);
 
@@ -58,10 +58,6 @@ namespace Nexxos\Core\URL {
 			return $result ? $result : './';
 		}
 		
-		public function getModuleFor($internalPath) {
-			
-		}
-		
 		public abstract function getHostGroup();
 		
 		public abstract function getPath();
@@ -77,7 +73,7 @@ namespace Nexxos\Core\URL {
 		 */
 		public abstract function serverpath($path);
 		
-		public function mkurl($module, $function, $args, $fullUrl=false, $noGetForce=true) {
+		public final function mkurl($module, $function, $args, $fullUrl=false, $noGetForce=true) {
 			$functionPath = $module->getFunctionPath($function, $args);
 			return $this->mkrawurl($functionPath->hostGroup, $functionPath->path, $functionPath->get, $fullUrl, $noGetForce);
 		}
