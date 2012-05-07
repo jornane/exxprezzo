@@ -139,13 +139,14 @@ namespace Nexxos\Core {
 			$tracestart = 0;
 			// Make sure the stacktrace only goes so far as where handle_error, oops or panic got called
 			foreach($e->getTrace() as $id => $t) {
-				if (isset($t['function']) && in_array($t['function'], array('handleError', 'handleException', 'loadClass', 'trigger_error')))
+				if (isset($t['function']) && in_array($t['function'], array('handleError', 'handleException', '__autoload', 'trigger_error')))
 					$tracestart = $id+1;
 			}
-			$trace = '#0 '.substr($e->getFile(), strlen(self::$basedir)).'('.$e->getLine().")\n";
+			if ($tracestart == 0)
+				$trace = '#0 '.substr($e->getFile(), strlen(self::$basedir)).'('.$e->getLine().")\n";
 			foreach($e->getTrace() as $id => $t) {
 				if ($id >= $tracestart && isset($t['file']))
-					$trace .= '#'.($id-$tracestart+1).' '.substr($t['file'], strlen(self::$basedir)).'('.$t['line'].'): '
+					$trace .= '#'.($id-$tracestart+($tracestart==0?1:0)).' '.substr($t['file'], strlen(self::$basedir)).'('.$t['line'].'): '
 						.$t['function'].'('.implode(',',array_map('gettype',$t['args'])).")\n";
 			}
 			
