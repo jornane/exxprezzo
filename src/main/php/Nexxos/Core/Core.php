@@ -145,11 +145,11 @@ namespace Nexxos\Core {
 				if (isset($t['function']) && in_array($t['function'], array('handleError', 'handleException', '__autoload', 'trigger_error')))
 					$tracestart = $id+1;
 			}
-			if ($tracestart == 0)
+			if ($tracestart > 0)
 				$trace = '#0 '.substr($e->getFile(), strlen(self::$basedir)).'('.$e->getLine().")\n";
 			foreach($e->getTrace() as $id => $t) {
 				if ($id >= $tracestart && isset($t['file']))
-					$trace .= '#'.($id-$tracestart+($tracestart==0?1:0)).' '.substr($t['file'], strlen(self::$basedir)).'('.$t['line'].'): '
+					$trace .= '#'.($id-$tracestart+($tracestart==0?0:1)).' '.substr($t['file'], strlen(self::$basedir)).'('.$t['line'].'): '
 						.$t['function'].'('.implode(',',array_map('gettype',$t['args'])).")\n";
 			}
 			
