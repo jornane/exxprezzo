@@ -84,12 +84,15 @@ namespace Nexxos\Core {
 			if (file_exists($path))
 				include $path;
 			if (!class_exists($className) && !interface_exists($className)) { // Throw a nice exception instead of letting PHP generate an ugly uncatchable error message
+				// Errors can't be thrown from loadClass, so just handle it this way
 				Core::handleException(new \Exception('Class \''.$className.'\' not found'));
+				// If I don't do this, an unrecoverable error is the result
 				exit;
 			}
 		}
 		
-		private static function getDatabaseConnection() {
+		// Is public, but is only intended for use in the core namespace.
+		public static function getDatabaseConnection() {
 			if (is_null(self::$database))
 				self::$database = new \PDO(
 						self::$config['dbDSN'],
