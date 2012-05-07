@@ -2,7 +2,7 @@
 namespace Nexxos\Core\Module {
 	abstract class AbstractModule implements \Nexxos\Core\Runnable {
 		protected $isMain;
-		protected $urlManager;
+		private $urlManager;
 		
 		public static function getInstanceFor($hostGroup, $path) {
 			return new DefaultModule;
@@ -15,11 +15,18 @@ namespace Nexxos\Core\Module {
 			return $this->isMain;
 		}
 		
-		public function setUrlManager($urlManager) {
-			$this->urlManager = $urlManager;
+		public final function setUrlManager($urlManager) {
+			if ($urlManager instanceof \Nexxos\Core\URL\AbstractUrlManager)
+				$this->urlManager = $urlManager;
+			else
+				user_error('urlManager is not of kind AbstractUrlManager');
 		}
-		public function getUrlManager() {
+		public final function getUrlManager() {
 			return $this->urlManager;
+		}
+		
+		public function getFunctionPath() {
+			
 		}
 	}
 }
