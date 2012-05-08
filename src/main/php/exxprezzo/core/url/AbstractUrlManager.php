@@ -1,5 +1,5 @@
 <?php
-namespace Nexxos\Core\URL {
+namespace exxprezzo\core\url {
 	abstract class AbstractUrlManager {
 		
 		public function __construct(&$server, &$get, &$post, &$cookie, &$env) {
@@ -59,7 +59,7 @@ namespace Nexxos\Core\URL {
 		}
 		
 		public final function getHostGroup() {
-			$dbh = \Nexxos\Core\Core::getDatabaseConnection();
+			$dbh = \exxprezzo\core\Core::getDatabaseConnection();
 			$stmt = $dbh->prepare('SELECT `hostGroupId`, `type` FROM `hostGroup` where `hostName` = ? OR `hostName` = ""');
 			if ($stmt->execute(array($this->server['HTTP_HOST'])) && $hostGroupEntry = $stmt->fetch()) {
 				if ($hostGroupEntry['type'] == 'redirect') {/* fixme */}
@@ -72,7 +72,7 @@ namespace Nexxos\Core\URL {
 		public abstract function mkrawurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true);
 		
 		/**
-		 * Return the URL to a specific physical path, relative to the nexxos root.
+		 * Return the URL to a specific physical path, relative to the exxprezzo root.
 		 * 
 		 * @param string $path	Physical path, must not start with a slash
 		 * 

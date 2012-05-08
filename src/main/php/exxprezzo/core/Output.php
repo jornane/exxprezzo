@@ -1,5 +1,5 @@
 <?php
-namespace Nexxos\Core {
+namespace exxprezzo\core {
 	interface Output extends Runnable {
 		function renderContents();
 		function getLength();

@@ -1,5 +1,5 @@
 <?php
-namespace Nexxos\Core {
+namespace exxprezzo\core {
 	interface Runnable {
 		public function run();
 	}

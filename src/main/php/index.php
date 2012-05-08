@@ -10,7 +10,7 @@
 $errorPage = dirname(__FILE__).'/error.html'; // In case something very bad goes wrong, don't expose it. View this page instead.
 
 // Include core
-if (!(include 'Nexxos/Core/'.DIRECTORY_SEPARATOR.'Core.php') || !class_exists('Nexxos\\Core\\Core')) {
+if (!(include 'exxprezzo/core/'.DIRECTORY_SEPARATOR.'Core.php') || !class_exists('exxprezzo\\core\\Core')) {
 	$msg = 'Could not initialize core';
 	if (!is_null($errorPage) && file_exists($errorPage) && is_readable($errorPage)) {
 		die(str_ireplace(array(
@@ -30,7 +30,7 @@ if (!(include 'Nexxos/Core/'.DIRECTORY_SEPARATOR.'Core.php') || !class_exists('N
 }
 
 function __autoload($className) {
-	Nexxos\Core\Core::loadClass($className);
+	exxprezzo\core\Core::loadClass($className);
 }
 
-Nexxos\Core\Core::run();
+exxprezzo\core\Core::run();

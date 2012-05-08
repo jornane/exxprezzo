@@ -1,5 +1,5 @@
 <?php
-namespace Nexxos\Core {
+namespace exxprezzo\core {
 	class Core {
 		private static $config = array();
 		private static $basedir;
@@ -13,7 +13,7 @@ namespace Nexxos\Core {
 			try {
 				self::$basedir = getcwd();
 				// Set error handler
-				set_error_handler(array('Nexxos\Core\Core', 'handleError'));
+				set_error_handler(array('exxprezzo\core\Core', 'handleError'));
 				
 				// Read config file
 				self::readConfigFile();
@@ -22,11 +22,11 @@ namespace Nexxos\Core {
 				self::readConfigFromDB();
 				
 				// Parse URL
-				$urlManager = 'Nexxos\\Core\\URL\\'.self::$config['urlManager'].'UrlManager';
+				$urlManager = 'exxprezzo\\core\\url\\'.strtolower(self::$config['urlManager']).'UrlManager';
 				self::$urlManager = new $urlManager();
 				
 				// Instantiate main module
-				self::$mainModule = \Nexxos\Core\Module\AbstractModule::getInstanceFor(
+				self::$mainModule = \exxprezzo\core\module\AbstractModule::getInstanceFor(
 						self::$urlManager->getHostGroup(),
 						self::$urlManager->getPath()
 					);
@@ -58,7 +58,7 @@ namespace Nexxos\Core {
 		}
 		
 		private static function readConfigFile() {
-			$contents = file_get_contents('Nexxos/Config.php');
+			$contents = file_get_contents('exxprezzo/Config.php');
 			$pos = strpos($contents, '?>', 0);
 			self::$config = unserialize(substr($contents, $pos+2));
 		}
@@ -78,7 +78,7 @@ namespace Nexxos\Core {
 		public static function loadClass($className) {
 			if (class_exists($className) || interface_exists($className)) return; // Class already exists, our work here is done
 			if (substr($className, -9) == 'Exception' && strpos($className, '_') === false)
-				$path = self::$basedir.DIRECTORY_SEPARATOR.'Nexxos'.DIRECTORY_SEPARATOR.'Exception'.DIRECTORY_SEPARATOR.$className.'.php';
+				$path = self::$basedir.DIRECTORY_SEPARATOR.'exxprezzo'.DIRECTORY_SEPARATOR.'exception'.DIRECTORY_SEPARATOR.$className.'.php';
 			else
 				$path = self::$basedir.DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR, $className).'.php';
 			if (file_exists($path))

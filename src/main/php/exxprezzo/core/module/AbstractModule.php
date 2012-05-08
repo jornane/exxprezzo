@@ -1,18 +1,18 @@
 <?php
-namespace Nexxos\Core\Module {
-	abstract class AbstractModule implements \Nexxos\Core\Runnable {
+namespace exxprezzo\core\module {
+	abstract class AbstractModule implements \exxprezzo\core\Runnable {
 		protected $isMain;
 		private $urlManager;
 		
 		public static function getInstanceFor($hostGroup, $internalPath) {
 			$path = trim($internalPath, '/');
-			$dbh = \Nexxos\Core\Core::getDatabaseConnection();
-			$options = \Nexxos\Core\URL\AbstractUrlManager::pathOptions($path);
+			$dbh = \exxprezzo\core\Core::getDatabaseConnection();
+			$options = \exxprezzo\core\url\AbstractUrlManager::pathOptions($path);
 			$stmt = $dbh->prepare('SELECT `moduleInstanceId`, `module`, `root` FROM `moduleInstance` where `root` IN('.str_repeat('\'?\',', sizeof($options)-1).'\'?\')');
 			if ($stmt->execute($options) && $instanceEntry = $stmt->fetch()) {
 				$instanceId = $instanceEntry['moduleInstanceId'];
 				$module = $instanceEntry['module'];
-				$moduleFQN = '\\Nexxos\\module\\'.strtolower($module).'\\'.$module;
+				$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
 				$result = new $moduleFQN;
 				$result->instanceId = $instanceId;
 				$result->modulePath = substr($internalPath, strlen($instanceEntry['root'])+1);
@@ -30,7 +30,7 @@ namespace Nexxos\Core\Module {
 		}
 		
 		public final function setUrlManager($urlManager) {
-			if ($urlManager instanceof \Nexxos\Core\URL\AbstractUrlManager)
+			if ($urlManager instanceof \exxprezzo\core\url\AbstractUrlManager)
 				$this->urlManager = $urlManager;
 			else
 				user_error('urlManager is not of kind AbstractUrlManager');
@@ -46,10 +46,9 @@ namespace Nexxos\Core\Module {
 				user_error("This function has no paths in this module");
 			$paths = static::$paths[$function];
 			$result = NULL;
-			for($paths as $path) {
-				$vars = extractVars($path);i
+			foreach($paths as $path) {
+				$vars = extractVars($path);
 				if($vars === array_keys($args)) {
-					
 				}
 			}
 		}
@@ -68,12 +67,12 @@ namespace Nexxos\Core\Module {
 		 * in path
 		 */
 		private static function extractVars($path) {
-			const $regex = '/^.*({\\$(?<name>.*)}.*)*$/';
-			$mathes = array ()
+			$regex = '/^.*({\\$(?<name>.*)}.*)*$/';
+			$mathes = array ();
 			preg_match($regex,$path,$mathes);
 			$names = $mathes['name'];
 			$result = array();
-			for($names as $name){
+			foreach($names as $name){
 				$result[$name] = NULL;
 			}
 			return array_keys($result);

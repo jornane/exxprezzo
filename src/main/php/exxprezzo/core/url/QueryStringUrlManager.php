@@ -1,5 +1,5 @@
 <?php
-namespace Nexxos\Core\URL {
+namespace exxprezzo\core\url {
 	class QueryStringUrlManager extends AbstractUrlManager {
 		
 		public function __construct($server=NULL, $get=NULL, $post=NULL, $cookie=NULL, $env=NULL) {

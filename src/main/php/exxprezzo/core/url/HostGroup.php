@@ -1,5 +1,5 @@
 <?php
-namespace Nexxos\Core\URL {
+namespace exxprezzo\core\url {
 	static class HostGroup {
 		
 	}

@@ -1,5 +1,5 @@
 <?php
-namespace Nexxos\Core\URL {
+namespace exxprezzo\core\url {
 	class FunctionPath {
 		public $hostGroup;
 		public $path;
