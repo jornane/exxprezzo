@@ -1,6 +1,5 @@
-<?php
-namespace exxprezzo\core\url {
+<?php namespace exxprezzo\core\url;
+
 abstract class HostGroup {
 		
-	}
 }
