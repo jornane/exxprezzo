@@ -147,7 +147,13 @@ class Core {
 		$tracestart = 0;
 		// Make sure the stacktrace only goes so far as where handle_error, oops or panic got called
 		foreach($e->getTrace() as $id => $t) {
-			if (isset($t['function']) && in_array($t['function'], array('handleError', 'handleException', '__autoload', 'trigger_error')))
+			if (isset($t['function']) && in_array($t['function'], array(
+					'handleError',
+					'handleException',
+					'__autoload',
+					'trigger_error',
+					'user_error'
+				)))
 				$tracestart = $id+1;
 		}
 		if ($tracestart > 0)
