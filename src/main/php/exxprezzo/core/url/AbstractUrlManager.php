@@ -69,8 +69,14 @@ abstract class AbstractUrlManager {
 		}
 	}
 	
-	public abstract function getPath();
-	
+	/**
+	 * Return the part of the URL that reflects which content was requested by the user.
+	 * This is the full URL minus the path to the exxprezzo index.php file
+	 */
+	public function getPath() {
+		return $this->internalPath;
+	}
+		
 	public abstract function mkrawurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true);
 	
 	/**

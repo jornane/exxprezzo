@@ -28,8 +28,4 @@ class QueryStringUrlManager extends AbstractUrlManager {
 		
 	}
 	
-	public function getPath() {
-		
-	}
-	
 }
