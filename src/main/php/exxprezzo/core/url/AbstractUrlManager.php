@@ -13,11 +13,11 @@ abstract class AbstractUrlManager {
 		if (!isset($_SERVER['QUERY_STRING'])) $_SERVER['QUERY_STRING'] = '';
 		if (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == 'off') $_SERVER['HTTPS'] = NULL;
 		
-		$this->server = $_SERVER;
-		$this->get    = $_GET;
-		$this->post   = $_POST;
-		$this->cookie = $_COOKIE;
-		$this->env    = $_ENV;
+		$this->server = $server;
+		$this->get    = $get;
+		$this->post   = $post;
+		$this->cookie = $cookie;
+		$this->env    = $env;
 	}
 	
 	/**
