@@ -4,6 +4,8 @@ use \exxprezzo\core\Core;
 
 abstract class AbstractUrlManager {
 	
+	protected $internalPath;
+	
 	public function __construct(&$server, &$get, &$post, &$cookie, &$env) {
 		if (!is_array($server)) $server = $_SERVER;
 		if (!is_array($get)) $get = $_GET;

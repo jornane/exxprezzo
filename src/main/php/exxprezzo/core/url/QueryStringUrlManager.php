@@ -9,8 +9,13 @@ class QueryStringUrlManager extends AbstractUrlManager {
 		while (sizeof($tmp) < 2)
 			$tmp[] = NULL;
 
-		$server['NEXXOS_PATH']  = $tmp[0];
-		$server['QUERY_STRING'] = $tmp[1];
+		$this->server['BASE_URL'] = strpos($this->server['REQUEST_URI'], '?') === false
+				? $this->server['REQUEST_URI']
+				: substr($this->server['REQUEST_URI'], 0, strpos($this->server['REQUEST_URI'], '?'))
+			;
+		$this->server['INTERNAL_PATH'] = $tmp[0];
+		$this->server['QUERY_STRING'] = $tmp[1];
+		$this->internalPath = $tmp[0];
 	}
 	
 	public function mkrawurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true) {
