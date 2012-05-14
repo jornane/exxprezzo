@@ -36,7 +36,7 @@ class QueryStringUrlManager extends AbstractUrlManager {
 	 */
 	public function serverpath($path) {
 		// The implementation for the QueryStringUrlManager is trivial;
-		// in the URL, the basis and the internal path are divided by 
+		// in the URL, the basis and the internal path are divided by a question mark (?)
 		return $path;
 	}
 	
