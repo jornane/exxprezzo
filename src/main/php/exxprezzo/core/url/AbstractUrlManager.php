@@ -63,12 +63,7 @@ abstract class AbstractUrlManager {
 	}
 	
 	public final function getHostGroup() {
-		$dbh = Core::getDatabaseConnection();
-		$stmt = $dbh->prepare('SELECT `hostGroupId`, `type` FROM `hostGroup` where `hostName` = ? OR `hostName` = ""');
-		if ($stmt->execute(array($this->server['HTTP_HOST'])) && $hostGroupEntry = $stmt->fetch()) {
-			if ($hostGroupEntry['type'] == 'redirect') {/* fixme */}
-			$hostGroup = $hostGroupEntry['hostGroupId'];
-		}
+		return HostGroup::getInstance($this->server['HTTP_HOST']);
 	}
 	
 	/**
