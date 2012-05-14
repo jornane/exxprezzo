@@ -19,18 +19,25 @@ class QueryStringUrlManager extends AbstractUrlManager {
 	}
 	
 	public function mkrawurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true) {
-		
+		$base = $fullUrl ? $this->server['BASE_URL'] : '';
+		// TODO merge $get with forced vars
+		if ($get)
+			return $base.'?'.$path.'?'.http_build_query($get);
+		else
+			return $base.'?'.$path;
 	}
 	
 	/**
-	 * Return the URL to a specific physical path, relative to the nexxos root.
+	 * Return the URL to a filesystem resource, for example .
 	 * 
-	 * @param string $path	Physical path, must not start with a slash
+	 * @param string $path	Path to the filesystem resource
 	 * 
 	 * @return string	Link to physical file
 	 */
 	public function serverpath($path) {
-		
+		// The implementation for the QueryStringUrlManager is trivial;
+		// in the URL, the basis and the internal path are divided by 
+		return $path;
 	}
 	
 }
