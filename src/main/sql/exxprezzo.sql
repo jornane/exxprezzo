@@ -7,7 +7,7 @@
 #
 # Host: localhost (MySQL 5.5.23)
 # Database: exxprezzo
-# Generation Time: 2012-05-15 19:00:28 +0000
+# Generation Time: 2012-05-15 23:13:49 +0000
 # ************************************************************
 
 
@@ -26,7 +26,7 @@
 DROP TABLE IF EXISTS `config`;
 
 CREATE TABLE `config` (
-  `key` varchar(255) NOT NULL DEFAULT '',
+  `key` varchar(255) CHARACTER SET ascii NOT NULL DEFAULT '',
   `value` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -49,10 +49,24 @@ DROP TABLE IF EXISTS `hostGroup`;
 
 CREATE TABLE `hostGroup` (
   `hostGroupId` int(11) unsigned NOT NULL,
-  `hostName` varchar(255) NOT NULL DEFAULT '',
-  `type` enum('primary','slave','redirect') NOT NULL DEFAULT 'slave',
+  `hostName` varchar(255) CHARACTER SET ascii NOT NULL DEFAULT '',
+  `type` enum('primary','slave','redirect') CHARACTER SET ascii NOT NULL DEFAULT 'slave',
   PRIMARY KEY (`hostGroupId`,`hostName`),
   UNIQUE KEY `hostName` (`hostName`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+
+# Dump of table layout
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `layout`;
+
+CREATE TABLE `layout` (
+  `layoutId` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL DEFAULT '',
+  `defaultBox` varchar(255) CHARACTER SET ascii NOT NULL DEFAULT '',
+  PRIMARY KEY (`layoutId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
@@ -67,8 +81,44 @@ CREATE TABLE `moduleInstance` (
   `module` varchar(255) NOT NULL DEFAULT '',
   `root` varchar(255) NOT NULL DEFAULT '',
   `hostGroup` int(11) unsigned NOT NULL,
+  `param` text,
   PRIMARY KEY (`moduleInstanceId`),
   UNIQUE KEY `mountpoint` (`root`,`hostGroup`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+
+# Dump of table page
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `page`;
+
+CREATE TABLE `page` (
+  `pageId` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `moduleInstanceId` int(11) DEFAULT NULL,
+  `function` varchar(255) CHARACTER SET ascii DEFAULT '',
+  `layoutId` int(11) unsigned NOT NULL,
+  PRIMARY KEY (`pageId`),
+  UNIQUE KEY `moduleInstanceId` (`moduleInstanceId`,`pageId`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+
+# Dump of table widget
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `widget`;
+
+CREATE TABLE `widget` (
+  `widgetId` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `pageId` int(11) unsigned DEFAULT NULL,
+  `moduleInstanceId` int(11) unsigned NOT NULL,
+  `function` varchar(255) CHARACTER SET ascii NOT NULL DEFAULT '',
+  `box` varchar(255) CHARACTER SET ascii NOT NULL DEFAULT '',
+  `priority` int(11) unsigned NOT NULL,
+  `param` text,
+  PRIMARY KEY (`widgetId`),
+  KEY `pageId` (`pageId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
