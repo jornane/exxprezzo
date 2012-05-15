@@ -6,11 +6,23 @@ use \Exception;
 use \exxprezzo\core\module\AbstractModule;
 
 class Core {
+	
+	/** @var (string)[] */
 	private static $config = array();
+	
+	/** @var string */
 	private static $basedir;
+	
+	/** @var \PDO */
 	private static $database;
+	
+	/** @var string */
 	private static $errorPage;
+	
+	/** @var string */
 	private static $urlManager;
+	
+	/** @var \exxprezzo\core\module\AbstractModule */
 	private static $mainModule;
 	
 	public static function run() {
@@ -27,7 +39,8 @@ class Core {
 			self::readConfigFromDB();
 			
 			// Parse URL
-			$urlManager = 'exxprezzo\\core\\url\\'.strtolower(self::$config['urlManager']).'UrlManager';
+			/** @var string */
+			$urlManager = 'exxprezzo\\core\\url\\'.self::$config['urlManager'].'UrlManager';
 			self::$urlManager = new $urlManager();
 			
 			// Instantiate main module
@@ -40,19 +53,23 @@ class Core {
 			
 			// Invoke main module
 			try {
+				/** @var \exxprezzo\core\Output */
 				$outputObject = self::$mainModule->run();
 			} catch (Exception $e) {
 				$outputObject = new ExceptionOutput($e);
 			}
 			
-			// Prepare output
-			
-			
-			// Send headers
-			
-			
-			// Send content
-			
+			if (Page::supportsOutput($outputObject)) {
+				// Prepare output
+				self::$pageManager = new Page($outputObject);
+				self::$pageManager->setUrlManager(self::$urlManager);
+				
+				// Send headers
+				self::$pageManager->outputHeaders();
+				
+				// Send content
+				self::$pageManager->outputContent();
+			} else $outputObject->run();
 			
 			// Cleanup
 			if (!headers_sent())
