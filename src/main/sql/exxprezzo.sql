@@ -7,7 +7,7 @@
 #
 # Host: localhost (MySQL 5.5.23)
 # Database: exxprezzo
-# Generation Time: 2012-05-07 18:39:34 +0000
+# Generation Time: 2012-05-15 19:00:28 +0000
 # ************************************************************
 
 
@@ -48,23 +48,27 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `hostGroup`;
 
 CREATE TABLE `hostGroup` (
-  `hostGroupId` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `primaryHost` varchar(255) NOT NULL DEFAULT '',
-  PRIMARY KEY (`hostGroupId`)
+  `hostGroupId` int(11) unsigned NOT NULL,
+  `hostName` varchar(255) NOT NULL DEFAULT '',
+  `type` enum('primary','slave','redirect') NOT NULL DEFAULT 'slave',
+  PRIMARY KEY (`hostGroupId`,`hostName`),
+  UNIQUE KEY `hostName` (`hostName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
 
-# Dump of table hostGroupAlias
+# Dump of table moduleInstance
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `hostGroupAlias`;
+DROP TABLE IF EXISTS `moduleInstance`;
 
-CREATE TABLE `hostGroupAlias` (
-  `hostGroupId` int(11) unsigned NOT NULL,
-  `hostName` varchar(255) NOT NULL DEFAULT '',
-  PRIMARY KEY (`hostGroupId`,`hostName`),
-  UNIQUE KEY `hostName` (`hostName`)
+CREATE TABLE `moduleInstance` (
+  `moduleInstanceId` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `module` varchar(255) NOT NULL DEFAULT '',
+  `root` varchar(255) NOT NULL DEFAULT '',
+  `hostGroup` int(11) unsigned NOT NULL,
+  PRIMARY KEY (`moduleInstanceId`),
+  UNIQUE KEY `mountpoint` (`root`,`hostGroup`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
