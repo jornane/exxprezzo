@@ -13,7 +13,7 @@ abstract class AbstractModule implements Runnable {
 		$path = trim($internalPath, '/');
 		$dbh = Core::getDatabaseConnection();
 		$options = AbstractUrlManager::pathOptions($path);
-		$stmt = $dbh->prepare('SELECT `moduleInstanceId`, `module`, `root` FROM `moduleInstance`
+		$stmt = $dbh->prepare('SELECT `moduleInstanceId`, `module`, `root`, `param` FROM `moduleInstance`
 				WHERE `root` IN('.str_repeat('\'?\',', sizeof($options)-1).'\'?\')
 				ORDER BY LENGTH(`root`) DESC
 				LIMIT 1');
@@ -24,6 +24,7 @@ abstract class AbstractModule implements Runnable {
 			$result = new $moduleFQN;
 			$result->instanceId = $instanceId;
 			$result->modulePath = substr($internalPath, strlen($instanceEntry['root'])+1);
+			$result->moduleParam = unserialize($instanceEntry['param');
 			return result;
 		}
 		// Make me a 404
