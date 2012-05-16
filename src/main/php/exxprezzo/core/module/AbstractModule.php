@@ -8,6 +8,8 @@ use \exxprezzo\core\url\AbstractUrlManager;
 abstract class AbstractModule implements Runnable {
 	protected $isMain;
 	private $urlManager;
+	private $functionName;
+	private $pathParameters;
 
 	public static function getInstanceFor($hostGroup, $internalPath) {
 		$path = trim($internalPath, '/');
@@ -25,6 +27,7 @@ abstract class AbstractModule implements Runnable {
 			$result->instanceId = $instanceId;
 			$result->modulePath = substr($internalPath, strlen($instanceEntry['root'])+1);
 			$result->moduleParam = unserialize($instanceEntry['param');
+			$result->init();
 			return result;
 		}
 		// Make me a 404
@@ -106,7 +109,7 @@ abstract class AbstractModule implements Runnable {
 
 	/**
 	 * Extracts the variables from a given path
-	 * 
+	 *
 	 * The path is a path string in which variable
 	 * segments are given as {$name}. This will
 	 * return a set of all names encountered in
@@ -126,5 +129,63 @@ abstract class AbstractModule implements Runnable {
 			$result[$name] = NULL;
 		}
 		return array_keys($result);
+	}
+
+	public function setPathParameters($params){
+		$this->pathParameters = $params;
+	}
+
+	public function getParameters(){
+		return $this->pathParameters;
+	}
+
+	public function setFunctionName($name){
+		$this->functionName = $name;
+	}
+
+	/**
+	 * Initializes the module. This is the method that is called
+	 * shortly after the module is constructed and it has been
+	 * fully supplied with the information about its instance.
+	 * Prior to this call the values of the variables related
+	 * to this instance are not yet valid so if a module needs
+	 * to do initialization based on that information it should
+	 * do so here. The standard implementation finds a function
+	 * for the internal path through the regular expression keys
+	 * in static::$functions, parses arguments from it and then stores
+	 * this infomation so run can call the function with the
+	 * correct arguments. This also ensures getFunctionName()
+	 * returns a sensible value. Any overriden version needs to
+	 * at least maintain this behaviour (The function does not
+	 * have to be based on static::$functions but getFunctionName()
+	 * has to make sense).
+	 */
+	protected function init() {
+		if(!isset(static::$functions))
+			user_error('The default init implementation requires a $functions static property in the module class');
+		$functions = static::$functions;
+		$matches = NULL;
+		foreach($functions as $regex => $function){
+			$rawMatches = array();
+			if(preg_match('/^'.str_replace('/', '\\/', $regex).'$/', $modparameter, $rawMatches)){
+				$matches = array();
+				foreach($rawMatches as $name => $value)
+					if (!is_integer($name))
+						$matches[$name] = rawurldecode($value);
+				$this->setPathParameters($matches);
+				$this->setFunctionName($function);
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Runs this module. This is done by calling the getFunctionName()
+	 * method on this object. This name must be set to a valid value
+	 * in init() (@see #init())
+	 */
+	public final function run() {
+		$name = $this->getFunctionName();
+		return $this->$name();
 	}
 }
