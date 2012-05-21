@@ -1,4 +1,4 @@
-<?php namespace \exxprezzo\core;
+<?php namespace exxprezzo\core;
 
 class Template {
 	
