@@ -26,7 +26,7 @@ abstract class AbstractModule implements Runnable {
 			$result = new $moduleFQN;
 			$result->instanceId = $instanceId;
 			$result->modulePath = substr($internalPath, strlen($instanceEntry['root'])+1);
-			$result->moduleParam = unserialize($instanceEntry['param');
+			$result->moduleParam = unserialize($instanceEntry['param']);
 			$result->init();
 			return result;
 		}
