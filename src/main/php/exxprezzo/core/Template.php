@@ -85,6 +85,8 @@ class Template {
 		$templateCode = preg_replace_callback(self::REGEX_BLOCK, array($this, 'matchBlock'), $templateCode);
 		$templateCode = preg_replace(self::REGEX_ANNOTATION, '', $templateCode);
 		$templateCode = preg_replace_callback(self::REGEX_VAR, array($this, 'matchVar'), $templateCode);
+		$templateCode = preg_replace('_([[:blank:]]{2,})_', ' ', $templateCode);
+		$templateCode = preg_replace('_([\s]{2,})_', "\n", $templateCode);
 		return $templateCode;
 	}
 	
