@@ -16,6 +16,15 @@ class Template {
 	
 	protected $content;
 	
+	/** @var string[] */
+	private $tempVars;
+	/** @var string[] */
+	private $validPrefixes = array();
+	
+	private function __clone() {
+		unset($this->tempVars);
+	}
+	
 	const REGEX_BLOCK = '_\\<\\!\\-\\- ([A-Z0-9\\_\\-]+) ([a-z0-9\\.\\_\\-]+) \\-\\-\\>(.*?)\\<\\!\\-\\- /\\1 \\2 \\-\\-\\>_ms';
 	const REGEX_ANNOTATION = '_\\<\\!\\-\\- ([a-z0-9\\.\\_\\-]+) ([a-z0-9\\.\\_\\-]+) \\-\\-\\>_i';
 	const KEYWORD = 1;
@@ -69,27 +78,33 @@ class Template {
 	 * @param Content $content
 	 * @param string[] $validPrefixes
 	 */
-	public function render($templateCode=NULL, $content=NULL, $validPrefixes=array()) {
+	public function render($templateCode=NULL) {
 		if (is_null($templateCode))
 			$templateCode = $this->templateCode;
-		if (is_null($content))
-			$content = $this->content;
-		$tempVars = array();
-		$templateCode = preg_replace_callback(self::REGEX_BLOCK, function ($matches) {
-				$function = array($this, 'render'.ucfirst(strtolower($matches[self::KEYWORD])).'Block');
-				if (function_exists($function)) {
-					$tempVars[] = $function($matches[self::CONTENT], $matches[self::BLOCKNAME], $validPrefixes);
-					return '{#'.(count($tempVars)-1).'}';
-				} return '';
-			}, $templateCode);
+		$this->tempVars = array();
+		$templateCode = preg_replace_callback(self::REGEX_BLOCK, array($this, 'matchBlock'), $templateCode);
 		$templateCode = preg_replace(self::REGEX_ANNOTATION, '', $templateCode);
-		$templateCode = preg_replace_callback(self::REGEX_VAR, function ($matches) {
-				return $matches{0} == '#'
-						? $tempVars[substr($matches[self::VARNAME], 1)]
-						: $content->getVariable($matches[self::VARNAME])
-					;
-			}, $templateCode);
+		$templateCode = preg_replace_callback(self::REGEX_VAR, array($this, 'matchVar'), $templateCode);
 		return $templateCode;
+	}
+	
+	private function matchBlock($matches) {
+		$tpl = clone $this;
+		$function = 'render'.ucfirst(strtolower($matches[self::KEYWORD])).'Block';
+		if (method_exists($tpl, $function)) {
+			$this->tempVars[] = $tpl->$function($matches[self::CONTENT], $matches[self::BLOCKNAME]);
+			return '{#'.(count($this->tempVars)-1).'}';
+		} return 'ERR';
+	}
+	
+	private function matchVar($matches) {
+		return $matches[self::VARNAME]{0} == '#'
+				? $this->tempVars[substr($matches[self::VARNAME], 1)]
+				: (is_object($this->content->getVariable($matches[self::VARNAME]))
+					? $this->content->getVariable($matches[self::VARNAME])->__toString()
+					: $this->content->getVariable($matches[self::VARNAME])
+				  )
+			;
 	}
 	
 	/**
@@ -99,30 +114,16 @@ class Template {
 	 * @param Content $content
 	 * @param string[] $validPrefixes
 	 */
-	protected function renderForBlock($templateCode, $blockName, $content, $validPrefixes) {
-		$blocknamesplit = explode('.', $blockName);
-		$blockDepth = sizeof($blocknamesplit)-1;
-		for ($i=0; $i<$blockDepth; $i++) {
-			$currentprefix .= $blocknamesplit[$i];
-			if (!isset($prefixes[$currentprefix])) { // Invalid blockname; no parent block found
-				Core::debug(new ConstraintsException('Trying to render block "'.$blockname.'" while block "'.$currentprefix.'" does not exist'));
-				return false;
-			}
-			$block = &$block[$blocknamesplit[$i]][$prefixes[$currentprefix]]['blocks'];
-				
-			$currentprefix .= '.';
-		}
-		$currentprefix .= $blocknamesplit[$blocksize].'.';
-		$block = &$block[$blocknamesplit[$blocksize]];
+	protected function renderForBlock($templateCode, $blockName) {
+		$blocks = $this->content->getBlocks($blockName);
+		if (!$blocks) $blocks = array();
+		$this->validPrefixes = array_merge($this->validPrefixes, array($blockName => $blockName));
 		$result = '';
-		if (is_array($block)) foreach($block as $number => $blockvars) {
-			foreach($blockvars['values'] as $key => $value) {
-				unset($blockvars['values'][$key]);
-				$blockvars['values'][$currentprefix.$key] = $value;
-			}
-			$newContent = clone $content;
-			$content->putVariables($blockvars['values']);
-			$result .= $this->render($templatecode, array_merge($vars, $blockvars['values']), $blocks, array_merge($prefixes, array($blockname => $number)), $files, $workdir, true);
+		foreach($blocks as $iteration => $block) {
+			$oldContent = $this->content;
+			$this->content = $this->content->merge($blockName, $iteration);
+			$result .= $this->render($templateCode);
+			$this->content = $oldContent;
 		}
 		return $result;
 	}
@@ -134,9 +135,9 @@ class Template {
 	 * @param Content $content
 	 * @param string[] $validPrefixes
 	 */
-	protected function renderIfBlock($templateCode, $block, $content, $validPrefixes) {
-		if (empty($content->getBlock($block)))
-			return render($templateCode, $content, $validPrefixes);
+	protected function renderIfBlock($templateCode, $block) {
+		if ($this->content->getBlocks($block))
+			return $this->render($templateCode, $this->content);
 	}
 	
 	/**
@@ -146,9 +147,9 @@ class Template {
 	 * @param Content $content
 	 * @param string[] $validPrefixes
 	 */
-	protected function renderNotBlock($templateCode, $block, $content, $validPrefixes) {
-		if (!empty($content->getBlock($block)))
-			return render($templateCode, $content, $validPrefixes);
+	protected function renderNotBlock($templateCode, $block) {
+		if (!($this->content->getBlocks($block)))
+			return $this->render($templateCode, $this->content);
 	}
 	
 }
