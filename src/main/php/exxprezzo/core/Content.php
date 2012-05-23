@@ -89,6 +89,8 @@ class Content {
 	}
 	
 	/**
+	 * @access protected
+	 * This method is namespace protected
 	 * 
 	 * @param string $blockName
 	 * @param int $iteration
