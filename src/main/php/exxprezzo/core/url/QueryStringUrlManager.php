@@ -28,7 +28,7 @@ class QueryStringUrlManager extends AbstractUrlManager {
 	}
 	
 	/**
-	 * Return the URL to a filesystem resource, for example .
+	 * Return the URL to a filesystem resource, for example a template resource.
 	 * 
 	 * @param string $path	Path to the filesystem resource
 	 * 
