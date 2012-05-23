@@ -14,6 +14,7 @@ class Template {
 	/** @var string[] */
 	protected $variables;
 	
+	/** @var Content */
 	protected $content;
 	
 	/** @var string[] */
@@ -36,10 +37,18 @@ class Template {
 	
 	const REGEX_COMMENT = '_\\<\\!\\-\\- (.*) \\-\\-\\>_i';
 	
+	/**
+	 * 
+	 * @param string $templateCode
+	 */
 	public function __construct($templateCode) {
 		$this->templateCode = $templateCode;
 	}
 	
+	/**
+	 * @return string[]	a one-dimensional array containing all blocks
+	 * 	as they appear in the template (dot separated)
+	 */
 	public function getBlocks() {
 		if (!is_null($this->blocks))
 			return $this->blocks;
@@ -49,6 +58,10 @@ class Template {
 		return $this->blocks = array_unique($matches[self::BLOCKNAME]);
 	}
 	
+	/**
+	 * @return string[] an indexed array containing all annotations
+	 * 	as they appear in the template (key => value)
+	 */
 	public function getAnnotations() {
 		if (!is_null($this->annotations))
 			return $this->annotations;
@@ -61,6 +74,9 @@ class Template {
 		return $this->annotations = $result;
 	}
 	
+	/**
+	 * @return string[] a list containing all variables as they appear in the template
+	 */
 	public function getVariables() {
 		if (!is_null($this->variables))
 			return $this->variables;
@@ -68,6 +84,11 @@ class Template {
 		return $this->variables = array_unique($matches[self::VARNAME]);
 	}
 	
+	/**
+	 * Set the content used by #render($templateCode)
+	 * 
+	 * @param Content $content
+	 */
 	public function setContent($content) {
 		$this->content = $content;
 	}
@@ -90,6 +111,11 @@ class Template {
 		return $templateCode;
 	}
 	
+	/**
+	 * 
+	 * @param string[][] $matches
+	 * @return string
+	 */
 	private function matchBlock($matches) {
 		$tpl = clone $this;
 		$function = 'render'.ucfirst(strtolower($matches[self::KEYWORD])).'Block';
