@@ -7,7 +7,7 @@
 #
 # Host: localhost (MySQL 5.5.23)
 # Database: exxprezzo
-# Generation Time: 2012-05-15 23:13:49 +0000
+# Generation Time: 2012-05-23 21:03:02 +0000
 # ************************************************************
 
 
@@ -98,6 +98,7 @@ CREATE TABLE `page` (
   `moduleInstanceId` int(11) DEFAULT NULL,
   `function` varchar(255) CHARACTER SET ascii DEFAULT '',
   `layoutId` int(11) unsigned NOT NULL,
+  `preferredFunctionTemplate` varchar(255) CHARACTER SET ascii DEFAULT NULL,
   PRIMARY KEY (`pageId`),
   UNIQUE KEY `moduleInstanceId` (`moduleInstanceId`,`pageId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -114,6 +115,7 @@ CREATE TABLE `widget` (
   `pageId` int(11) unsigned DEFAULT NULL,
   `moduleInstanceId` int(11) unsigned NOT NULL,
   `function` varchar(255) CHARACTER SET ascii NOT NULL DEFAULT '',
+  `preferredFunctionTemplate` varchar(255) CHARACTER SET ascii DEFAULT NULL,
   `box` varchar(255) CHARACTER SET ascii NOT NULL DEFAULT '',
   `priority` int(11) unsigned NOT NULL,
   `param` text,

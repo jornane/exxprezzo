@@ -17,7 +17,7 @@ final class Page implements Output {
 	public function __construct($outputObject) {
 		$this->main = $outputObject;
 		$dbh = Core::getDatabaseConnection();
-		$stmt = $dbh->prepare('SELECT `pageId`, `layout` FROM `page`
+		$stmt = $dbh->prepare('SELECT `pageId`, `layout`, `preferredFunctionTemplate` FROM `page`
 				WHERE (`moduleInstanceId` = :moduleInstanceId OR `moduleInstanceId` IS NULL)
 				AND (`function` = :function OR `function` IS NULL)
 				ORDER BY (`moduleInstanceId`!="" AND `function`!=""), `moduleInstanceId`!=""
@@ -27,10 +27,11 @@ final class Page implements Output {
 		if ($stmt->execute() && $layoutEntry = $stmt->fetch()) {
 			$this->pageId = $layoutEntry['pageId'];
 			$this->layout = $layoutEntry['layout'];
+			$this->templateName = $layoutEntry['preferredFunctionTemplate'];
 		} else {
 			user_error("No layout found. Did you forget to specify a default layout?");
 		}
-		$stmt = $dbh->prepare('SELECT `widgetId`, `moduleInstanceId`, `function`, `box`, `param` FROM `widget`
+		$stmt = $dbh->prepare('SELECT `widgetId`, `moduleInstanceId`, `function`, `preferredFunctionTemplate`, `box`, `param` FROM `widget`
 				WHERE `pageId` = :pageId
 				ORDER BY `priority` ASC');
 		$stmt->bindParam(':moduleInstanceId', $this->main->getSource()->getInstanceId());
