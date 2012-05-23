@@ -76,17 +76,20 @@ abstract class AbstractUrlManager {
 		
 	public abstract function mkrawurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true);
 	
+	public abstract function serverpath($path);
+	
 	/**
 	 * Return the URL to a specific physical path, relative to the exxprezzo root.
 	 * 
-	 * @param string $path	Physical path, must not start with a slash
-	 * 
-	 * @return string	Link to physical file
+	 * @param AbstractModule $module
+	 * @param string $function
+	 * @param string[] $args
+	 * @param string[] $get
+	 * @param boolean $fullUrl
+	 * @param boolean $noGetForce
 	 */
-	public abstract function serverpath($path);
-	
-	public final function mkurl($module, $function, $args, $fullUrl=false, $noGetForce=true) {
-		$functionPath = $module->getFunctionPath($function, $args);
-		return $this->mkrawurl($functionPath->hostGroup, $functionPath->path, $functionPath->get, $fullUrl, $noGetForce);
+	public final function mkurl($module, $function, $args=array(), $get=array(), $fullUrl=false, $noGetForce=true) {
+		$functionPath = $module::getFunctionPath($function, $args);
+		return $this->mkrawurl($this->getHostGroup(), $module->getModulePath().$functionPath, $get, $fullUrl, $noGetForce);
 	}
 }
