@@ -102,10 +102,7 @@ class Template {
 	private function matchVar($matches) {
 		return $matches[self::VARNAME]{0} == '#'
 				? $this->tempVars[substr($matches[self::VARNAME], 1)]
-				: (is_object($this->content->getVariable($matches[self::VARNAME]))
-					? $this->content->getVariable($matches[self::VARNAME])->__toString()
-					: $this->content->getVariable($matches[self::VARNAME])
-				  )
+				: $this->content->getVariableString($matches[self::VARNAME])
 			;
 	}
 	

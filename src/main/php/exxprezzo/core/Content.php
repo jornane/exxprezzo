@@ -16,10 +16,9 @@ class Content {
 	
 	/**
 	 * 
-	 * @param string $blockName
-	 * @param string[]|Content $block
+	 * @param unknown_type $blockName
 	 */
-	public function addBlock($blockName, $block) {
+	protected function &getBlock($blockName) {
 		$blocks = explode('.', $blockName);
 		$last = array_pop($blocks);
 		$root = &$this->blocks;
@@ -27,13 +26,22 @@ class Content {
 			$root = &$root[$blockName];
 			$root = &$root[count($root)-1]->blocks;
 		}
-		$root = &$root[$last];
+		return $root[$last];
+	}
+	
+	/**
+	 * 
+	 * @param string $blockName
+	 * @param string[]|Content $block
+	 */
+	public function addBlock($blockName, $block) {
+		$parentBlock = &$this->getBlock($blockName);
 		if (is_object($block) && $block instanceof Content) {
-			$root[] = $block;
+			$parentBlock[] = $block;
 		} else if (is_array($block)) {
 			$content = new Content();
 			$content->vars = $block;
-			$root[] = $content;
+			$parentBlock[] = $content;
 		} else {
 			user_error('Invalid type for $block: '.gettype($block));
 		}
@@ -41,21 +49,41 @@ class Content {
 	}
 	/**
 	 * 
-	 * @param unknown_type $blockName
-	 * @param unknown_type $variables
+	 * @param string $blockName
+	 * @param string[] $variables
 	 */
-	public function appendBlocks($blockName, $variables) {
-		$this->blocks[$blockName][count($this->blocks)-1]->vars
+	public function appendBlock($blockName, $variables) {
+		$parentBlock = &$this->getBlock($blockName);
+		$parentBlock[count($parentBlock)-1]->vars
 			= array_merge(
-					$this->blocks[$blockName][count($this->blocks)-1]->vars,
+					$parentBlock[count($this->blocks)-1]->vars,
 					$variables
 				);
 	}
 	
+	/**
+	 * 
+	 * @param string $name
+	 */
+	public function getVariableString($name) {
+		return isset($this->vars[$name]) && is_object($this->vars[$name])
+				? $this->vars[$name]->__toString()
+				: $this->getVariable($name)
+			;
+	}
+	
+	/**
+	 * 
+	 * @param string $name
+	 */
 	public function getVariable($name) {
 		return isset($this->vars[$name]) ? $this->vars[$name] : NULL;
 	}
 	
+	/**
+	 * 
+	 * @param string $name
+	 */
 	public function getBlocks($name) {
 		return $this->blocks[$name];
 	}
