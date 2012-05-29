@@ -1,8 +1,20 @@
-<?php namespace exxprezzo\core;
+<?php namespace exxprezzo\core\output;
+
+use \DateTime;
 
 use exxprezzo\core\module\AbstractModule;
 
-interface Output extends Runnable {
+abstract class AbstractOutput implements Output {
+	
+	private $source;
+	
+	/**
+	 * 
+	 * @param AbstractModule $source
+	 */
+	public function __construct($source) {
+		$this->source = $source;
+	}
 	
 	/**
 	 * Send this Output to the browser rightaway
@@ -10,31 +22,64 @@ interface Output extends Runnable {
 	 * (non-PHPdoc)
 	 * @see exxprezzo\core.Runnable::run()
 	 */
-	function run();
+	public function run() {
+		header('Last-Modified: '.gmdate(DateTime::RFC1123, $this->getLastModified()->getTimestamp()));
+		header('Pragma: '.($this->isCacheable()?'cache':'no-cache'));
+		header('Cache-control: '.($this->isCacheable()
+				? 'max-age='.($this->getExpiryDate()->getTimestamp()-$this->getLastModified()->getTimestamp())
+				: 'no-cache, must-revalidate')
+			);
+		header('Expires: '.gmdate(DateTime::RFC1123, $this->isCacheable() ? $this->getExpiryDate()->getTimestamp() : $this->getLastModified()->getTimestamp()));
+		echo $this->getContent();
+	}
 	
 	/**
 	 * @return AbstractModule
 	 */
-	function getSource();
+	public function getSource() {
+		return $this->source;
+	}
 	
 	/**
 	 * @return string
 	 */
-	function renderContents();
+	public abstract function getContent();
+	
+	/**
+	 * @return string[]
+	 */
+	public abstract function getContentTypes();
 	
 	/**
 	 * @return int
 	 */
-	function getLength();
+	public function getLength() {
+		return strlen($this->getContent());
+	}
 	
 	/**
 	 * @return \DateTime
 	 */
-	function getLastModified();
+	public function getLastModified() {
+		return new DateTime();
+	}
 	
 	/**
 	 * @return \DateTime
 	 */
-	function getExpiryDate();
+	public function getExpiryDate() {
+		return new DateTime();
+	}
+	
+	/**
+	 * @return boolean
+	 */
+	public function isCacheable() {
+		return false;
+	}
+	
+	public final function __toString() {
+		return $this->getContent();
+	}
 	
 }
