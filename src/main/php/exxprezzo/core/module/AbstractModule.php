@@ -211,4 +211,12 @@ abstract class AbstractModule implements Runnable {
 	public final function getInstanceId() {
 		return $this->instanceId;
 	}
+	
+	public final function getName() {
+		return substr(get_class($this), strrpos(get_class($this), '\\')+1);
+	}
+	
+	public final function __toString() {
+		return $this->getName().':'.$this->getInstanceId();
+	}
 }
