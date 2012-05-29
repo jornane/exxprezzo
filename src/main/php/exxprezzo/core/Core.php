@@ -76,7 +76,7 @@ class Core {
 			} else $outputObject->run();
 			
 			// Cleanup
-			if (!headers_sent())
+			if (!headers_sent() && ob_get_length() == 0)
 				trigger_error('No errors occurred, but no output was generated either.');
 		} catch (Exception $e) {
 			Core::handleException($e, false, true);
