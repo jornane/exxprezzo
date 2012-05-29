@@ -1,4 +1,4 @@
-<?php exxprezzo\core\output;
+<?php namespace exxprezzo\core\output;
 
 interface FormattableOutput extends Output {
 	
