@@ -171,7 +171,7 @@ class Core {
 					'trigger_error',
 					'user_error',
 				))) {
-					$tracestart = $id;
+					$tracestart = $id-1;
 				}
 		}
 		//if ($tracestart > 0)
