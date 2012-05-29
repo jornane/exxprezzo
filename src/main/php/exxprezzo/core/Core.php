@@ -1,9 +1,12 @@
 <?php namespace exxprezzo\core;
 
+use exxprezzo\core\url\AbstractUrlManager;
+
 use \ErrorException;
 use \Exception;
 
 use \exxprezzo\core\module\AbstractModule;
+use \exxprezzo\core\page\Page;
 
 class Core {
 	
@@ -19,8 +22,11 @@ class Core {
 	/** @var string */
 	private static $errorPage;
 	
-	/** @var string */
+	/** @var AbstractUrlManager */
 	private static $urlManager;
+	
+	/** @var \exxprezzo\core\page\Page */
+	private static $pageManager;
 	
 	/** @var \exxprezzo\core\module\AbstractModule */
 	private static $mainModule;
@@ -64,13 +70,9 @@ class Core {
 			if (Page::supportsOutput($outputObject)) {
 				// Prepare output
 				self::$pageManager = new Page($outputObject);
-				self::$pageManager->setUrlManager(self::$urlManager);
 				
 				// Send headers
-				self::$pageManager->outputHeaders();
-				
-				// Send content
-				self::$pageManager->outputContent();
+				self::$pageManager->run();
 			} else $outputObject->run();
 			
 			// Cleanup
