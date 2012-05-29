@@ -7,7 +7,7 @@
 #
 # Host: localhost (MySQL 5.5.23)
 # Database: exxprezzo
-# Generation Time: 2012-05-23 21:03:02 +0000
+# Generation Time: 2012-05-29 18:50:07 +0000
 # ************************************************************
 
 
@@ -36,6 +36,7 @@ LOCK TABLES `config` WRITE;
 
 INSERT INTO `config` (`key`, `value`)
 VALUES
+	('timeZone','Etc/GMT+0'),
 	('urlManager','QueryString');
 
 /*!40000 ALTER TABLE `config` ENABLE KEYS */;
@@ -48,13 +49,22 @@ UNLOCK TABLES;
 DROP TABLE IF EXISTS `hostGroup`;
 
 CREATE TABLE `hostGroup` (
-  `hostGroupId` int(11) unsigned NOT NULL,
+  `hostGroupId` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `hostName` varchar(255) CHARACTER SET ascii NOT NULL DEFAULT '',
   `type` enum('primary','slave','redirect') CHARACTER SET ascii NOT NULL DEFAULT 'slave',
   PRIMARY KEY (`hostGroupId`,`hostName`),
   UNIQUE KEY `hostName` (`hostName`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+LOCK TABLES `hostGroup` WRITE;
+/*!40000 ALTER TABLE `hostGroup` DISABLE KEYS */;
+
+INSERT INTO `hostGroup` (`hostGroupId`, `hostName`, `type`)
+VALUES
+	(1,'%','primary');
+
+/*!40000 ALTER TABLE `hostGroup` ENABLE KEYS */;
+UNLOCK TABLES;
 
 
 # Dump of table layout
@@ -64,11 +74,21 @@ DROP TABLE IF EXISTS `layout`;
 
 CREATE TABLE `layout` (
   `layoutId` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `theme` varchar(255) CHARACTER SET ascii NOT NULL,
   `name` varchar(255) NOT NULL DEFAULT '',
   `defaultBox` varchar(255) CHARACTER SET ascii NOT NULL DEFAULT '',
   PRIMARY KEY (`layoutId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+LOCK TABLES `layout` WRITE;
+/*!40000 ALTER TABLE `layout` DISABLE KEYS */;
+
+INSERT INTO `layout` (`layoutId`, `theme`, `name`, `defaultBox`)
+VALUES
+	(1,'default','default','content');
+
+/*!40000 ALTER TABLE `layout` ENABLE KEYS */;
+UNLOCK TABLES;
 
 
 # Dump of table moduleInstance
@@ -86,6 +106,15 @@ CREATE TABLE `moduleInstance` (
   UNIQUE KEY `mountpoint` (`root`,`hostGroup`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+LOCK TABLES `moduleInstance` WRITE;
+/*!40000 ALTER TABLE `moduleInstance` DISABLE KEYS */;
+
+INSERT INTO `moduleInstance` (`moduleInstanceId`, `module`, `root`, `hostGroup`, `param`)
+VALUES
+	(1,'CMS','',1,NULL);
+
+/*!40000 ALTER TABLE `moduleInstance` ENABLE KEYS */;
+UNLOCK TABLES;
 
 
 # Dump of table page
@@ -103,6 +132,15 @@ CREATE TABLE `page` (
   UNIQUE KEY `moduleInstanceId` (`moduleInstanceId`,`pageId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+LOCK TABLES `page` WRITE;
+/*!40000 ALTER TABLE `page` DISABLE KEYS */;
+
+INSERT INTO `page` (`pageId`, `moduleInstanceId`, `function`, `layoutId`, `preferredFunctionTemplate`)
+VALUES
+	(1,NULL,NULL,1,NULL);
+
+/*!40000 ALTER TABLE `page` ENABLE KEYS */;
+UNLOCK TABLES;
 
 
 # Dump of table widget

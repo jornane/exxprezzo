@@ -38,6 +38,8 @@ class Core {
 			// Read config from database (implicit connect to database)
 			self::readConfigFromDB();
 			
+			date_default_timezone_set(self::$config['timeZone']);
+			
 			// Parse URL
 			/** @var string */
 			$urlManager = 'exxprezzo\\core\\url\\'.self::$config['urlManager'].'UrlManager';
