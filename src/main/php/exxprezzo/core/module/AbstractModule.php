@@ -10,6 +10,10 @@ abstract class AbstractModule implements Runnable {
 	private $urlManager;
 	private $functionName;
 	private $pathParameters;
+	
+	protected $instanceId;
+	protected $modulePath;
+	protected $moduleParam;
 
 	public static function getInstanceFor($hostGroup, $internalPath) {
 		$path = trim($internalPath, '/');
@@ -28,7 +32,7 @@ abstract class AbstractModule implements Runnable {
 			$result->modulePath = substr($internalPath, strlen($instanceEntry['root'])+1);
 			$result->moduleParam = unserialize($instanceEntry['param']);
 			$result->init();
-			return result;
+			return $result;
 		}
 		// Make me a 404
 		user_error('Unable to find suitable module.');
@@ -142,6 +146,10 @@ abstract class AbstractModule implements Runnable {
 	public function setFunctionName($name){
 		$this->functionName = $name;
 	}
+	
+	public function getFunctionName() {
+		return $this->functionName;
+	}
 
 	/**
 	 * Initializes the module. This is the method that is called
@@ -163,11 +171,10 @@ abstract class AbstractModule implements Runnable {
 	protected function init() {
 		if(!isset(static::$functions))
 			user_error('The default init implementation requires a $functions static property in the module class');
-		$functions = static::$functions;
 		$matches = NULL;
-		foreach($functions as $regex => $function){
+		foreach(static::$functions as $regex => $function){
 			$rawMatches = array();
-			if(preg_match('/^'.str_replace('/', '\\/', $regex).'$/', $modparameter, $rawMatches)){
+			if(preg_match('/^'.str_replace('/', '\\/', $regex).'$/', $this->modulePath, $rawMatches)){
 				$matches = array();
 				foreach($rawMatches as $name => $value)
 					if (!is_integer($name))
