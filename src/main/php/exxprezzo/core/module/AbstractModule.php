@@ -196,26 +196,53 @@ abstract class AbstractModule implements Runnable {
 		return $this->$name();
 	}
 	
+	/**
+	 * 
+	 * @param unknown_type $function
+	 * @param unknown_type $args
+	 * @param unknown_type $fullUrl
+	 * @param unknown_type $noGetForce
+	 */
 	public final function mkurl($function, $args, $fullUrl=false, $noGetForce=true) {
 		return $this->getUrlManager()->mkurl($this, $function, $args, $fullUrl, $noGetForce);
 	}
-
+	
+	/**
+	 * Module path is the part of the Internal URL which does not indicate the module.
+	 * @return string	The module path 
+	 */
 	public function getModulePath() {
 		return $this->modulePath;
 	}
-
+	
+	/**
+	 * The module parameter is a variable that is provided to this instance of the module.
+	 * There are no rules for this variable,
+	 * because it differs for every module.
+	 * It is however likely that this parameter will be a database connection.
+	 * @return mixed	The module parameter
+	 */
 	public function getModuleParam() {
 		return $this->moduleParam;
 	}
 	
+	/**
+	 * @return int	The instance number of this module instance
+	 */
 	public final function getInstanceId() {
 		return $this->instanceId;
 	}
 	
+	/**
+	 * @return string	The name of this module
+	 */
 	public final function getName() {
 		return substr(get_class($this), strrpos(get_class($this), '\\')+1);
 	}
 	
+	/**
+	 * @return string	String which can be used to identify this instance
+	 */
 	public final function __toString() {
 		return $this->getName().':'.$this->getInstanceId();
 	}
