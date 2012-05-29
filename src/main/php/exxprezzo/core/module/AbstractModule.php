@@ -34,15 +34,8 @@ abstract class AbstractModule implements Runnable {
 				ORDER BY LENGTH(`root`) DESC
 				LIMIT 1', array('options' => $options));
 		if ($instanceEntry = $dbh->fetchRow()) {
-			$instanceId = $instanceEntry['moduleInstanceId'];
-			$module = $instanceEntry['module'];
-			$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
-			$result = new $moduleFQN;
-			$result->instanceId = (int)$instanceId;
-			$result->modulePath = '/'.substr($internalPath, strlen($instanceEntry['root'])+1);
-			$result->moduleParam = self::parseParam($instanceEntry['param']);
-			$result->init();
-			return $result;
+			return self::_getInstance($instanceEntry['module'], $instanceEntry['moduleInstanceId'],
+					'/'.substr($internalPath, strlen($instanceEntry['root'])+1), self::parseParam($instanceEntry['param']));
 		}
 		// Make me a 404
 		user_error('Unable to find suitable module.');
@@ -50,7 +43,7 @@ abstract class AbstractModule implements Runnable {
 	
 	/**
 	 * 
-	 * @param integer $moduleInstanceId
+	 * @param int $moduleInstanceId
 	 */
 	public static function getInstance($moduleInstanceId, $modulePath = NULL) {
 		$dbh = Core::getDatabaseConnection();
@@ -59,19 +52,22 @@ abstract class AbstractModule implements Runnable {
 				ORDER BY LENGTH(`root`) DESC
 				LIMIT 1', array('moduleInstanceId', (int)$moduleInstanceId));
 		if ($instanceEntry = $dbh->fetchrow()) {
-			$instanceId = $instanceEntry['moduleInstanceId'];
-			$module = $instanceEntry['module'];
-			$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
-			$result = new $moduleFQN;
-			$result->instanceId = $instanceId;
-			$result->modulePath = $modulePath;
-			$result->moduleParam = self::parseParam($instanceEntry['param']);
-			$result->init();
-			return $result;
+			return self::_getInstance($instanceEntry['module'], $moduleInstanceId, 
+					$modulePath, self::parseParam($instanceEntry['param']));
 		}
 		user_error('Unable to find suitable module.');
 	}
 	
+	private static function _getInstance($module, $instanceId, $path, $param) {
+		$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
+		$result = new $moduleFQN;
+		$result->instanceId = $instanceId;
+		$result->modulePath = $path;
+		$result->moduleParam = $param;
+		$result->init();
+		return $result;
+	}
+
 	private static function parseParam($moduleParameter) {
 		try {
 			return unserialize($moduleParameter);
@@ -83,7 +79,7 @@ abstract class AbstractModule implements Runnable {
 	}
 	
 	public abstract function getTitle();
-
+	
 	public function setMain($isMain) {
 		$this->isMain = $isMain;
 	}
