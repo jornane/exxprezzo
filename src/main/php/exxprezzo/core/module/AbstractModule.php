@@ -11,10 +11,10 @@ abstract class AbstractModule implements Runnable {
 	private $functionName;
 	private $pathParameters;
 	
-	protected $instanceId;
-	protected $modulePath;
-	protected $moduleParam;
-
+	private $instanceId;
+	private $modulePath;
+	private $moduleParam;
+	
 	public static function getInstanceFor($hostGroup, $internalPath) {
 		$path = trim($internalPath, '/');
 		$dbh = Core::getDatabaseConnection();
@@ -194,5 +194,21 @@ abstract class AbstractModule implements Runnable {
 	public final function run() {
 		$name = $this->getFunctionName();
 		return $this->$name();
+	}
+	
+	public final function mkurl($function, $args, $fullUrl=false, $noGetForce=true) {
+		return $this->getUrlManager()->mkurl($this, $function, $args, $fullUrl, $noGetForce);
+	}
+
+	public function getModulePath() {
+		return $this->modulePath;
+	}
+
+	public function getModuleParam() {
+		return $this->moduleParam;
+	}
+	
+	public final function getInstanceId() {
+		return $this->instanceId;
 	}
 }
