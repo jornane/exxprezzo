@@ -7,12 +7,9 @@ class ContentOutput extends AbstractOutput implements PartialOutput, Formattable
 	protected $content;
 	protected $template;
 	
-	public function __construct($content) {
+	public function __construct($source, $content) {
+		parent::__construct($source);
 		$this->content = $content;
-	}
-	
-	public function getContent() {
-		return $this->content;
 	}
 	
 	/**
@@ -20,7 +17,7 @@ class ContentOutput extends AbstractOutput implements PartialOutput, Formattable
 	 * @param Template $template
 	 */
 	public function setTemplate($template) {
-		$template->setContent($this->getContent());
+		$template->setContent($this->content);
 		$this->template = $template;
 	}
 	
@@ -29,17 +26,12 @@ class ContentOutput extends AbstractOutput implements PartialOutput, Formattable
 	}
 	
 	/**
-	 * @return AbstractModule
-	 */
-	public function getSource() {
-		
-	}
-	
-	/**
 	 * @return string
 	 */
-	public function getContents() {
-		
+	public function getContent() {
+		if (is_null($this->template))
+			user_error('No template specified');
+		return $this->template->render();
 	}
 	
 }
