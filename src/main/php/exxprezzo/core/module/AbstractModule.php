@@ -15,6 +15,12 @@ abstract class AbstractModule implements Runnable {
 	private $modulePath;
 	private $moduleParam;
 	
+	/**
+	 * 
+	 * @param string $hostGroup
+	 * @param string $internalPath
+	 * @return AbstractModule
+	 */
 	public static function getInstanceFor($hostGroup, $internalPath) {
 		$path = trim($internalPath, '/');
 		$dbh = Core::getDatabaseConnection();
@@ -35,6 +41,31 @@ abstract class AbstractModule implements Runnable {
 			return $result;
 		}
 		// Make me a 404
+		user_error('Unable to find suitable module.');
+	}
+	
+	/**
+	 * 
+	 * @param integer $moduleInstanceId
+	 */
+	public static function getInstance($moduleInstanceId) {
+		$dbh = Core::getDatabaseConnection();
+		$stmt = $dbh->prepare('SELECT `moduleInstanceId`, `module`, `root`, `param` FROM `moduleInstance`
+				WHERE `moduleInstanceId` = :moduleInstanceId
+				ORDER BY LENGTH(`root`) DESC
+				LIMIT 1');
+		$stmt->bindParam(':moduleInstanceId', $moduleInstanceId);
+		if ($stmt->execute() && $instanceEntry = $stmt->fetch()) {
+			$instanceId = $instanceEntry['moduleInstanceId'];
+			$module = $instanceEntry['module'];
+			$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
+			$result = new $moduleFQN;
+			$result->instanceId = $instanceId;
+			$result->modulePath = $instanceEntry['root'];
+			$result->moduleParam = unserialize($instanceEntry['param']);
+			$result->init();
+			return $result;
+		}
 		user_error('Unable to find suitable module.');
 	}
 
