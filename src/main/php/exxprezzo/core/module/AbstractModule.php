@@ -50,12 +50,11 @@ abstract class AbstractModule implements Runnable {
 	 */
 	public static function getInstance($moduleInstanceId) {
 		$dbh = Core::getDatabaseConnection();
-		$stmt = $dbh->prepare('SELECT `moduleInstanceId`, `module`, `root`, `param` FROM `moduleInstance`
-				WHERE `moduleInstanceId` = :moduleInstanceId
+		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `param` FROM `moduleInstance`
+				WHERE `moduleInstanceId` = $moduleInstanceId
 				ORDER BY LENGTH(`root`) DESC
-				LIMIT 1');
-		$stmt->bindParam(':moduleInstanceId', $moduleInstanceId);
-		if ($stmt->execute() && $instanceEntry = $stmt->fetch()) {
+				LIMIT 1', array('moduleInstanceId', (int)$moduleInstanceId));
+		if ($instanceEntry = $dbh->fetchrow()) {
 			$instanceId = $instanceEntry['moduleInstanceId'];
 			$module = $instanceEntry['module'];
 			$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
