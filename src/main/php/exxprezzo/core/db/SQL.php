@@ -1,5 +1,7 @@
 <?php namespace exxprezzo\core\db;
 
+use exxprezzo\core\Core;
+
 abstract class SQL {
 
 	protected $host = '';
@@ -14,6 +16,50 @@ abstract class SQL {
 	
 	protected $lastresult = NULL;
 	protected $connectid = NULL;
+	
+	protected $querycount = 0;
+	private $lastValues = array();
+	
+	public function __construct($dbinfo) {
+		// Load additional variables
+		parse_str($dbinfo['query'], $params);
+		
+		// Databasename and prefix
+		$this->dbname = substr($dbinfo['path'], 1);
+		$this->prefix = $dbinfo['fragment'];
+		if ($this->prefix && substr($this->prefix, -1) != '_')
+			$this->prefix .= '_';
+		if (isset($params['persist'])) $this->persist = true;
+		
+		// Read additional variables
+		foreach($params as $key => $value) $this->$key = $value;
+		
+		// Remove variables already read
+		unset($dbinfo['path'], $dbinfo['query'], $dbinfo['scheme'], $dbinfo['fragment'], $params);
+		
+		// Read additional variables
+		foreach($dbinfo as $key => $value)
+			if (isset($this->$key))
+			$this->$key = $value;
+		else
+			user_error('Unknown key in constructor parameter: '.$key);
+	}
+	
+	public function __clone() {
+		$this->lastresult = NULL;
+		$this->querycount = 0;
+		$this->lastValues = array();
+	}
+	
+	public function prefixClone($prefix) {
+		if (!$prefix || !is_string($prefix))
+			user_error('Prefix must be a non-empty string');
+		$clone = clone $this;
+		$clone->prefix .= $prefix;
+		if ($clone->prefix && substr($clone->prefix, -1) != '_')
+			$clone->prefix .= '_';
+		return $clone;
+	}
 	
 	public function query($query, $values = array(), $debug = false) {
 		return $this->fetchrows($this->execute($query, $values, $debug));
@@ -33,6 +79,13 @@ abstract class SQL {
 				'query' => '',
 				'fragment' => ''),
 			parse_url($database));
+		if (strtolower($dbinfo['scheme']) == 'exxprezzo') {
+			if (strtolower($dbinfo['host']) != 'localhost')
+				user_error('Non-localhost database connections to exxprezzo not supported.');
+			if (strtolower(trim($dbinfo['path'], '/')) != 'core')
+				user_error('Database connection to exxprezzo must point to core.');
+			return Core::getDatabaseConnection()->prefixClone($dbinfo['fragment']);
+		}
 		$classname = $namespace . '\\' . ucfirst(str_replace('sql', 'SQL', strtolower($dbinfo['scheme'])));
 		return new $classname($dbinfo);
 	}

@@ -44,26 +44,7 @@ class MySQL extends SQL {
 	 * @todo Nice error message when connecting fails in developer mode
 	 */
 	public function __construct($dbinfo) { // Constructor
-		//
-		// Set special variables
-		//
-		
-		// Load additional variables
-		parse_str($dbinfo['query'], $params);
-		
-		// Databasename and prefix
-		$this->dbname = substr($dbinfo['path'], 1);
-		$this->prefix = $dbinfo['fragment'];
-		if (isset($params['persist'])) $this->persist = true;
-		
-		// Read additional variables
-		foreach($params as $key => $value) $this->$key = $value;
-		
-		// Remove variables already read
-		unset($dbinfo['path'], $dbinfo['query'], $dbinfo['scheme'], $dbinfo['fragment'], $params);
-		
-		// Read additional variables
-		foreach($dbinfo as $key => $value) $this->$key = $value;
+		parent::__construct($dbinfo);
 		
 		// Login to MySQL
 		$this->connectid = $this->persist ? mysql_pconnect($this->host, $this->user, $this->pass, $this->flags) : mysql_connect($this->host, $this->user, $this->pass, false, $this->flags);
