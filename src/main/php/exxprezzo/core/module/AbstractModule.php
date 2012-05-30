@@ -25,16 +25,16 @@ abstract class AbstractModule implements Runnable {
 		$path = trim($internalPath, '/');
 		$dbh = Core::getDatabaseConnection();
 		$options = AbstractUrlManager::pathOptions($path);
-		$stmt = $dbh->prepare('SELECT `moduleInstanceId`, `module`, `root`, `param` FROM `moduleInstance`
-				WHERE `root` IN('.str_repeat('?,', sizeof($options)-1).'?)
+		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `param` FROM `moduleInstance`
+				WHERE `root` IN $options
 				ORDER BY LENGTH(`root`) DESC
-				LIMIT 1');
-		if ($stmt->execute($options) && $instanceEntry = $stmt->fetch()) {
+				LIMIT 1', array('options' => $options));
+		if ($instanceEntry = $dbh->fetchRow()) {
 			$instanceId = $instanceEntry['moduleInstanceId'];
 			$module = $instanceEntry['module'];
 			$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
 			$result = new $moduleFQN;
-			$result->instanceId = $instanceId;
+			$result->instanceId = (int)$instanceId;
 			$result->modulePath = substr($internalPath, strlen($instanceEntry['root'])+1);
 			$result->moduleParam = unserialize($instanceEntry['param']);
 			$result->init();

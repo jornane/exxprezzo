@@ -40,19 +40,18 @@ final class Page extends AbstractOutput {
 	 */
 	public function __construct($outputObject) {
 		$this->main = $outputObject;
+		$this->mainModule = $this->main->getSource();
 		$dbh = Core::getDatabaseConnection();
-		$stmt = $dbh->prepare('SELECT `pageId`, `preferredFunctionTemplate`, `theme`, `name`, `defaultBox` FROM `page`
+		$dbh->execute('SELECT `pageId`, `preferredFunctionTemplate`, `theme`, `name`, `defaultBox` FROM `page`
 				JOIN `layout` ON `layout`.`layoutId` = `page`.`layoutId`
 				WHERE (`moduleInstanceId` = :moduleInstanceId OR `moduleInstanceId` IS NULL)
 				AND (`function` = :function OR `function` IS NULL)
 				ORDER BY (`moduleInstanceId`!="" AND `function`!=""), `moduleInstanceId`!=""
-				LIMIT 1');
-		$this->mainModule = $this->main->getSource();
-		$instanceId = $this->mainModule->getInstanceId();
-		$stmt->bindParam(':moduleInstanceId', $instanceId);
-		$function = $this->mainModule->getFunctionName();
-		$stmt->bindParam(':function', $function);
-		if ($stmt->execute() && $layoutEntry = $stmt->fetch()) {
+				LIMIT 1', array(
+						'moduleInstanceId' => $this->mainModule->getInstanceId(),
+						'function' => $this->mainModule->getFunctionName(),
+					));
+		if ($layoutEntry = $dbh->fetchrow()) {
 			$this->pageId = $layoutEntry['pageId'];
 			$this->templateName = $layoutEntry['preferredFunctionTemplate']
 					? $layoutEntry['preferredFunctionTemplate']
@@ -66,11 +65,12 @@ final class Page extends AbstractOutput {
 		} else {
 			user_error("No layout found. Did you forget to specify a default layout?");
 		}
-		$stmt = $dbh->prepare('SELECT `widgetId`, `moduleInstanceId`, `function`, `preferredFunctionTemplate`, `box`, `param` FROM `widget`
+		$dbh->query('SELECT `widgetId`, `moduleInstanceId`, `function`, `preferredFunctionTemplate`, `box`, `param` FROM `widget`
 				WHERE `pageId` = :pageId
-				ORDER BY `priority` ASC');
-		$stmt->bindParam(':pageId', $this->pageId);
-		if ($stmt->execute()) while($widget = $stmt->fetch()) {
+				ORDER BY `priority` ASC', array(
+						'pageId' => $this->pageId,
+					));
+		while($widget = $dbh->fetchrow()) {
 			$this->widgets[$widget['box']][$widget['widgetId']] = $widget;
 			$module = AbstractModule::getInstance($widget['moduleInstanceId']);
 			$this->widgets[$widget['box']][$widget['widgetId']]['module'] = $module;

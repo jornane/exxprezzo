@@ -8,6 +8,8 @@ use \Exception;
 use \exxprezzo\core\module\AbstractModule;
 use \exxprezzo\core\page\Page;
 
+use exxprezzo\core\db\SQL;
+
 class Core {
 	
 	/** @var (string)[] */
@@ -16,7 +18,7 @@ class Core {
 	/** @var string */
 	private static $basedir;
 	
-	/** @var \PDO */
+	/** @var SQL */
 	private static $database;
 	
 	/** @var string */
@@ -103,10 +105,7 @@ class Core {
 	
 	public static function loadClass($className) {
 		if (class_exists($className) || interface_exists($className)) return; // Class already exists, our work here is done
-		if (substr($className, -9) == 'Exception' && strpos($className, '_') === false)
-			$path = self::$basedir.DIRECTORY_SEPARATOR.'exxprezzo'.DIRECTORY_SEPARATOR.'exception'.DIRECTORY_SEPARATOR.$className.'.php';
-		else
-			$path = self::$basedir.DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR, $className).'.php';
+		$path = self::$basedir.DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR, $className).'.php';
 		if (file_exists($path))
 			include $path;
 		if (!class_exists($className) && !interface_exists($className)) { // Throw a nice exception instead of letting PHP generate an ugly uncatchable error message
@@ -120,12 +119,7 @@ class Core {
 	// Is public, but is only intended for use in the core namespace.
 	public static function getDatabaseConnection() {
 		if (is_null(self::$database))
-			self::$database = new \PDO(
-					self::$config['dbDSN'],
-					self::$config['dbUser'],
-					self::$config['dbPass'],
-					self::$config['dbOpt']
-				);
+			self::$database = SQL::createConnection(self::$config['db']);
 		return self::$database;
 	}
 	

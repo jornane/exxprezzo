@@ -8,8 +8,10 @@ final class HostGroup {
 	
 	static function getInstance($hostname, $prohibitRedirect = false) {
 		$dbh = Core::getDatabaseConnection();
-		$stmt = $dbh->prepare('SELECT `hostGroupId`, `type` FROM `hostGroup` WHERE ? LIKE `hostName` OR `hostName` = "" ORDER BY `hostname`!="", type`="primary"');
-		if ($stmt->execute(array($hostname)) && $hostGroupEntry = $stmt->fetch()) {
+		$dbh->execute('SELECT `hostGroupId`, `type` FROM `hostGroup` WHERE $hostname LIKE `hostName` OR `hostName` = "" ORDER BY `hostname`!="", `type`="primary"',
+				array('hostname' => $hostname)
+			);
+		if ($hostGroupEntry = $dbh->fetchrow()) {
 			if (!$prohibitRedirect && $hostGroupEntry['type'] == 'redirect') {
 				throw new RedirectException(array('host' => $newHost));
 			}
