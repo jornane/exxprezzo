@@ -83,9 +83,10 @@ class Content {
 	/**
 	 * 
 	 * @param string $name
+	 * @return Content
 	 */
 	public function getBlocks($name) {
-		return $this->blocks[$name];
+		return isset($this->blocks[$name]) ? $this->blocks[$name] : NULL;
 	}
 	
 	/**
