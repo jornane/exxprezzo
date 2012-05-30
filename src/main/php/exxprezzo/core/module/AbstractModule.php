@@ -1,5 +1,9 @@
 <?php namespace exxprezzo\core\module;
 
+use \Exception;
+
+use \exxprezzo\core\db\SQL;
+
 use \exxprezzo\core\Core;
 use \exxprezzo\core\Runnable;
 
@@ -35,8 +39,8 @@ abstract class AbstractModule implements Runnable {
 			$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
 			$result = new $moduleFQN;
 			$result->instanceId = (int)$instanceId;
-			$result->modulePath = substr($internalPath, strlen($instanceEntry['root'])+1);
-			$result->moduleParam = unserialize($instanceEntry['param']);
+			$result->modulePath = '/'.substr($internalPath, strlen($instanceEntry['root'])+1);
+			$result->moduleParam = self::parseParam($instanceEntry['param']);
 			$result->init();
 			return $result;
 		}
@@ -48,7 +52,7 @@ abstract class AbstractModule implements Runnable {
 	 * 
 	 * @param integer $moduleInstanceId
 	 */
-	public static function getInstance($moduleInstanceId) {
+	public static function getInstance($moduleInstanceId, $modulePath = NULL) {
 		$dbh = Core::getDatabaseConnection();
 		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `param` FROM `moduleInstance`
 				WHERE `moduleInstanceId` = $moduleInstanceId
@@ -60,12 +64,22 @@ abstract class AbstractModule implements Runnable {
 			$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
 			$result = new $moduleFQN;
 			$result->instanceId = $instanceId;
-			$result->modulePath = $instanceEntry['root'];
-			$result->moduleParam = unserialize($instanceEntry['param']);
+			$result->modulePath = $modulePath;
+			$result->moduleParam = self::parseParam($instanceEntry['param']);
 			$result->init();
 			return $result;
 		}
 		user_error('Unable to find suitable module.');
+	}
+	
+	private static function parseParam($moduleParameter) {
+		try {
+			return unserialize($moduleParameter);
+		} catch (Exception $e) {
+			if (!parse_url($moduleParameter))
+				throw $e;
+			return SQL::createConnection($moduleParameter);
+		}
 	}
 
 	public function setMain($isMain) {
@@ -174,7 +188,10 @@ abstract class AbstractModule implements Runnable {
 	}
 
 	public function setFunctionName($name){
-		$this->functionName = $name;
+		if (method_exists($this, $name))
+			$this->functionName = $name;
+		else
+			user_error('Module '.$this->getName().' does not contain a function '.$name);
 	}
 	
 	public function getFunctionName() {
@@ -211,9 +228,10 @@ abstract class AbstractModule implements Runnable {
 						$matches[$name] = rawurldecode($value);
 				$this->setPathParameters($matches);
 				$this->setFunctionName($function);
-				break;
+				return;
 			}
 		}
+		user_error('No function matches the module path "'.$this->modulePath.'" for module '.$this->getName());
 	}
 
 	/**
@@ -223,6 +241,8 @@ abstract class AbstractModule implements Runnable {
 	 */
 	public final function run() {
 		$name = $this->getFunctionName();
+		if (is_null($name))
+			user_error('No function set');
 		return $this->$name();
 	}
 	
