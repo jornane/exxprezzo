@@ -13,8 +13,9 @@ class CMS extends AbstractModule {
 	protected $db;
 	
 	protected static $functions = array(
-			'(.*)' => 'view',
-		);
+			'(?<path>.*)/' => 'view',
+			'(?<path>.*)/edit.html' => 'edit',
+	);
 	
 	public function view() {
 		$db = $this->getModuleParam();
@@ -31,6 +32,10 @@ class CMS extends AbstractModule {
 			user_error('Page not found');
 		}
 		return new ContentOutput($this, $content);
+	}
+	
+	public function edit() {
+		
 	}
 	
 }
