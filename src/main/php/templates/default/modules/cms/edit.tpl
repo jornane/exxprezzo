@@ -10,5 +10,5 @@
 	{WRITEPRIVILEGES}</p>
 <p>Content:<br />
 	<!-- INPUT content -->
-	<textarea name="{CONTENT_NAME}">{CONTENT_VALUE}</textarea></p>
+	<textarea name="{content.NAME}">{content.VALUE}</textarea></p>
 	<!-- /INPUT content -->
