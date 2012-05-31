@@ -81,6 +81,8 @@ abstract class AbstractModule implements Runnable {
 			return SQL::createConnection($moduleParameter);
 		}
 	}
+	
+	public abstract function getTitle();
 
 	public function setMain($isMain) {
 		$this->isMain = $isMain;
