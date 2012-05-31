@@ -1,5 +1,7 @@
 <?php namespace exxprezzo\core;
 
+use exxprezzo\core\output\Output;
+
 use exxprezzo\core\url\AbstractUrlManager;
 
 use \ErrorException;
@@ -69,7 +71,7 @@ class Core {
 				$outputObject = new ExceptionOutput($e);
 			}
 			
-			if (Page::supportsOutput($outputObject)) {
+			if ($outputObject instanceof Output) if (Page::supportsOutput($outputObject)) {
 				// Prepare output
 				self::$pageManager = new Page($outputObject);
 				
