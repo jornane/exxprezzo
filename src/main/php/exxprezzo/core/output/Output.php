@@ -1,6 +1,6 @@
 <?php namespace exxprezzo\core\output;
 
-use exxprezzo\core\Runnable;
+use \exxprezzo\core\Runnable;
 
 interface Output extends Runnable {
 	
