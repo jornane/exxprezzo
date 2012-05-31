@@ -1,1 +1,1 @@
-The value of FOO: {FOO}
+{CONTENT}
