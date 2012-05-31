@@ -1,8 +1,8 @@
 <?php namespace exxprezzo\core;
 
-use exxprezzo\core\output\Output;
+use \exxprezzo\core\output\Output;
 
-use exxprezzo\core\url\AbstractUrlManager;
+use \exxprezzo\core\url\AbstractUrlManager;
 
 use \ErrorException;
 use \Exception;
@@ -10,7 +10,7 @@ use \Exception;
 use \exxprezzo\core\module\AbstractModule;
 use \exxprezzo\core\page\Page;
 
-use exxprezzo\core\db\SQL;
+use \exxprezzo\core\db\SQL;
 
 class Core {
 	

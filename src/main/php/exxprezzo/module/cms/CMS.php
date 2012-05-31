@@ -1,12 +1,12 @@
 <?php namespace exxprezzo\module\cms;
 
-use exxprezzo\core\Core;
+use \exxprezzo\core\Core;
 
-use exxprezzo\core\Content;
+use \exxprezzo\core\Content;
 
-use exxprezzo\core\output\ContentOutput;
+use \exxprezzo\core\output\ContentOutput;
 
-use exxprezzo\core\module\AbstractModule;
+use \exxprezzo\core\module\AbstractModule;
 
 class CMS extends AbstractModule {
 	

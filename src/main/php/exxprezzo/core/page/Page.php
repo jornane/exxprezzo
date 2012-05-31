@@ -1,15 +1,15 @@
 <?php namespace exxprezzo\core\page;
 
-use exxprezzo\core\output\ContentOutput;
+use \exxprezzo\core\output\ContentOutput;
 
-use exxprezzo\core\Core;
-use exxprezzo\core\Content;
-use exxprezzo\core\Template;
+use \exxprezzo\core\Core;
+use \exxprezzo\core\Content;
+use \exxprezzo\core\Template;
 
-use exxprezzo\core\module\AbstractModule;
+use \exxprezzo\core\module\AbstractModule;
 
-use exxprezzo\core\output\AbstractOutput;
-use exxprezzo\core\output\PartialOutput;
+use \exxprezzo\core\output\AbstractOutput;
+use \exxprezzo\core\output\PartialOutput;
 
 final class Page extends AbstractOutput {
 	

@@ -1,6 +1,6 @@
 <?php namespace exxprezzo\core\output;
 
-use exxprezzo\core\Template;
+use \exxprezzo\core\Template;
 
 class ContentOutput extends AbstractOutput implements PartialOutput, FormattableOutput {
 	

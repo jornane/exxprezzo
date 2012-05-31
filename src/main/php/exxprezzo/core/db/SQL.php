@@ -1,6 +1,6 @@
 <?php namespace exxprezzo\core\db;
 
-use exxprezzo\core\Core;
+use \exxprezzo\core\Core;
 
 abstract class SQL {
 
