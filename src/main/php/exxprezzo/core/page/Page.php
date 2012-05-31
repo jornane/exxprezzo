@@ -100,6 +100,9 @@ final class Page extends AbstractOutput {
 		$outputContent->addBlock($this->layout['defaultBox'], array(
 				'CONTENT' => $widgetOutput,
 			));
+		$outputContent->putVariable('TITLE', $module->getTitle());
+		
+		
 		foreach($this->widgets as $box => $widgets) foreach($widgets as $widget) {
 			if ($widget instanceof ContentOutput)
 				$widget['output']->setTemplate(static::getTemplate('module', $this->layout['theme'], array(strtolower($widget['module']->getName()), $widget['template'])));
