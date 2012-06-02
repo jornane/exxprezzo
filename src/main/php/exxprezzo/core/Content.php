@@ -16,7 +16,7 @@ class Content {
 	
 	/**
 	 * 
-	 * @param unknown_type $blockName
+	 * @param string $blockName
 	 */
 	protected function &getBlock($blockName) {
 		$blocks = explode('.', $blockName);
