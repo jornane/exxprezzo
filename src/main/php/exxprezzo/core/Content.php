@@ -6,7 +6,9 @@ class Content {
 	protected $vars = array();
 	/** @var Content[][] */
 	protected $blocks = array();
-	
+	/** @var Content[] */
+	protected $namespaces = array();
+		
 	public function putVariable($key, $value) {
 		$this->vars[$key] = $value;
 	}
@@ -92,11 +94,11 @@ class Content {
 	/**
 	 * @access protected
 	 * This method is namespace protected
-	 * 
+	 *
 	 * @param string $blockName
 	 * @param int $iteration
 	 */
-	public function merge($blockName, $iteration) {
+	public function blockMerge($blockName, $iteration) {
 		$result = clone $this;
 		foreach($result->blocks[$blockName][$iteration]->vars as $key => $value)
 			$result->vars[$blockName.'.'.$key] = $value;
@@ -104,6 +106,22 @@ class Content {
 			$result->blocks[$blockName.'.'.$key] = $value;
 		unset($result->blocks[$blockName]);
 		return $result;
+	}
+	
+	/**
+	 * 
+	 * @param string $name
+	 * @param Content $content
+	 */
+	public function putNamespace($name, $content) {
+		if ($content instanceof Content)
+			$this->namespaces[$name] = $content;
+		else
+			user_error('$content should be of type Content');
+	}
+	
+	public function getNamespace($name) {
+		return $this->namespaces[$name];
 	}
 	
 }
