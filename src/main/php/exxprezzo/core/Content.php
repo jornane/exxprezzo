@@ -5,7 +5,7 @@ class Content {
 	/** @var string[] */
 	protected $vars = array();
 	/** @var Content[][] */
-	protected $blocks = array();
+	protected $loops = array();
 	/** @var Content[] */
 	protected $namespaces = array();
 		
@@ -18,47 +18,47 @@ class Content {
 	
 	/**
 	 * 
-	 * @param string $blockName
+	 * @param string $loopName
 	 */
-	protected function &getBlock($blockName) {
-		$blocks = explode('.', $blockName);
-		$last = array_pop($blocks);
-		$root = &$this->blocks;
-		foreach($blocks as $blockName) {
-			$root = &$root[$blockName];
-			$root = &$root[count($root)-1]->blocks;
+	protected function &getLoop($loopName) {
+		$loops = explode('.', $loopName);
+		$last = array_pop($loops);
+		$root = &$this->loops;
+		foreach($loops as $loopName) {
+			$root = &$root[$loopName];
+			$root = &$root[count($root)-1]->loops;
 		}
 		return $root[$last];
 	}
 	
 	/**
 	 * 
-	 * @param string $blockName
-	 * @param string[]|Content $block
+	 * @param string $loopName
+	 * @param string[]|Content $loop
 	 */
-	public function addBlock($blockName, $block) {
-		$parentBlock = &$this->getBlock($blockName);
-		if (is_object($block) && $block instanceof Content) {
-			$parentBlock[] = $block;
-		} else if (is_array($block)) {
+	public function addLoop($loopName, $loop) {
+		$parentLoop = &$this->getLoop($loopName);
+		if (is_object($loop) && $loop instanceof Content) {
+			$parentLoop[] = $loop;
+		} else if (is_array($loop)) {
 			$content = new Content();
-			$content->vars = $block;
-			$parentBlock[] = $content;
+			$content->vars = $loop;
+			$parentLoop[] = $content;
 		} else {
-			user_error('Invalid type for $block: '.gettype($block));
+			user_error('Invalid type for $loop: '.gettype($loop));
 		}
 		
 	}
 	/**
 	 * 
-	 * @param string $blockName
+	 * @param string $loopName
 	 * @param string[] $variables
 	 */
-	public function appendBlock($blockName, $variables) {
-		$parentBlock = &$this->getBlock($blockName);
-		$parentBlock[count($parentBlock)-1]->vars
+	public function appendLoop($loopName, $variables) {
+		$parentLoop = &$this->getLoop($loopName);
+		$parentLoop[count($parentLoop)-1]->vars
 			= array_merge(
-					$parentBlock[count($this->blocks)-1]->vars,
+					$parentLoop[count($this->loops)-1]->vars,
 					$variables
 				);
 	}
@@ -87,24 +87,24 @@ class Content {
 	 * @param string $name
 	 * @return Content
 	 */
-	public function getBlocks($name) {
-		return isset($this->blocks[$name]) ? $this->blocks[$name] : NULL;
+	public function getLoops($name) {
+		return isset($this->loops[$name]) ? $this->loops[$name] : NULL;
 	}
 	
 	/**
 	 * @access protected
 	 * This method is namespace protected
 	 *
-	 * @param string $blockName
+	 * @param string $loopName
 	 * @param int $iteration
 	 */
-	public function blockMerge($blockName, $iteration) {
+	public function loopMerge($loopName, $iteration) {
 		$result = clone $this;
-		foreach($result->blocks[$blockName][$iteration]->vars as $key => $value)
-			$result->vars[$blockName.'.'.$key] = $value;
-		foreach($result->blocks[$blockName][$iteration]->blocks as $key => $value)
-			$result->blocks[$blockName.'.'.$key] = $value;
-		unset($result->blocks[$blockName]);
+		foreach($result->loops[$loopName][$iteration]->vars as $key => $value)
+			$result->vars[$loopName.'.'.$key] = $value;
+		foreach($result->loops[$loopName][$iteration]->loops as $key => $value)
+			$result->loops[$loopName.'.'.$key] = $value;
+		unset($result->loops[$loopName]);
 		return $result;
 	}
 	

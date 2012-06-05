@@ -97,7 +97,7 @@ final class Page extends AbstractOutput {
 		$template = static::getTemplate('layout', $this->layout['theme'], array($this->layout['name']));
 		if (!in_array($this->layout['defaultBox'], $template->getBlocks()))
 			user_error('The template "'.$this->layout['name'].'" does not contain the default box. ('.$this->layout['defaultBox'].')');
-		$outputContent->addBlock($this->layout['defaultBox'], array(
+		$outputContent->addLoop($this->layout['defaultBox'], array(
 				'CONTENT' => $widgetOutput,
 			));
 		$outputContent->putVariable('TITLE', $module->getTitle());
@@ -106,7 +106,7 @@ final class Page extends AbstractOutput {
 		foreach($this->widgets as $box => $widgets) foreach($widgets as $widget) {
 			if ($widget instanceof ContentOutput)
 				$widget['output']->setTemplate(static::getTemplate('module', $this->layout['theme'], array(strtolower($widget['module']->getName()), $widget['template'])));
-			$outputContent->addBlock($box, array(
+			$outputContent->addLoop($box, array(
 					'CONTENT' => $widget['output'],
 			));
 		}

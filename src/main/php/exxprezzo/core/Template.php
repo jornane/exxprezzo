@@ -26,13 +26,13 @@ class Template {
 		unset($this->tempVars);
 	}
 	
-	const REGEX_BLOCK = '_\\<\\!\\-\\- ([A-Z0-9\\_\\-]+) ([a-z0-9\\.\\_\\-]+) \\-\\-\\>(.*?)\\<\\!\\-\\- /\\1 \\2 \\-\\-\\>_ms';
+	const REGEX_BLOCK = '_\\<\\!\\-\\- ([A-Z0-9\\_\\-\s]+)\s([a-z0-9\\.\\_\\-]+) \\-\\-\\>(.*?)\\<\\!\\-\\- /\\1 \\2 \\-\\-\\>_ms';
 	const REGEX_ANNOTATION = '_\\<\\!\\-\\- ([a-z0-9\\.\\_\\-]+) ([a-z0-9\\.\\_\\-]+) \\-\\-\\>_i';
 	const KEYWORD = 1;
 	const BLOCKNAME = 2;
 	const CONTENT = 3;
 	
-	const REGEX_VAR = '_\\{([a-z0-9#\\.\\_\\-]*?)\\}_i'; // {VAR} and {iteration.VAR}
+	const REGEX_VAR = '_\\{(#?[a-z0-9\\.\\_:]*?)\\}_i'; // {VAR} and {iteration.VAR}
 	const VARNAME = 1;
 	
 	const REGEX_COMMENT = '_\\<\\!\\-\\- (.*) \\-\\-\\>_i';
@@ -47,7 +47,8 @@ class Template {
 	
 	/**
 	 * @return string[]	a one-dimensional array containing all blocks
-	 * 	as they appear in the template (dot separated)
+	 * 	as they appear in the template
+	 * @todo namespace support
 	 */
 	public function getBlocks() {
 		if (!is_null($this->blocks))
@@ -76,6 +77,7 @@ class Template {
 	
 	/**
 	 * @return string[] a list containing all variables as they appear in the template
+	 * @todo namespace support
 	 */
 	public function getVariables() {
 		if (!is_null($this->variables))
@@ -85,7 +87,7 @@ class Template {
 	}
 	
 	/**
-	 * Set the content used by #render($templateCode)
+	 * Set the content used by #render()
 	 * 
 	 * @param Content $content
 	 */
@@ -99,9 +101,8 @@ class Template {
 	 * @param Content $content
 	 * @param string[] $validPrefixes
 	 */
-	public function render($templateCode=NULL) {
-		if (is_null($templateCode))
-			$templateCode = $this->templateCode;
+	public function render() {
+		$templateCode = $this->templateCode;
 		$this->tempVars = array();
 		$templateCode = preg_replace_callback(self::REGEX_BLOCK, array($this, 'matchBlock'), $templateCode);
 		$templateCode = preg_replace(self::REGEX_ANNOTATION, '', $templateCode);
@@ -117,8 +118,15 @@ class Template {
 	 * @return string
 	 */
 	private function matchBlock($matches) {
-		$tpl = clone $this;
-		$function = 'render'.ucfirst(strtolower($matches[self::KEYWORD])).'Block';
+		$namespacePath = preg_split('/[\s,]+/', $matches[self::KEYWORD]);
+		$keyword = array_pop($namespacePath);
+		$content = $this->content;
+		foreach($namespacePath as $namespace) {
+			$content = $content->getNamespace($namespace);
+		}
+		$tpl = new Template($matches[self::CONTENT]);
+		$tpl->setContent($content);
+		$function = 'render'.ucfirst(strtolower($keyword)).'Block';
 		if (method_exists($tpl, $function)) {
 			$this->tempVars[] = $tpl->$function($matches[self::CONTENT], $matches[self::BLOCKNAME]);
 			return '{#'.(count($this->tempVars)-1).'}';
@@ -140,14 +148,14 @@ class Template {
 	 * @param string[] $validPrefixes
 	 */
 	protected function renderForBlock($templateCode, $blockName) {
-		$blocks = $this->content->getBlocks($blockName);
+		$blocks = $this->content->getLoops($blockName);
 		if (!$blocks) $blocks = array();
 		$this->validPrefixes = array_merge($this->validPrefixes, array($blockName => $blockName));
 		$result = '';
 		foreach($blocks as $iteration => $block) {
 			$oldContent = $this->content;
-			$this->content = $this->content->merge($blockName, $iteration);
-			$result .= $this->render($templateCode);
+			$this->content = $this->content->loopMerge($blockName, $iteration);
+			$result .= $this->render();
 			$this->content = $oldContent;
 		}
 		return $result;
@@ -161,8 +169,36 @@ class Template {
 	 * @param string[] $validPrefixes
 	 */
 	protected function renderIfBlock($templateCode, $block) {
-		if ($this->content->getBlocks($block))
-			return $this->render($templateCode, $this->content);
+		if ($this->content->getLoops($block))
+			return $this->render();
+	}
+	
+	/**
+	 *
+	 * @param string $templateCode
+	 * @param string $block
+	 * @param Content $content
+	 * @param string[] $validPrefixes
+	 */
+	protected function renderIfnsBlock($templateCode, $block) {
+		if ($this->content->getNamespace($block)) {
+			return $this->render();
+		}
+	}
+	
+	/**
+	 *
+	 * @param string $templateCode
+	 * @param string $block
+	 * @param Content $content
+	 * @param string[] $validPrefixes
+	 */
+	protected function renderNsBlock($templateCode, $block) {
+		if ($origContent = $this->content->getNamespace($block)) {
+			$content = clone $origContent;
+			$content->putNamespace('parent', $this);
+			return $this->render();
+		}
 	}
 	
 	/**
@@ -173,8 +209,8 @@ class Template {
 	 * @param string[] $validPrefixes
 	 */
 	protected function renderNotBlock($templateCode, $block) {
-		if (!($this->content->getBlocks($block)))
-			return $this->render($templateCode, $this->content);
+		if (!($this->content->getLoops($block)))
+			return $this->render();
 	}
 	
 }
