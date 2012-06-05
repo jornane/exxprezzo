@@ -2,14 +2,11 @@
 
 use \exxprezzo\core\Template;
 
-class ContentOutput extends AbstractOutput implements PartialOutput, FormattableOutput {
-	
-	protected $content;
+class BlockOutput extends AbstractFormattableOutput implements PartialOutput {
 	protected $template;
 	
 	public function __construct($source, $content) {
-		parent::__construct($source);
-		$this->content = $content;
+		parent::__construct($source, $content);
 	}
 	
 	/**
@@ -21,8 +18,8 @@ class ContentOutput extends AbstractOutput implements PartialOutput, Formattable
 		$this->template = $template;
 	}
 	
-	public function getContentTypes() {
-		return array('text/html');
+	public function getContentType() {
+		return 'text/html';
 	}
 	
 	/**
@@ -32,10 +29,6 @@ class ContentOutput extends AbstractOutput implements PartialOutput, Formattable
 		if (is_null($this->template))
 			user_error('No template specified');
 		return $this->template->render();
-	}
-	
-	public function getContentObject() {
-		return clone $this->content;
 	}
 	
 }

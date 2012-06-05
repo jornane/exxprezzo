@@ -23,9 +23,9 @@ interface Output extends Runnable {
 	function getContent();
 	
 	/**
-	 * @return string[]
+	 * @return string
 	 */
-	function getContentTypes();
+	function getContentType();
 	
 	/**
 	 * @return int

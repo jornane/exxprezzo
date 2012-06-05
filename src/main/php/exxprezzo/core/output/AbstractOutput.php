@@ -30,6 +30,7 @@ abstract class AbstractOutput implements Output {
 				: 'no-cache, must-revalidate')
 			);
 		header('Expires: '.gmdate(DateTime::RFC1123, $this->isCacheable() ? $this->getExpiryDate()->getTimestamp() : $this->getLastModified()->getTimestamp()));
+		header('Content-Type: '.$this->getContentType());
 		echo $this->getContent();
 	}
 	
@@ -46,9 +47,9 @@ abstract class AbstractOutput implements Output {
 	public abstract function getContent();
 	
 	/**
-	 * @return string[]
+	 * @return string
 	 */
-	public abstract function getContentTypes();
+	public abstract function getContentType();
 	
 	/**
 	 * @return int

@@ -2,4 +2,9 @@
 
 interface FormattableOutput extends Output {
 	
+	/**
+	 * @return Content
+	 */
+	function getContentObject();
+	
 }
