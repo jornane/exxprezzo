@@ -19,6 +19,9 @@ abstract class AbstractModule implements Runnable {
 	private $modulePath;
 	private $moduleParam;
 	
+	/** @var AbstractModule[] */
+	private static $instances = array();
+		
 	/**
 	 * 
 	 * @param string $hostGroup
@@ -34,8 +37,10 @@ abstract class AbstractModule implements Runnable {
 				ORDER BY LENGTH(`root`) DESC
 				LIMIT 1', array('options' => $options));
 		if ($instanceEntry = $dbh->fetchRow()) {
-			return self::_getInstance($instanceEntry['module'], $instanceEntry['moduleInstanceId'],
+			self::$instances[(int)$instanceEntry['moduleInstanceId']] =
+				self::_getInstance($instanceEntry['module'], $instanceEntry['moduleInstanceId'],
 					'/'.substr($internalPath, strlen($instanceEntry['root'])+1), self::parseParam($instanceEntry['param']));
+			return self::$instances[(int)$instanceEntry['moduleInstanceId']];
 		}
 		// Make me a 404
 		user_error('Unable to find suitable module.');
@@ -46,14 +51,18 @@ abstract class AbstractModule implements Runnable {
 	 * @param int $moduleInstanceId
 	 */
 	public static function getInstance($moduleInstanceId, $modulePath = NULL) {
+		if(array_key_exists($moduleInstanceId, self::$instances))
+			return self::$instances[$moduleInstanceId];
 		$dbh = Core::getDatabaseConnection();
 		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `param` FROM `moduleInstance`
 				WHERE `moduleInstanceId` = $moduleInstanceId
 				ORDER BY LENGTH(`root`) DESC
 				LIMIT 1', array('moduleInstanceId', (int)$moduleInstanceId));
 		if ($instanceEntry = $dbh->fetchrow()) {
-			return self::_getInstance($instanceEntry['module'], $moduleInstanceId, 
+			self::$instances[$moduleInstanceId] =
+				self::_getInstance($instanceEntry['module'], $moduleInstanceId,
 					$modulePath, self::parseParam($instanceEntry['param']));
+			return self::$instances[$moduleInstanceId];
 		}
 		user_error('Unable to find suitable module.');
 	}
