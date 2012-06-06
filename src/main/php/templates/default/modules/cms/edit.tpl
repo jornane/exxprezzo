@@ -1,14 +1,18 @@
 <h1>Edit page {PATH}</h1>
 <p>Title:<br />
-	{TITLE}</p>
+	{input:title}</p>
 <p>Read privileges:<br />
-	<!-- INPUT readprivileges -->
-	<input type="checkbox" name="{readprivileges.NAME}" value="{readprivileges.VALUE}">{readprivileges.CAPTION}<br />
-	<!-- /INPUT readprivileges -->
+	<!-- input for readprivileges -->
+	<input type="checkbox" name="{readprivileges.name}" value="{readprivileges.value}">{readprivileges.caption}<br />
+	<!-- /input for readprivileges -->
 </p>
 <p>Write privileges:<br />
-	{WRITEPRIVILEGES}</p>
+	{writeprivileges}</p>
 <p>Content:<br />
-	<!-- INPUT content -->
-	<textarea name="{content.NAME}">{content.VALUE}</textarea></p>
-	<!-- /INPUT content -->
+<!-- INPUT IF content -->
+<textarea name="{content.name}">{content.value}</textarea>
+<!-- /INPUT IF content -->
+</p>
+<!-- INPUT NOT content -->
+<p>NOT CONTENT</p>
+<!-- /INPUT NOT content -->

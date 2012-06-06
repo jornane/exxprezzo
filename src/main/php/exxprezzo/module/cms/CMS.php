@@ -1,7 +1,9 @@
 <?php namespace exxprezzo\module\cms;
 
-use \exxprezzo\core\Core;
+use \exxprezzo\core\input\TextInput;
+use \exxprezzo\core\input\LongTextInput;
 
+use \exxprezzo\core\Core;
 use \exxprezzo\core\Content;
 
 use \exxprezzo\core\output\ContentOutput;
@@ -45,7 +47,26 @@ class CMS extends AbstractModule {
 	}
 	
 	public function edit() {
-		
+		$db = $this->getModuleParam();
+		$content = new Content();
+		$input = new Content();
+		$content->putNamespace('INPUT', $input);
+		$params = $this->getParameters();
+		$db->execute('SELECT `title`, `content` FROM `pages` WHERE `path` = $path LIMIT 1', array(
+				'path' => ltrim($params['path'], '/'),
+		));
+		if($page = $db->fetchrow()) {
+			$content->putVariables(array(
+					'title' => $page['title'],
+				));
+			$input->putVariables(array(
+					'title' => new TextInput('title', $page['title']),
+					'content' => new LongTextInput('content', $page['content']),
+			));
+		} else {
+			user_error('Page not found');
+		}
+		return new ContentOutput($this, $content);
 	}
 	
 }
