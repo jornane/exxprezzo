@@ -4,27 +4,28 @@ class Template {
 	
 	/** @var string */
 	protected $templateCode;
+	
 	/** @var string[] */
 	protected $blockKeywords;
-	
 	/** @var string[] */
 	protected $annotations;
 	/** @var string[] */
 	protected $blocks;
 	/** @var string[] */
 	protected $variables;
+	private function __clone() {
+		unset($this->blockKeywords, $this->annotations, $this->blocks, $this->variables);
+	}
 	
 	/** @var Content */
 	protected $content;
+	/** @var object[] */
+	protected $objects;
 	
 	/** @var string[] */
 	private $tempVars;
 	/** @var string[] */
 	private $validPrefixes = array();
-	
-	private function __clone() {
-		unset($this->tempVars);
-	}
 	
 	const REGEX_BLOCK = '_\\<\\!\\-\\- ([A-Z0-9\\_\\-\s]+)\s([a-z0-9\\.\\_\\-]+) \\-\\-\\>(.*?)\\<\\!\\-\\- /\\1 \\2 \\-\\-\\>_ms';
 	const REGEX_ANNOTATION = '_\\<\\!\\-\\- ([a-z0-9\\.\\_\\-]+) ([a-z0-9\\.\\_\\-]+) \\-\\-\\>_i';
@@ -97,9 +98,6 @@ class Template {
 	
 	/**
 	 * 
-	 * @param string $templateCode
-	 * @param Content $content
-	 * @param string[] $validPrefixes
 	 */
 	public function render() {
 		$templateCode = $this->templateCode;
@@ -124,13 +122,14 @@ class Template {
 		foreach($namespacePath as $namespace) {
 			$content = $content->getNamespace($namespace);
 		}
-		$tpl = new Template($matches[self::CONTENT]);
-		$tpl->setContent($content);
+		$tpl = clone $this;
+		$tpl->templateCode = $matches[self::CONTENT];
+		$tpl->content = $content;
 		$function = 'render'.ucfirst(strtolower($keyword)).'Block';
 		if (method_exists($tpl, $function)) {
 			$this->tempVars[] = $tpl->$function($matches[self::CONTENT], $matches[self::BLOCKNAME]);
 			return '{#'.(count($this->tempVars)-1).'}';
-		} return 'ERR';
+		} return 'Invalid keyword: '.$function;
 	}
 	
 	private function matchVar($matches) {
@@ -144,17 +143,19 @@ class Template {
 	 * 
 	 * @param string $templateCode
 	 * @param string $blockName
-	 * @param Content $content
-	 * @param string[] $validPrefixes
 	 */
 	protected function renderForBlock($templateCode, $blockName) {
-		$blocks = $this->content->getLoops($blockName);
+		$blocks = $this->content->getVariable($blockName);
 		if (!$blocks) $blocks = array();
 		$this->validPrefixes = array_merge($this->validPrefixes, array($blockName => $blockName));
 		$result = '';
 		foreach($blocks as $iteration => $block) {
 			$oldContent = $this->content;
-			$this->content = $this->content->loopMerge($blockName, $iteration);
+			$var = $this->content->getVariable($blockName);
+			if (is_array($var))
+				$this->content = $this->content->loopMerge($blockName, $iteration);
+			elseif (is_object($var))
+				$this->objects[$blockName] = $var;
 			$result .= $this->render();
 			$this->content = $oldContent;
 		}
@@ -165,12 +166,15 @@ class Template {
 	 * 
 	 * @param string $templateCode
 	 * @param string $block
-	 * @param Content $content
-	 * @param string[] $validPrefixes
 	 */
 	protected function renderIfBlock($templateCode, $block) {
-		if ($this->content->getLoops($block))
+		if ($var = $this->content->getVariable($block)) {
+			if (is_array($var))
+				$this->content->putVariables($var);
+			elseif (is_object($var))
+				$this->objects[$block] = $var;
 			return $this->render();
+		}
 	}
 	
 	/**

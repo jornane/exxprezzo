@@ -2,10 +2,8 @@
 
 class Content {
 
-	/** @var string[] */
+	/** @var string[]|Content[][]|object[] */
 	protected $vars = array();
-	/** @var Content[][] */
-	protected $loops = array();
 	/** @var Content[] */
 	protected $namespaces = array();
 		
@@ -23,10 +21,10 @@ class Content {
 	protected function &getLoop($loopName) {
 		$loops = explode('.', $loopName);
 		$last = array_pop($loops);
-		$root = &$this->loops;
+		$root = &$this->vars;
 		foreach($loops as $loopName) {
 			$root = &$root[$loopName];
-			$root = &$root[count($root)-1]->loops;
+			$root = &$root[count($root)-1]->vars;
 		}
 		return $root[$last];
 	}
@@ -58,7 +56,7 @@ class Content {
 		$parentLoop = &$this->getLoop($loopName);
 		$parentLoop[count($parentLoop)-1]->vars
 			= array_merge(
-					$parentLoop[count($this->loops)-1]->vars,
+					$parentLoop[count($this->vars)-1]->vars,
 					$variables
 				);
 	}
@@ -76,19 +74,10 @@ class Content {
 	
 	/**
 	 * 
-	 * @param string $name
+	 * @param string|Content[]|object $name
 	 */
 	public function getVariable($name) {
 		return isset($this->vars[$name]) ? $this->vars[$name] : NULL;
-	}
-	
-	/**
-	 * 
-	 * @param string $name
-	 * @return Content
-	 */
-	public function getLoops($name) {
-		return isset($this->loops[$name]) ? $this->loops[$name] : NULL;
 	}
 	
 	/**
@@ -99,12 +88,11 @@ class Content {
 	 * @param int $iteration
 	 */
 	public function loopMerge($loopName, $iteration) {
+		$loop = $this->vars[$loopName];
 		$result = clone $this;
-		foreach($result->loops[$loopName][$iteration]->vars as $key => $value)
+		unset($result->vars[$loopName]);
+		foreach($loop[$iteration]->vars as $key => $value)
 			$result->vars[$loopName.'.'.$key] = $value;
-		foreach($result->loops[$loopName][$iteration]->loops as $key => $value)
-			$result->loops[$loopName.'.'.$key] = $value;
-		unset($result->loops[$loopName]);
 		return $result;
 	}
 	
