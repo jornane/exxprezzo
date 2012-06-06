@@ -20,14 +20,14 @@ class Template {
 	/** @var Content */
 	protected $content;
 	/** @var object[] */
-	protected $objects;
+	protected $objects = array();
 	
 	/** @var string[] */
 	private $tempVars;
 	/** @var string[] */
 	private $validPrefixes = array();
 	
-	const REGEX_BLOCK = '_\\<\\!\\-\\- ([A-Z0-9\\_\\-\s]+)\s([a-z0-9\\.\\_\\-]+) \\-\\-\\>(.*?)\\<\\!\\-\\- /\\1 \\2 \\-\\-\\>_ms';
+	const REGEX_BLOCK = '_\\<\\!\\-\\- ([a-z0-9\\_\\-\s]+)\s([a-z0-9\\.\\_\\-]+) \\-\\-\\>(.*?)\\<\\!\\-\\- /\\1 \\2 \\-\\-\\>_msi';
 	const REGEX_ANNOTATION = '_\\<\\!\\-\\- ([a-z0-9\\.\\_\\-]+) ([a-z0-9\\.\\_\\-]+) \\-\\-\\>_i';
 	const KEYWORD = 1;
 	const BLOCKNAME = 2;
@@ -127,16 +127,34 @@ class Template {
 		$tpl->content = $content;
 		$function = 'render'.ucfirst(strtolower($keyword)).'Block';
 		if (method_exists($tpl, $function)) {
-			$this->tempVars[] = $tpl->$function($matches[self::CONTENT], $matches[self::BLOCKNAME]);
+			$this->tempVars[] = $tpl->$function($matches[self::BLOCKNAME]);
 			return '{#'.(count($this->tempVars)-1).'}';
-		} return 'Invalid keyword: '.$function;
+		} user_error('Invalid keyword: '.$keyword);
 	}
 	
 	private function matchVar($matches) {
-		return $matches[self::VARNAME]{0} == '#'
-				? $this->tempVars[substr($matches[self::VARNAME], 1)]
-				: $this->content->getVariableString($matches[self::VARNAME])
-			;
+		if ($matches[self::VARNAME]{0} == '#')
+			return $this->tempVars[substr($matches[self::VARNAME], 1)];
+		$namespacePath = explode(':', $matches[self::VARNAME]);
+		$varName = array_pop($namespacePath);
+		$content = $this->content;
+		foreach($namespacePath as $namespace) {
+			$content = $content->getNamespace($namespace);
+		}
+		$result = $content->getVariableString($varName);
+		if (is_null($result)) {
+			$pos = strrpos($varName, '.');
+			if ($pos) {
+				$objectKey = substr($varName, 0, $pos);
+				$fieldKey = substr($varName, $pos+1);
+				$method = 'get'.ucfirst($fieldKey);
+				if (isset($this->objects[$objectKey]) && isset($this->objects[$objectKey]->$fieldKey))
+					$result = $this->objects[$objectKey]->$fieldKey;
+				elseif (method_exists($this->objects[$objectKey], $method))
+					$result = $this->objects[$objectKey]->$method();
+			}
+		}
+		return $result;
 	}
 	
 	/**
@@ -144,12 +162,12 @@ class Template {
 	 * @param string $templateCode
 	 * @param string $blockName
 	 */
-	protected function renderForBlock($templateCode, $blockName) {
+	protected function renderForBlock($blockName) {
 		$blocks = $this->content->getVariable($blockName);
 		if (!$blocks) $blocks = array();
 		$this->validPrefixes = array_merge($this->validPrefixes, array($blockName => $blockName));
 		$result = '';
-		foreach($blocks as $iteration => $block) {
+		if (is_array($blocks)) foreach($blocks as $iteration => $block) {
 			$oldContent = $this->content;
 			$var = $this->content->getVariable($blockName);
 			if (is_array($var))
@@ -167,7 +185,7 @@ class Template {
 	 * @param string $templateCode
 	 * @param string $block
 	 */
-	protected function renderIfBlock($templateCode, $block) {
+	protected function renderIfBlock($block) {
 		if ($var = $this->content->getVariable($block)) {
 			if (is_array($var))
 				$this->content->putVariables($var);
@@ -184,7 +202,7 @@ class Template {
 	 * @param Content $content
 	 * @param string[] $validPrefixes
 	 */
-	protected function renderIfnsBlock($templateCode, $block) {
+	protected function renderIfnsBlock($block) {
 		if ($this->content->getNamespace($block)) {
 			return $this->render();
 		}
@@ -197,10 +215,10 @@ class Template {
 	 * @param Content $content
 	 * @param string[] $validPrefixes
 	 */
-	protected function renderNsBlock($templateCode, $block) {
+	protected function renderNsBlock($block) {
 		if ($origContent = $this->content->getNamespace($block)) {
-			$content = clone $origContent;
-			$content->putNamespace('parent', $this);
+			$this->content = clone $origContent;
+			$this->content->putNamespace('parent', $origContent);
 			return $this->render();
 		}
 	}
@@ -212,8 +230,8 @@ class Template {
 	 * @param Content $content
 	 * @param string[] $validPrefixes
 	 */
-	protected function renderNotBlock($templateCode, $block) {
-		if (!($this->content->getLoops($block)))
+	protected function renderNotBlock($block) {
+		if (!($this->content->getVariable($block)))
 			return $this->render();
 	}
 	
