@@ -103,13 +103,13 @@ class Content {
 	 */
 	public function putNamespace($name, $content) {
 		if ($content instanceof Content)
-			$this->namespaces[$name] = $content;
+			$this->namespaces[strtolower($name)] = $content;
 		else
 			user_error('$content should be of type Content');
 	}
 	
 	public function getNamespace($name) {
-		return $this->namespaces[$name];
+		return $this->namespaces[strtolower($name)];
 	}
 	
 }
