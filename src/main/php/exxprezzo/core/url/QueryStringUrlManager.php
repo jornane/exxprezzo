@@ -13,9 +13,14 @@ class QueryStringUrlManager extends AbstractUrlManager {
 				? $this->server['REQUEST_URI']
 				: substr($this->server['REQUEST_URI'], 0, strpos($this->server['REQUEST_URI'], '?'))
 			;
+		if ($tmp[0]{0} != '/') {
+			header('Location: '.$this->server['BASE_URL'].'?/'.$tmp[0]);
+			exit;
+		}
 		$this->server['INTERNAL_PATH'] = $tmp[0];
 		$this->server['QUERY_STRING'] = $tmp[1];
 		$this->internalPath = $tmp[0];
+		
 	}
 	
 	public function mkrawurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true) {

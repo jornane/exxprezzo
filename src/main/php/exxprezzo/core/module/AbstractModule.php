@@ -39,7 +39,7 @@ abstract class AbstractModule implements Runnable {
 		if ($instanceEntry = $dbh->fetchRow()) {
 			self::$instances[(int)$instanceEntry['moduleInstanceId']] =
 				self::_getInstance($instanceEntry['module'], $instanceEntry['moduleInstanceId'],
-					'/'.substr($internalPath, strlen($instanceEntry['root'])+1), self::parseParam($instanceEntry['param']));
+					'/'.substr($path, strlen($instanceEntry['root'])), self::parseParam($instanceEntry['param']));
 			return self::$instances[(int)$instanceEntry['moduleInstanceId']];
 		}
 		// Make me a 404
