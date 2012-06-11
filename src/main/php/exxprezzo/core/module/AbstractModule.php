@@ -5,6 +5,7 @@ use \Exception;
 use \exxprezzo\core\db\SQL;
 
 use \exxprezzo\core\Core;
+use \exxprezzo\core\Content;
 use \exxprezzo\core\Runnable;
 
 use \exxprezzo\core\url\AbstractUrlManager;
@@ -18,6 +19,7 @@ abstract class AbstractModule implements Runnable {
 	private $instanceId;
 	private $modulePath;
 	private $moduleParam;
+	private $moduleRoot;
 	
 	/** @var AbstractModule[] */
 	private static $instances = array();
@@ -29,7 +31,7 @@ abstract class AbstractModule implements Runnable {
 	 * @return AbstractModule
 	 */
 	public static function getInstanceFor($hostGroup, $internalPath) {
-		$path = trim($internalPath, '/');
+		$path = ltrim($internalPath, '/');
 		$dbh = Core::getDatabaseConnection();
 		$options = AbstractUrlManager::pathOptions($path);
 		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `param` FROM `moduleInstance`
@@ -40,6 +42,7 @@ abstract class AbstractModule implements Runnable {
 			self::$instances[(int)$instanceEntry['moduleInstanceId']] =
 				self::_getInstance($instanceEntry['module'], $instanceEntry['moduleInstanceId'],
 					'/'.substr($path, strlen($instanceEntry['root'])), self::parseParam($instanceEntry['param']));
+			self::$instances[(int)$instanceEntry['moduleInstanceId']]->moduleRoot = $instanceEntry['root'];
 			return self::$instances[(int)$instanceEntry['moduleInstanceId']];
 		}
 		// Make me a 404
@@ -102,6 +105,9 @@ abstract class AbstractModule implements Runnable {
 		else
 			user_error('urlManager is not of kind AbstractUrlManager');
 	}
+	/**
+	 * @return \exxprezzo\core\url\AbstractUrlManager
+	 */
 	public final function getUrlManager() {
 		return $this->urlManager;
 	}
@@ -130,15 +136,19 @@ abstract class AbstractModule implements Runnable {
 		$paths = static::$paths[$function];
 		$result = NULL;
 		foreach($paths as $path) {
-			$vars = extractVars($path);
+			$vars = static::extractVars($path);
 			if($vars === array_keys($args)) {
-				$temp = buildFunctionPath($path, $args);
+				$temp = static::buildFunctionPath($path, $args);
 				if($result === NULL || strlen($temp) < strlen($result) )
 					$result = $temp;
 			}
 		}
 		if($result === NULL)
-			user_error('No suitable path found for function ' . $function . '\nArguments: ' . $args . '\nCandidates considered: ' . $paths);
+			user_error(
+					'No suitable path found for function ' . $function
+					. "\nArguments: " . var_export($args, true)
+					. "\nCandidates considered: " . var_export($paths, true)
+				);
 		return $result;
 	}
 
@@ -175,9 +185,9 @@ abstract class AbstractModule implements Runnable {
 	 * in path
 	 */
 	private static function extractVars($path) {
-		$regex = '/^.*({\\$(?<name>.*)}.*)*$/';
-		$mathes = array ();
-		preg_match($regex,$path,$mathes);
+		$regex = '/({\\$(?<name>.*)})/';
+		$mathes = array();
+		preg_match_all($regex,$path,$mathes);
 		$names = $mathes['name'];
 		$result = array();
 		foreach($names as $name){
@@ -192,6 +202,10 @@ abstract class AbstractModule implements Runnable {
 
 	public function getParameters(){
 		return $this->pathParameters;
+	}
+	
+	public function getRoot() {
+		return $this->moduleRoot;
 	}
 
 	public function setFunctionName($name){
@@ -223,12 +237,12 @@ abstract class AbstractModule implements Runnable {
 	 * has to make sense).
 	 */
 	protected function init() {
-		if(!isset(static::$functions))
+		if (!isset(static::$functions))
 			user_error('The default init implementation requires a $functions static property in the module class');
 		$matches = NULL;
-		foreach(static::$functions as $regex => $function){
+		foreach(static::$functions as $regex => $function) {
 			$rawMatches = array();
-			if(preg_match('/^'.str_replace('/', '\\/', $regex).'$/', $this->modulePath, $rawMatches)){
+			if (preg_match('/^'.str_replace('/', '\\/', $regex).'$/', $this->modulePath, $rawMatches)){
 				$matches = array();
 				foreach($rawMatches as $name => $value)
 					if (!is_integer($name))
@@ -250,18 +264,35 @@ abstract class AbstractModule implements Runnable {
 		$name = $this->getFunctionName();
 		if (is_null($name))
 			user_error('No function set');
-		return $this->$name();
+		if (!method_exists($this, $name))
+			user_error('Invalid function '.$name.' for module '.$this->getName());
+		$content = new Content();
+		$content->putVariables($_POST);
+		return $this->$name($content);
 	}
 	
 	/**
 	 * 
-	 * @param unknown_type $function
-	 * @param unknown_type $args
-	 * @param unknown_type $fullUrl
-	 * @param unknown_type $noGetForce
+	 * @param string $function
+	 * @param array $moduleParam
+	 * @param boolean $fullUrl
+	 * @param boolean $noGetForce
 	 */
-	public final function mkurl($function, $args, $fullUrl=false, $noGetForce=true) {
-		return $this->getUrlManager()->mkurl($this, $function, $args, $fullUrl, $noGetForce);
+	public final function mkurl($function, $moduleParam=NULL, $fullUrl=false, $noGetForce=true) {
+		if (is_null($moduleParam))
+			$moduleParam = $this->getParameters();
+		return $this->getUrlManager()->mkurl($this, $function, $moduleParam, array(), $fullUrl, $noGetForce);
+	}
+	
+	/**
+	 * 
+	 * @param string $function
+	 * @param array $moduleParam
+	 * @param boolean $noGetForce
+	 */
+	public final function redirect($function, $moduleParam=NULL, $noGetForce=true) {
+		header('Location: '.$this->mkurl($function, $moduleParam, true, $noGetForce));
+		exit;
 	}
 	
 	/**
