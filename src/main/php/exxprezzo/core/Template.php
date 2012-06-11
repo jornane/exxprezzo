@@ -22,6 +22,9 @@ class Template {
 	/** @var object[] */
 	protected $objects = array();
 	
+	/** @var string */
+	protected $filename;
+	
 	/** @var string[] */
 	private $tempVars;
 	/** @var string[] */
@@ -37,6 +40,12 @@ class Template {
 	const VARNAME = 1;
 	
 	const REGEX_COMMENT = '_\\<\\!\\-\\- (.*) \\-\\-\\>_i';
+	
+	public static function templateFromFile($filename) {
+		$result = new Template(file_get_contents($filename));
+		$result->filename = $filename;
+		return $result;
+	}
 	
 	/**
 	 * 
@@ -94,6 +103,14 @@ class Template {
 	 */
 	public function setContent($content) {
 		$this->content = $content;
+	}
+	
+	public function __toString() {
+		$this->render();
+	}
+	
+	public function getFilename() {
+		return $this->filename;
 	}
 	
 	/**

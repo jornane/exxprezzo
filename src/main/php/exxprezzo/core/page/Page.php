@@ -145,7 +145,7 @@ final class Page extends AbstractOutput {
 				.$kind.'s'.DIRECTORY_SEPARATOR
 				.implode(DIRECTORY_SEPARATOR, $name).'.tpl'
 			;
-		return new Template(file_get_contents($tplFile));
+		return Template::templateFromFile($tplFile);
 	}
 	
 }
