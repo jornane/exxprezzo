@@ -1,6 +1,7 @@
 <?php namespace exxprezzo\core;
 
 use \exxprezzo\core\output\Output;
+use \exxprezzo\core\output\ExceptionOutput;
 
 use \exxprezzo\core\url\AbstractUrlManager;
 
@@ -68,7 +69,7 @@ class Core {
 				/** @var \exxprezzo\core\Output */
 				$outputObject = self::$mainModule->run();
 			} catch (Exception $e) {
-				$outputObject = new ExceptionOutput($e);
+				$outputObject = new ExceptionOutput(self::$mainModule, $e);
 			}
 			
 			if ($outputObject instanceof Output) if (Page::supportsOutput($outputObject)) {
@@ -189,8 +190,8 @@ class Core {
 				'{title}',
 				'{stacktrace}',
 			), array(
-				htmlspecialchars($e->getMessage()),
-				htmlspecialchars($title.' Error'),
+				nl2br(htmlspecialchars($e->getMessage()), true),
+				nl2br(htmlspecialchars($title.' Error'), true),
 				htmlspecialchars($trace),
 			), file_get_contents(self::$errorPage));
 		}
