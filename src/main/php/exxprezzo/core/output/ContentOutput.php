@@ -34,4 +34,8 @@ class ContentOutput extends AbstractOutput implements PartialOutput, Formattable
 		return $this->template->render();
 	}
 	
+	public function getContentObject() {
+		return clone $this->content;
+	}
+	
 }
