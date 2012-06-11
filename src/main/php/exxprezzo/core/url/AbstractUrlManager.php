@@ -90,6 +90,6 @@ abstract class AbstractUrlManager {
 	 */
 	public final function mkurl($module, $function, $args=array(), $get=array(), $fullUrl=false, $noGetForce=true) {
 		$functionPath = $module::getFunctionPath($function, $args);
-		return $this->mkrawurl($this->getHostGroup(), $module->getModulePath().$functionPath, $get, $fullUrl, $noGetForce);
+		return $this->mkrawurl($this->getHostGroup(), $module->getRoot().$functionPath, $get, $fullUrl, $noGetForce);
 	}
 }
