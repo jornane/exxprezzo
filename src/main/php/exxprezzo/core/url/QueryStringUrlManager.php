@@ -13,7 +13,7 @@ class QueryStringUrlManager extends AbstractUrlManager {
 				? $this->server['REQUEST_URI']
 				: substr($this->server['REQUEST_URI'], 0, strpos($this->server['REQUEST_URI'], '?'))
 			;
-		if ($tmp[0]{0} != '/') {
+		if (!$tmp[0] || $tmp[0]{0} != '/') {
 			header('Location: '.$this->server['BASE_URL'].'?/'.$tmp[0]);
 			exit;
 		}
