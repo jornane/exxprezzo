@@ -1,7 +1,5 @@
 <?php namespace exxprezzo\core\page;
 
-use \exxprezzo\core\output\ContentOutput;
-
 use \exxprezzo\core\Core;
 use \exxprezzo\core\Content;
 use \exxprezzo\core\Template;
@@ -9,12 +7,13 @@ use \exxprezzo\core\Template;
 use \exxprezzo\core\module\AbstractModule;
 
 use \exxprezzo\core\output\AbstractOutput;
+use \exxprezzo\core\output\BlockOutput;
 use \exxprezzo\core\output\PartialOutput;
 
 final class Page extends AbstractOutput {
 	
 	/** @var AbstractModule */
-	private $module;
+	private $mainModule;
 	
 	/** @var array */
 	private $widgets = array();
@@ -91,7 +90,7 @@ final class Page extends AbstractOutput {
 		/** @var Output */
 		$widgetOutput = $module->run();
 		
-		if ($widgetOutput instanceof ContentOutput)
+		if ($widgetOutput instanceof BlockOutput)
 			$widgetOutput->setTemplate(static::getTemplate(
 					'module',
 					$this->layout['theme'],
@@ -122,7 +121,7 @@ final class Page extends AbstractOutput {
 		
 		
 		foreach($this->widgets as $box => $widgets) foreach($widgets as $widget) {
-			if ($widget['output'] instanceof ContentOutput)
+			if ($widget['output'] instanceof BlockOutput)
 				$widget['output']->setTemplate(static::getTemplate(
 						'module',
 						$this->layout['theme'],
@@ -136,8 +135,8 @@ final class Page extends AbstractOutput {
 		return $template->render();
 	}
 	
-	public function getContentTypes() {
-		return $this->module->run()->getContentTypes();
+	public function getContentType() {
+		return $this->main->getContentType();
 	}
 	
 	public static function getTemplate($kind, $theme, $name) {

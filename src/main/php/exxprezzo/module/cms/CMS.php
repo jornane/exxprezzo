@@ -9,7 +9,7 @@ use \exxprezzo\core\input\TextInput;
 use \exxprezzo\core\Core;
 use \exxprezzo\core\Content;
 
-use \exxprezzo\core\output\ContentOutput;
+use \exxprezzo\core\output\BlockOutput;
 
 use \exxprezzo\core\module\AbstractModule;
 
@@ -63,7 +63,7 @@ class CMS extends AbstractModule {
 			$content->putVariables($page);
 			if ($canEdit)
 				$content->putVariable('editHref', $this->mkurl('edit'));
-			return new ContentOutput($this, $content);
+			return new BlockOutput($this, $content);
 		} else if ($canEdit) {
 			$this->redirect('edit');
 		} else {
@@ -94,7 +94,7 @@ class CMS extends AbstractModule {
 					'content' => new LongTextInput('content', 'Lorem ipsum dolor...'),
 			));
 		}
-		return new ContentOutput($this, $content);
+		return new BlockOutput($this, $content);
 	}
 	
 	/**
