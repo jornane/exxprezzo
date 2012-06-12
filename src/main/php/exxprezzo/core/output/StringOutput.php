@@ -3,20 +3,20 @@
 class StringOutput extends AbstractOutput {
 	
 	protected $string;
-	protected $contentTypes;
+	protected $contentType;
 	
-	public function __construct($source, $contentTypes, $string) {
+	public function __construct($source, $contentType, $string) {
 		parent::__construct($source);
 		$this->string = $string;
-		$this->contentTypes = $contentTypes;
+		$this->contentType = $contentType;
 	}
 	
 	public function getContent() {
 		return $this->string;
 	}
 	
-	public function getContentTypes() {
-		return $this->contentTypes;
+	public function getContentType() {
+		return $this->contentType;
 	}
 	
 }

@@ -5,10 +5,6 @@ use \exxprezzo\core\Template;
 class BlockOutput extends AbstractFormattableOutput implements PartialOutput {
 	protected $template;
 	
-	public function __construct($source, $content) {
-		parent::__construct($source, $content);
-	}
-	
 	/**
 	 * 
 	 * @param Template $template

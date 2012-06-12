@@ -3,7 +3,7 @@
 use exxprezzo\core\output\FormattableOutput;
 use exxprezzo\core\output\AbstractOutput;
 
-class AbstractFormattableOutput extends AbstractOutput implements FormattableOutput {
+abstract class AbstractFormattableOutput extends AbstractOutput implements FormattableOutput {
 	
 	protected $content;
 	
