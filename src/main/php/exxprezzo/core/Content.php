@@ -67,7 +67,7 @@ class Content {
 	 */
 	public function getVariableString($name) {
 		return isset($this->vars[$name]) && is_object($this->vars[$name])
-				? $this->vars[$name]->__toString()
+				? (method_exists($this->vars[$name], '__toString') ? $this->vars[$name]->__toString() : get_class($this->vars[$name]))
 				: $this->getVariable($name)
 			;
 	}

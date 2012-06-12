@@ -167,7 +167,7 @@ class Template {
 				$method = 'get'.ucfirst($fieldKey);
 				if (isset($this->objects[$objectKey]) && isset($this->objects[$objectKey]->$fieldKey))
 					$result = $this->objects[$objectKey]->$fieldKey;
-				elseif (method_exists($this->objects[$objectKey], $method))
+				elseif (isset($this->objects[$objectKey]) && method_exists($this->objects[$objectKey], $method))
 					$result = $this->objects[$objectKey]->$method();
 			}
 		}
