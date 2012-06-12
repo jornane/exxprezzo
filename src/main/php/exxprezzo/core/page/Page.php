@@ -73,8 +73,9 @@ final class Page extends AbstractOutput {
 		while($widget = $dbh->fetchrow()) {
 			$this->widgets[$widget['box']][$widget['widgetId']] = $widget;
 			$module = AbstractModule::getInstance($widget['moduleInstanceId']);
+			$param = AbstractModule::parseParam($widget['param']);
 			$this->widgets[$widget['box']][$widget['widgetId']]['module'] = $module;
-			$this->widgets[$widget['box']][$widget['widgetId']]['output'] = $module->$widget['function']($widget['param']);
+			$this->widgets[$widget['box']][$widget['widgetId']]['output'] = $module->$widget['function']($param);
 			$this->widgets[$widget['box']][$widget['widgetId']]['template'] = $widget['preferredFunctionTemplate']
 					? $widget['preferredFunctionTemplate']
 					: $widget['function']

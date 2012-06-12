@@ -80,7 +80,7 @@ abstract class AbstractModule implements Runnable {
 		return $result;
 	}
 
-	private static function parseParam($moduleParameter) {
+	public static function parseParam($moduleParameter) {
 		try {
 			return unserialize($moduleParameter);
 		} catch (Exception $e) {
