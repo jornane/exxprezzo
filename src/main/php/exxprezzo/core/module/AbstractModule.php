@@ -9,16 +9,18 @@ use \exxprezzo\core\Content;
 use \exxprezzo\core\Runnable;
 
 use \exxprezzo\core\url\AbstractUrlManager;
+use \exxprezzo\core\url\HostGroup;
 
 abstract class AbstractModule implements Runnable {
 	protected $isMain;
-	private $urlManager;
 	private $functionName;
 	private $pathParameters;
 	
 	private $instanceId;
-	private $modulePath;
+	private $hostGroup;
 	private $moduleParam;
+	
+	private $mainFunctionPath;
 	private $moduleRoot;
 	
 	/** @var AbstractModule[] */
@@ -26,7 +28,7 @@ abstract class AbstractModule implements Runnable {
 		
 	/**
 	 * 
-	 * @param string $hostGroup
+	 * @param HostGroup $hostGroup
 	 * @param string $internalPath
 	 * @return AbstractModule
 	 */
@@ -35,12 +37,12 @@ abstract class AbstractModule implements Runnable {
 		$dbh = Core::getDatabaseConnection();
 		$options = AbstractUrlManager::pathOptions($path);
 		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `param` FROM `moduleInstance`
-				WHERE `root` IN $options
+				WHERE `root` IN :options AND `hostGroup` = :hostGroup
 				ORDER BY LENGTH(`root`) DESC
-				LIMIT 1', array('options' => $options));
+				LIMIT 1', array('options' => $options, 'hostGroup' => $hostGroup->getId()));
 		if ($instanceEntry = $dbh->fetchRow()) {
 			self::$instances[(int)$instanceEntry['moduleInstanceId']] =
-				self::_getInstance($instanceEntry['module'], $instanceEntry['moduleInstanceId'],
+				self::_getInstance($instanceEntry['module'], $instanceEntry['moduleInstanceId'], $hostGroup,
 					'/'.substr($path, strlen($instanceEntry['root'])), self::parseParam($instanceEntry['param']));
 			self::$instances[(int)$instanceEntry['moduleInstanceId']]->moduleRoot = $instanceEntry['root'];
 			return self::$instances[(int)$instanceEntry['moduleInstanceId']];
@@ -50,31 +52,34 @@ abstract class AbstractModule implements Runnable {
 	}
 	
 	/**
-	 * 
 	 * @param int $moduleInstanceId
+	 * @return AbstractModule
 	 */
-	public static function getInstance($moduleInstanceId, $modulePath = NULL) {
+	public static function getInstance($moduleInstanceId, $mainFunctionPath = NULL) {
 		if(array_key_exists($moduleInstanceId, self::$instances))
 			return self::$instances[$moduleInstanceId];
 		$dbh = Core::getDatabaseConnection();
-		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `param` FROM `moduleInstance`
-				WHERE `moduleInstanceId` = $moduleInstanceId
+		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `hostGroup`, `param` FROM `moduleInstance`
+				WHERE `moduleInstanceId` = :moduleInstanceId
 				ORDER BY LENGTH(`root`) DESC
-				LIMIT 1', array('moduleInstanceId', (int)$moduleInstanceId));
+				LIMIT 1', array('moduleInstanceId' => (int)$moduleInstanceId));
 		if ($instanceEntry = $dbh->fetchrow()) {
 			self::$instances[$moduleInstanceId] =
 				self::_getInstance($instanceEntry['module'], $moduleInstanceId,
-					$modulePath, self::parseParam($instanceEntry['param']));
+					new HostGroup($instanceEntry['hostGroup']),
+					$mainFunctionPath, self::parseParam($instanceEntry['param']));
 			return self::$instances[$moduleInstanceId];
 		}
-		user_error('Unable to find suitable module.');
+		user_error('There is no mobule with instance '.$moduleInstanceId);
 	}
 	
-	private static function _getInstance($module, $instanceId, $path, $param) {
+	private static function _getInstance($module, $instanceId, $hostGroup, $mainFunctionPath, $param) {
 		$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
+		/** @var AbstractModule */
 		$result = new $moduleFQN;
 		$result->instanceId = $instanceId;
-		$result->modulePath = $path;
+		$result->hostGroup = $hostGroup;
+		$result->mainFunctionPath = $mainFunctionPath;
 		$result->moduleParam = $param;
 		$result->init();
 		return $result;
@@ -98,20 +103,7 @@ abstract class AbstractModule implements Runnable {
 	public function isMain() {
 		return $this->isMain;
 	}
-
-	public final function setUrlManager($urlManager) {
-		if ($urlManager instanceof AbstractUrlManager)
-			$this->urlManager = $urlManager;
-		else
-			user_error('urlManager is not of kind AbstractUrlManager');
-	}
-	/**
-	 * @return \exxprezzo\core\url\AbstractUrlManager
-	 */
-	public final function getUrlManager() {
-		return $this->urlManager;
-	}
-
+		
 	/**
 	 * Retrieves a path that will result in a call to the given function
 	 * with the given arguments. This function uses a static field named $paths
@@ -128,7 +120,7 @@ abstract class AbstractModule implements Runnable {
 	 * @return string A path that maps to a call to $function with $args
 	 * as its arguments
 	 */
-	public static function getFunctionPath($function, $args) {
+	public static function mkFunctionPath($function, $args) {
 		if(!isset(static::$paths))
 			user_error('This module has no usable paths');
 		if(!isset(static::$paths[$function]))
@@ -204,11 +196,20 @@ abstract class AbstractModule implements Runnable {
 		return $this->pathParameters;
 	}
 	
-	public function getRoot() {
+	/**
+	 * Get the module path (the part of the internal path that points to this module)
+	 */
+	public function getModulePath() {
 		return $this->moduleRoot;
 	}
-
-	public function setFunctionName($name){
+	/**
+	 * Get the host group for this module
+	 */
+	public final function getHostGroup() {
+		return $this->hostGroup;
+	}
+	
+	protected function setFunctionName($name){
 		if (method_exists($this, $name))
 			$this->functionName = $name;
 		else
@@ -242,7 +243,7 @@ abstract class AbstractModule implements Runnable {
 		$matches = NULL;
 		foreach(static::$functions as $regex => $function) {
 			$rawMatches = array();
-			if (preg_match('/^'.str_replace('/', '\\/', $regex).'$/', $this->modulePath, $rawMatches)){
+			if (preg_match('/^'.str_replace('/', '\\/', $regex).'$/', $this->mainFunctionPath, $rawMatches)) {
 				$matches = array();
 				foreach($rawMatches as $name => $value)
 					if (!is_integer($name))
@@ -252,7 +253,8 @@ abstract class AbstractModule implements Runnable {
 				return;
 			}
 		}
-		user_error('No function matches the module path "'.$this->modulePath.'" for module '.$this->getName());
+		if ($this->isMain())
+			user_error('No function matches the function path "'.$this->mainFunctionPath.'" for module '.$this->getName());
 	}
 
 	/**
@@ -278,10 +280,13 @@ abstract class AbstractModule implements Runnable {
 	 * @param boolean $fullUrl
 	 * @param boolean $noGetForce
 	 */
-	public final function mkurl($function, $moduleParam=NULL, $fullUrl=false, $noGetForce=true) {
+	public final function mkurl($function, $moduleParam=NULL, $fullUrl=false, $get=array(), $noGetForce=true) {
 		if (is_null($moduleParam))
 			$moduleParam = $this->getParameters();
-		return $this->getUrlManager()->mkurl($this, $function, $moduleParam, array(), $fullUrl, $noGetForce);
+		$functionPath = static::mkFunctionPath($function, $moduleParam);
+		return Core::getUrlManager()->mkurl(
+				$this->getHostGroup(), $this->getModulePath().$functionPath, $get, $fullUrl, $noGetForce
+			);
 	}
 	
 	/**
@@ -290,8 +295,8 @@ abstract class AbstractModule implements Runnable {
 	 * @param array $moduleParam
 	 * @param boolean $noGetForce
 	 */
-	public final function redirect($function, $moduleParam=NULL, $noGetForce=true) {
-		header('Location: '.$this->mkurl($function, $moduleParam, true, $noGetForce));
+	public final function redirect($function, $moduleParam=NULL, $get=array(), $noGetForce=true) {
+		header('Location: '.$this->mkurl($function, $moduleParam, true, $get, $noGetForce));
 		exit;
 	}
 	
@@ -299,8 +304,8 @@ abstract class AbstractModule implements Runnable {
 	 * Module path is the part of the Internal URL which does not indicate the module.
 	 * @return string	The module path 
 	 */
-	public function getModulePath() {
-		return $this->modulePath;
+	public function getMainFunctionPath() {
+		return $this->mainFunctionPath;
 	}
 	
 	/**

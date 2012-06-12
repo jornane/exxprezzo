@@ -62,7 +62,7 @@ class Core {
 					self::$urlManager->getPath()
 				);
 			self::$mainModule->setMain(true);
-			self::$mainModule->setUrlManager(self::$urlManager);
+			self::$urlManager->registerMainModule();
 			
 			// Invoke main module
 			try {
@@ -86,6 +86,17 @@ class Core {
 		} catch (Exception $e) {
 			Core::handleException($e, false, true);
 		}
+	}
+	
+	/**
+	 * @return \exxprezzo\core\url\AbstractUrlManager
+	 */
+	public static function getUrlManager() {
+		return self::$urlManager;
+	}
+	
+	public static function getMainModule() {
+		return self::$mainModule;
 	}
 	
 	private static function readConfigFile() {

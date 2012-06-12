@@ -23,7 +23,7 @@ class QueryStringUrlManager extends AbstractUrlManager {
 		
 	}
 	
-	public function mkrawurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true) {
+	public function mkurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true) {
 		$base = $fullUrl ? $this->server['BASE_URL'] : '';
 		// TODO merge $get with forced vars
 		if ($get)

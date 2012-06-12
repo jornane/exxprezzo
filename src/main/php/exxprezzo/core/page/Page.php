@@ -65,8 +65,8 @@ final class Page extends AbstractOutput {
 		} else {
 			user_error("No layout found. Did you forget to specify a default layout?");
 		}
-		$dbh->query('SELECT `widgetId`, `moduleInstanceId`, `function`, `preferredFunctionTemplate`, `box`, `param` FROM `widget`
-				WHERE `pageId` = :pageId
+		$dbh->execute('SELECT `widgetId`, `moduleInstanceId`, `function`, `preferredFunctionTemplate`, `box`, `param` FROM `widget`
+				WHERE `pageId` = :pageId OR `pageId` IS NULL
 				ORDER BY `priority` ASC', array(
 						'pageId' => $this->pageId,
 					));
@@ -122,7 +122,7 @@ final class Page extends AbstractOutput {
 		
 		
 		foreach($this->widgets as $box => $widgets) foreach($widgets as $widget) {
-			if ($widget instanceof ContentOutput)
+			if ($widget['output'] instanceof ContentOutput)
 				$widget['output']->setTemplate(static::getTemplate(
 						'module',
 						$this->layout['theme'],

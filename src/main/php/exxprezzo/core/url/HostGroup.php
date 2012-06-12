@@ -42,6 +42,10 @@ final class HostGroup {
 		}
 	}
 	
+	public function getId() {
+		return $this->hostGroupId;
+	}
+	
 	public function getPrimary() {
 		if (is_null($this->primaryHostName)) $this->lazyLoad();
 		return $this->primaryHostName;

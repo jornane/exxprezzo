@@ -73,23 +73,13 @@ abstract class AbstractUrlManager {
 	public function getPath() {
 		return $this->internalPath;
 	}
+	
+	public function registerMainModule() {
+		$this->server['MODULE_PATH'] = Core::getMainModule()->getModulePath();
+		$this->server['FUNCTION_PATH'] = Core::getMainModule()->getMainFunctionPath();
+	}
 		
-	public abstract function mkrawurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true);
+	public abstract function mkurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true);
 	
 	public abstract function serverpath($path);
-	
-	/**
-	 * Return the URL to a specific physical path, relative to the exxprezzo root.
-	 * 
-	 * @param AbstractModule $module
-	 * @param string $function
-	 * @param string[] $args
-	 * @param string[] $get
-	 * @param boolean $fullUrl
-	 * @param boolean $noGetForce
-	 */
-	public final function mkurl($module, $function, $args=array(), $get=array(), $fullUrl=false, $noGetForce=true) {
-		$functionPath = $module::getFunctionPath($function, $args);
-		return $this->mkrawurl($this->getHostGroup(), $module->getRoot().$functionPath, $get, $fullUrl, $noGetForce);
-	}
 }
