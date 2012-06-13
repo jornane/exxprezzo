@@ -30,7 +30,8 @@ if (!(include 'exxprezzo/core/'.DIRECTORY_SEPARATOR.'Core.php') || !class_exists
 }
 
 function __autoload($className) {
-	exxprezzo\core\Core::loadClass($className);
+	\exxprezzo\core\Core::loadClass($className);
 }
+assert_options(ASSERT_BAIL, 1);
 
-exxprezzo\core\Core::run();
+\exxprezzo\core\Core::run();

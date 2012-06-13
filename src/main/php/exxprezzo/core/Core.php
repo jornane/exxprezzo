@@ -41,7 +41,7 @@ class Core {
 		try {
 			self::$basedir = getcwd();
 			// Set error handler
-			set_error_handler(array('exxprezzo\core\Core', 'handleError'));
+			set_error_handler(array('\exxprezzo\core\Core', 'handleError'));
 			
 			// Read config file
 			self::readConfigFile();
