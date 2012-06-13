@@ -12,16 +12,25 @@ use \exxprezzo\core\url\AbstractUrlManager;
 use \exxprezzo\core\url\HostGroup;
 
 abstract class AbstractModule implements Runnable {
+
+	/** @var string */
+	private $mainFunctionPath;
+	/** @var string */
+	private $modulePath;
+	
+	/** @var boolean */
 	protected $isMain;
+	/** @var string */
 	private $functionName;
+	/** @var string[] */
 	private $pathParameters;
 	
+	/** @var int */
 	private $instanceId;
+	/** @var HostGroup */
 	private $hostGroup;
+	/** @var mixed */
 	private $moduleParam;
-	
-	private $mainFunctionPath;
-	private $moduleRoot;
 	
 	/** @var AbstractModule[] */
 	private static $instances = array();
@@ -42,9 +51,9 @@ abstract class AbstractModule implements Runnable {
 				LIMIT 1', array('options' => $options, 'hostGroup' => $hostGroup->getId()));
 		if ($instanceEntry = $dbh->fetchRow()) {
 			self::$instances[(int)$instanceEntry['moduleInstanceId']] =
-				self::_getInstance($instanceEntry['module'], $instanceEntry['moduleInstanceId'], $hostGroup,
+				self::_instantiate($instanceEntry['module'], $instanceEntry['moduleInstanceId'], $hostGroup,
 					'/'.substr($path, strlen($instanceEntry['root'])), self::parseParam($instanceEntry['param']));
-			self::$instances[(int)$instanceEntry['moduleInstanceId']]->moduleRoot = $instanceEntry['root'];
+			self::$instances[(int)$instanceEntry['moduleInstanceId']]->modulePath = $instanceEntry['root'];
 			return self::$instances[(int)$instanceEntry['moduleInstanceId']];
 		}
 		// Make me a 404
@@ -65,7 +74,7 @@ abstract class AbstractModule implements Runnable {
 				LIMIT 1', array('moduleInstanceId' => (int)$moduleInstanceId));
 		if ($instanceEntry = $dbh->fetchrow()) {
 			self::$instances[$moduleInstanceId] =
-				self::_getInstance($instanceEntry['module'], $moduleInstanceId,
+				self::_instantiate($instanceEntry['module'], $moduleInstanceId,
 					new HostGroup($instanceEntry['hostGroup']),
 					$mainFunctionPath, self::parseParam($instanceEntry['param']));
 			return self::$instances[$moduleInstanceId];
@@ -73,7 +82,15 @@ abstract class AbstractModule implements Runnable {
 		user_error('There is no mobule with instance '.$moduleInstanceId);
 	}
 	
-	private static function _getInstance($module, $instanceId, $hostGroup, $mainFunctionPath, $param) {
+	/**
+	 * 
+	 * @param string $module
+	 * @param int $instanceId
+	 * @param HostGroup $hostGroup
+	 * @param string $mainFunctionPath
+	 * @param mixed $param
+	 */
+	private static function _instantiate($module, $instanceId, $hostGroup, $mainFunctionPath, $param) {
 		$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
 		/** @var AbstractModule */
 		$result = new $moduleFQN;
@@ -84,7 +101,12 @@ abstract class AbstractModule implements Runnable {
 		$result->init();
 		return $result;
 	}
-
+	
+	/**
+	 * 
+	 * @param mixed $moduleParameter
+	 * @throws \Exception
+	 */
 	public static function parseParam($moduleParameter) {
 		try {
 			return unserialize($moduleParameter);
@@ -95,11 +117,21 @@ abstract class AbstractModule implements Runnable {
 		}
 	}
 	
+	/**
+	 * @return string
+	 */
 	public abstract function getTitle();
 	
+	/**
+	 * 
+	 * @param boolean $isMain
+	 */
 	public function setMain($isMain) {
 		$this->isMain = $isMain;
 	}
+	/**
+	 * @return boolean
+	 */
 	public function isMain() {
 		return $this->isMain;
 	}
@@ -187,20 +219,28 @@ abstract class AbstractModule implements Runnable {
 		}
 		return array_keys($result);
 	}
-
-	public function setPathParameters($params){
+	
+	/**
+	 * 
+	 * @param string[] $params
+	 */
+	protected function setPathParameters($params){
 		$this->pathParameters = $params;
 	}
-
+	
+	/**
+	 * @return string[]
+	 */
 	public function getParameters(){
 		return $this->pathParameters;
 	}
 	
 	/**
 	 * Get the module path (the part of the internal path that points to this module)
+	 * @return 
 	 */
 	public function getModulePath() {
-		return $this->moduleRoot;
+		return $this->modulePath;
 	}
 	/**
 	 * Get the host group for this module
@@ -209,6 +249,10 @@ abstract class AbstractModule implements Runnable {
 		return $this->hostGroup;
 	}
 	
+	/**
+	 * 
+	 * @param string $name
+	 */
 	protected function setFunctionName($name){
 		if (method_exists($this, $name))
 			$this->functionName = $name;
@@ -216,6 +260,9 @@ abstract class AbstractModule implements Runnable {
 			user_error('Module '.$this->getName().' does not contain a function '.$name);
 	}
 	
+	/**
+	 * @return string
+	 */
 	public function getFunctionName() {
 		return $this->functionName;
 	}
