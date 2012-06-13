@@ -409,14 +409,15 @@ abstract class AbstractModule implements Runnable {
 	/**
 	 * @return string	The name of this module
 	 */
-	public final function getName() {
-		return substr(get_class($this), strrpos(get_class($this), '\\')+1);
+	public static final function getName() {
+		$class = get_called_class();
+		return substr($class, strrpos($class, '\\')+1);
 	}
 	
 	/**
 	 * @return string	String which can be used to identify this instance
 	 */
 	public final function __toString() {
-		return $this->getName().':'.$this->getInstanceId();
+		return self::getName().':'.$this->getInstanceId();
 	}
 }
