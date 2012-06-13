@@ -54,11 +54,10 @@ abstract class AbstractModule implements Runnable {
 						$instanceEntry['module'],
 						$instanceEntry['moduleInstanceId'],
 						$hostGroup,
-						$instanceEntry['root'].'/',
+						$instanceEntry['root'],
 						'/'.substr($path, strlen($instanceEntry['root'])),
 						self::parseParam($instanceEntry['param'])
 					);
-			$instance->modulePath = $instanceEntry['root'];
 			return self::$instances[(int)$instanceEntry['moduleInstanceId']] = $instance;
 		}
 		// Make me a 404
@@ -83,7 +82,7 @@ abstract class AbstractModule implements Runnable {
 						$instanceEntry['module'],
 						$moduleInstanceId,
 						new HostGroup($instanceEntry['hostGroup']),
-						$instanceEntry['root'].'/',
+						$instanceEntry['root'],
 						$mainFunctionPath,
 						self::parseParam($instanceEntry['param'])
 					);
@@ -248,10 +247,10 @@ abstract class AbstractModule implements Runnable {
 	
 	/**
 	 * Get the module path (the part of the internal path that points to this module)
-	 * @return 
+	 * @return string
 	 */
 	public function getModulePath() {
-		return $this->modulePath;
+		return $this->modulePath.'/';
 	}
 	/**
 	 * Get the host group for this module
