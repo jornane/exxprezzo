@@ -75,15 +75,6 @@ abstract class AbstractModule implements Runnable {
 		assert('is_numeric($moduleInstanceId)');
 		assert('is_null($mainFunctionPath) || is_string($mainFunctionPath)');
 		
-		/*
-		$debug = array();
-		foreach(self::$instances as $id => $instance) {
-			$debug[$id] = $instance->getModulePath();
-		}
-		var_export($debug);
-		*/
-		//if(array_key_exists($moduleInstanceId, self::$instances))
-			//return self::$instances[$moduleInstanceId];
 		$dbh = Core::getDatabaseConnection();
 		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `hostGroup`, `param` FROM `moduleInstance`
 				WHERE `moduleInstanceId` = :moduleInstanceId
