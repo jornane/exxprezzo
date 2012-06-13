@@ -51,6 +51,8 @@ class Core {
 			// Read config from database (implicit connect to database)
 			self::readConfigFromDB();
 			
+			assert_options(ASSERT_ACTIVE, (!isset($config['debug'])||$config['debug'])?1:0);
+			
 			date_default_timezone_set(self::$config['timeZone']);
 			
 			// Parse URL
