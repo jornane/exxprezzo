@@ -264,7 +264,7 @@ abstract class AbstractModule implements Runnable {
 	 * @return string
 	 */
 	public function getModulePath() {
-		return $this->modulePath.'/';
+		return is_null($this->modulePath) ? NULL : $this->modulePath.'/';
 	}
 	/**
 	 * Get the host group for this module
@@ -355,6 +355,8 @@ abstract class AbstractModule implements Runnable {
 	public final function mkurl($function, $moduleParam=NULL, $fullUrl=false, $get=array(), $noGetForce=true) {
 		if (is_null($moduleParam))
 			$moduleParam = $this->getParameters();
+		if (is_null($this->getModulePath()))
+			user_error('Module '.$this->__toString().' is not exposed and as such no url can be made pointing to it.');
 		$functionPath = static::mkFunctionPath($function, $moduleParam);
 		assert('$functionPath{0}=="/"');
 		return Core::getUrlManager()->mkurl(
