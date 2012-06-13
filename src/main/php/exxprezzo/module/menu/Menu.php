@@ -2,14 +2,10 @@
 
 use \exxprezzo\core\db\SQL;
 
-use \exxprezzo\core\input\ButtonInput;
-use \exxprezzo\core\input\LongTextInput;
-use \exxprezzo\core\input\TextInput;
-
 use \exxprezzo\core\Core;
 use \exxprezzo\core\Content;
 
-use \exxprezzo\core\output\ContentOutput;
+use \exxprezzo\core\output\BlockOutput;
 
 use \exxprezzo\core\module\AbstractModule;
 
@@ -44,7 +40,7 @@ class Menu extends AbstractModule {
 			}
 			$content->addLoop('menuItem', $entry);
 		}
-		return new ContentOutput($this, $content);
+		return new BlockOutput($this, $content);
 	}
 	
 }
