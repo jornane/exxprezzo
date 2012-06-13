@@ -96,6 +96,7 @@ abstract class AbstractModule implements Runnable {
 	 * @param string $module
 	 * @param int $instanceId
 	 * @param HostGroup $hostGroup
+	 * @param string $modulePath
 	 * @param string $mainFunctionPath
 	 * @param mixed $param
 	 */
@@ -335,6 +336,7 @@ abstract class AbstractModule implements Runnable {
 	 * @param string $function
 	 * @param array $moduleParam
 	 * @param boolean $fullUrl
+	 * @param array $get
 	 * @param boolean $noGetForce
 	 */
 	public final function mkurl($function, $moduleParam=NULL, $fullUrl=false, $get=array(), $noGetForce=true) {
@@ -342,7 +344,11 @@ abstract class AbstractModule implements Runnable {
 			$moduleParam = $this->getParameters();
 		$functionPath = static::mkFunctionPath($function, $moduleParam);
 		return Core::getUrlManager()->mkurl(
-				$this->getHostGroup(), $this->getModulePath().$functionPath, $get, $fullUrl, $noGetForce
+				$this->getHostGroup(),
+				$this->getModulePath().substr($functionPath, 1),
+				$get,
+				$fullUrl,
+				$noGetForce
 			);
 	}
 	
@@ -350,6 +356,7 @@ abstract class AbstractModule implements Runnable {
 	 * 
 	 * @param string $function
 	 * @param array $moduleParam
+	 * @param array $get
 	 * @param boolean $noGetForce
 	 */
 	public final function redirect($function, $moduleParam=NULL, $get=array(), $noGetForce=true) {
