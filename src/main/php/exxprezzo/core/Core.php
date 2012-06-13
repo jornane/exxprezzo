@@ -42,6 +42,8 @@ class Core {
 			self::$basedir = getcwd();
 			// Set error handler
 			set_error_handler(array('\exxprezzo\core\Core', 'handleError'));
+			// Set assertion handler
+			assert_options(ASSERT_CALLBACK, array('\exxprezzo\core\Core', 'handleAssertion'));
 			
 			// Read config file
 			self::readConfigFile();
@@ -143,6 +145,9 @@ class Core {
 			return false;
 		// Convert errors to ErrorException
 		throw new ErrorException($errstr, 0, $errno, $errfile, $errline);
+	}
+	public static function handleAssertion($file, $line, $assertion) {
+		self::handleException(new \Exception('The following assertion was not met: '.$assertion));
 	}
 	
 	/**

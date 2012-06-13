@@ -42,6 +42,9 @@ abstract class AbstractModule implements Runnable {
 	 * @return AbstractModule
 	 */
 	public static function getInstanceFor($hostGroup, $internalPath) {
+		assert('$hostGroup instanceof \exxprezzo\core\url\HostGroup');
+		assert('is_string($internalPath)');
+		
 		$path = ltrim($internalPath, '/');
 		$dbh = Core::getDatabaseConnection();
 		$options = AbstractUrlManager::pathOptions($path);
@@ -69,6 +72,16 @@ abstract class AbstractModule implements Runnable {
 	 * @return AbstractModule
 	 */
 	public static function getInstance($moduleInstanceId, $mainFunctionPath = NULL) {
+		assert('is_numeric($moduleInstanceId)');
+		assert('is_null($mainFunctionPath) || is_string($mainFunctionPath)');
+		
+		/*
+		$debug = array();
+		foreach(self::$instances as $id => $instance) {
+			$debug[$id] = $instance->getModulePath();
+		}
+		var_export($debug);
+		*/
 		//if(array_key_exists($moduleInstanceId, self::$instances))
 			//return self::$instances[$moduleInstanceId];
 		$dbh = Core::getDatabaseConnection();
@@ -343,6 +356,7 @@ abstract class AbstractModule implements Runnable {
 		if (is_null($moduleParam))
 			$moduleParam = $this->getParameters();
 		$functionPath = static::mkFunctionPath($function, $moduleParam);
+		assert('$functionPath{0}=="/"');
 		return Core::getUrlManager()->mkurl(
 				$this->getHostGroup(),
 				$this->getModulePath().substr($functionPath, 1),
