@@ -36,7 +36,7 @@ class Menu extends AbstractModule {
 				$entry['url'] = $entry['path'];
 			else {
 				$module = AbstractModule::getInstance($entry['moduleInstance']);
-				$entry['url'] = Core::getUrlManager()->mkurl($module->getHostGroup(), $module->getModulePath()).'/'.ltrim($entry['path']);
+				$entry['url'] = Core::getUrlManager()->mkurl($module->getHostGroup(), $module->getModulePath()).ltrim($entry['path'], '/');
 			}
 			$content->addLoop('menuItem', $entry);
 		}

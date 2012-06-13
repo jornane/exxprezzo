@@ -50,11 +50,16 @@ abstract class AbstractModule implements Runnable {
 				ORDER BY LENGTH(`root`) DESC
 				LIMIT 1', array('options' => $options, 'hostGroup' => $hostGroup->getId()));
 		if ($instanceEntry = $dbh->fetchRow()) {
-			self::$instances[(int)$instanceEntry['moduleInstanceId']] =
-				self::_instantiate($instanceEntry['module'], $instanceEntry['moduleInstanceId'], $hostGroup,
-					'/'.substr($path, strlen($instanceEntry['root'])), self::parseParam($instanceEntry['param']));
-			self::$instances[(int)$instanceEntry['moduleInstanceId']]->modulePath = $instanceEntry['root'];
-			return self::$instances[(int)$instanceEntry['moduleInstanceId']];
+			$instance = self::_instantiate(
+						$instanceEntry['module'],
+						$instanceEntry['moduleInstanceId'],
+						$hostGroup,
+						$instanceEntry['root'].'/',
+						'/'.substr($path, strlen($instanceEntry['root'])),
+						self::parseParam($instanceEntry['param'])
+					);
+			$instance->modulePath = $instanceEntry['root'];
+			return self::$instances[(int)$instanceEntry['moduleInstanceId']] = $instance;
 		}
 		// Make me a 404
 		user_error('Unable to find suitable module.');
@@ -65,8 +70,8 @@ abstract class AbstractModule implements Runnable {
 	 * @return AbstractModule
 	 */
 	public static function getInstance($moduleInstanceId, $mainFunctionPath = NULL) {
-		if(array_key_exists($moduleInstanceId, self::$instances))
-			return self::$instances[$moduleInstanceId];
+		//if(array_key_exists($moduleInstanceId, self::$instances))
+			//return self::$instances[$moduleInstanceId];
 		$dbh = Core::getDatabaseConnection();
 		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `hostGroup`, `param` FROM `moduleInstance`
 				WHERE `moduleInstanceId` = :moduleInstanceId
@@ -74,9 +79,14 @@ abstract class AbstractModule implements Runnable {
 				LIMIT 1', array('moduleInstanceId' => (int)$moduleInstanceId));
 		if ($instanceEntry = $dbh->fetchrow()) {
 			self::$instances[$moduleInstanceId] =
-				self::_instantiate($instanceEntry['module'], $moduleInstanceId,
-					new HostGroup($instanceEntry['hostGroup']),
-					$mainFunctionPath, self::parseParam($instanceEntry['param']));
+				self::_instantiate(
+						$instanceEntry['module'],
+						$moduleInstanceId,
+						new HostGroup($instanceEntry['hostGroup']),
+						$instanceEntry['root'].'/',
+						$mainFunctionPath,
+						self::parseParam($instanceEntry['param'])
+					);
 			return self::$instances[$moduleInstanceId];
 		}
 		user_error('There is no mobule with instance '.$moduleInstanceId);
@@ -90,12 +100,13 @@ abstract class AbstractModule implements Runnable {
 	 * @param string $mainFunctionPath
 	 * @param mixed $param
 	 */
-	private static function _instantiate($module, $instanceId, $hostGroup, $mainFunctionPath, $param) {
+	private static function _instantiate($module, $instanceId, $hostGroup, $modulePath, $mainFunctionPath, $param) {
 		$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
 		/** @var AbstractModule */
 		$result = new $moduleFQN;
 		$result->instanceId = $instanceId;
 		$result->hostGroup = $hostGroup;
+		$result->modulePath = $modulePath;
 		$result->mainFunctionPath = $mainFunctionPath;
 		$result->moduleParam = $param;
 		$result->init();
