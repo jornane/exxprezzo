@@ -332,7 +332,7 @@ abstract class AbstractModule implements Runnable {
 			user_error('Invalid function '.$name.' for module '.$this->getName());
 		$content = new Content();
 		$content->putVariables($_POST);
-		return $this->$name($content);
+		return $this->$name($this->getParameters(), $content);
 	}
 	
 	/**
