@@ -112,4 +112,15 @@ class Content {
 		return $this->namespaces[strtolower($name)];
 	}
 	
+	/**
+	 * Retrieves an array containing the names
+	 * of the variables and loops contained in this
+	 * Content.
+	 * @return string[] The names of the variables and loops in this
+	 * Content object
+	 */
+	public function getVariableNames(){
+		return array_keys($this->vars);
+	}
+	
 }
