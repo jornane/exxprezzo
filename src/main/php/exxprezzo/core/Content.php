@@ -36,7 +36,7 @@ class Content {
 	 */
 	public function addLoop($loopName, $loop) {
 		$parentLoop = &$this->getLoop($loopName);
-		if (is_object($loop) && $loop instanceof Content) {
+		if (is_object($loop)) {
 			$parentLoop[] = $loop;
 		} else if (is_array($loop)) {
 			$content = new Content();

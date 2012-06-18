@@ -160,17 +160,25 @@ class Template {
 		}
 		$result = $content->getVariableString($varName);
 		if (is_null($result)) {
-			$pos = strrpos($varName, '.');
-			if ($pos) {
-				$objectKey = substr($varName, 0, $pos);
-				$fieldKey = substr($varName, $pos+1);
-				$method = 'get'.ucfirst($fieldKey);
-				if (isset($this->objects[$objectKey]) && isset($this->objects[$objectKey]->$fieldKey))
-					$result = $this->objects[$objectKey]->$fieldKey;
-				elseif (isset($this->objects[$objectKey]) && method_exists($this->objects[$objectKey], $method))
-					$result = $this->objects[$objectKey]->$method();
-			}
+			$result = $this->getValueFromObject($varName);
 		}
+		return $result;
+	}
+	
+	protected function getValueFromObject($varName) {
+		$result = NULL;
+		$pos = strrpos($varName, '.');
+		if (!$pos)
+			return NULL;
+		$objectKey = substr($varName, 0, $pos);
+		$fieldKey = substr($varName, $pos+1);
+		$method = 'get'.ucfirst($fieldKey);
+		if (!isset($this->objects[$objectKey]) && strpos($objectKey, '.'))
+			$this->objects[$objectKey] = $this->getValueFromObject($objectKey);
+		if (isset($this->objects[$objectKey]) && isset($this->objects[$objectKey]->$fieldKey))
+			$result = $this->objects[$objectKey]->$fieldKey;
+		elseif (isset($this->objects[$objectKey]) && method_exists($this->objects[$objectKey], $method))
+			$result = $this->objects[$objectKey]->$method();
 		return $result;
 	}
 	
@@ -181,16 +189,17 @@ class Template {
 	 */
 	protected function renderForBlock($blockName) {
 		$blocks = $this->content->getVariable($blockName);
+		if (!$blocks) $blocks = $this->getValueFromObject($blockName);
 		if (!$blocks) $blocks = array();
 		$this->validPrefixes = array_merge($this->validPrefixes, array($blockName => $blockName));
 		$result = '';
 		if (is_array($blocks)) foreach($blocks as $iteration => $block) {
 			$oldContent = $this->content;
-			$var = $this->content->getVariable($blockName);
-			if (is_array($var))
+			if (is_object($block) && $block instanceof Content) {
 				$this->content = $this->content->loopMerge($blockName, $iteration);
-			elseif (is_object($var))
-				$this->objects[$blockName] = $var;
+			} elseif (is_object($block)) {
+				$this->objects[$blockName] = $block;
+			}
 			$result .= $this->render();
 			$this->content = $oldContent;
 		}
