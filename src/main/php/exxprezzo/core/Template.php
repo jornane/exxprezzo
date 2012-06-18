@@ -30,6 +30,9 @@ class Template {
 	/** @var string[] */
 	private $validPrefixes = array();
 	
+	private $extraReplacePattern = array();
+	private $extraReplaceReplacement = array();
+	
 	const REGEX_BLOCK = '_\\<\\!\\-\\- ([a-z0-9\\_\\-\s]+)\s([a-z0-9\\.\\_\\-]+) \\-\\-\\>(.*?)\\<\\!\\-\\- /\\1 \\2 \\-\\-\\>_msi';
 	const REGEX_ANNOTATION = '_\\<\\!\\-\\- ([a-z0-9\\.\\_\\-]+) ([a-z0-9\\.\\_\\-]+) \\-\\-\\>_i';
 	const KEYWORD = 1;
@@ -41,9 +44,14 @@ class Template {
 	
 	const REGEX_COMMENT = '_\\<\\!\\-\\- (.*) \\-\\-\\>_i';
 	
-	public static function templateFromFile($filename) {
+	public static function templateFromFile($filename, $resourceName='resources') {
+		if (!is_string($resourceName) || !$resourceName)
+			$resourceName = 'resources';
 		$result = new Template(file_get_contents($filename));
 		$result->filename = $filename;
+		$result->extraReplacePattern[] = '_(?<=["\'])'.$resourceName.'/(.*?)\\1_';
+		$result->extraReplaceReplacement[] = Core::getUrlManager()->server['BASE_URL'].dirname($filename).'/'.$resourceName.'/';
+		
 		return $result;
 	}
 	
@@ -119,6 +127,7 @@ class Template {
 	public function render() {
 		$templateCode = $this->templateCode;
 		$this->tempVars = array();
+		$templateCode = preg_replace($this->extraReplacePattern, $this->extraReplaceReplacement, $templateCode);
 		$templateCode = preg_replace_callback(self::REGEX_BLOCK, array($this, 'matchBlock'), $templateCode);
 		$templateCode = preg_replace(self::REGEX_ANNOTATION, '', $templateCode);
 		$templateCode = preg_replace_callback(self::REGEX_VAR, array($this, 'matchVar'), $templateCode);
