@@ -137,7 +137,7 @@ abstract class AbstractModule implements Runnable {
 	/**
 	 * @return string
 	 */
-	public abstract function getTitle();
+	public abstract function getTitle($params);
 	
 	/**
 	 * 

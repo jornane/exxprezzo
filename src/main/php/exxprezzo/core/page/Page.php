@@ -117,7 +117,7 @@ final class Page extends AbstractOutput {
 		$outputContent->addLoop($this->layout['defaultBox'], array(
 				'CONTENT' => $widgetOutput,
 			));
-		$outputContent->putVariable('TITLE', $module->getTitle());
+		$outputContent->putVariable('TITLE', $module->getTitle($module->getModuleParam()));
 		
 		
 		foreach($this->widgets as $box => $widgets) foreach($widgets as $widget) {

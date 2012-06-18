@@ -46,17 +46,17 @@ class CMS extends AbstractModule {
 		if (isset(static::$pages[$path]))
 			return static::$pages[$path];
 		$this->db->execute('SELECT `title`, `content` FROM `pages` WHERE `path` = $path LIMIT 1', array(
-				'path' => ltrim($this->params['path'], '/'),
+				'path' => ltrim($path, '/'),
 			));
 		return static::$pages[$path] = $this->db->fetchrow();
 	}
 	
-	public function getTitle() {
+	public function getTitle($params) {
 		if($page = $this->fetchPage())
 			return $page['title'];
 	}
 	
-	public function view() {
+	public function view($params) {
 		$canEdit = true; // check permissions here
 		$content = new Content();
 		if($page = $this->fetchPage()) {
@@ -71,20 +71,21 @@ class CMS extends AbstractModule {
 		}
 	}
 	
-	public function edit() {
+	public function edit($params) {
 		// check permissions here
 		$content = new Content();
 		$input = new Content();
 		$content->putNamespace('input', $input);
-		if($page = $this->fetchPage()) {
+		if($page = $this->fetchPage($this->params['path'])) {
 			$content->putVariables($page);
+			$content->putVariable('exists', true);
 			$input->putVariables(array(
 					'formaction' => $this->mkurl('doEdit'),
 					'formmethod' => 'post',
 					'title' => new TextInput('title', $page['title']),
 					'content' => new LongTextInput('content', $page['content']),
 			));
-			if ($this->params['path'] != '/')
+			if ($this->params['path'])
 				$input->putVariable('delete', new ButtonInput('delete', 'Delete'));
 		} else {
 			$input->putVariables(array(
@@ -101,7 +102,7 @@ class CMS extends AbstractModule {
 	 * 
 	 * @param Content $content
 	 */
-	public function doEdit($content) {
+	public function doEdit($params, $content) {
 		// check permissions here
 		if ($content->getVariable('title') && $content->getVariable('content') && !$content->getVariable('delete')) {
 			$this->db->replace('pages', array(
