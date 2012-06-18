@@ -82,4 +82,60 @@ abstract class AbstractUrlManager {
 	public abstract function mkurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true);
 	
 	public abstract function serverpath($path);
+	
+	public final function getUserHostName() {
+		return $this->server['HTTP_HOST'];
+	}
+	public final function getUserIpAddr() {
+		return $this->server['REMOTE_ADDR'];
+	}
+	public final function getUserPort() {
+		return $this->server['REMOTE_PORT'];
+	}
+	public final function getUserAgent() {
+		return $this->server['HTTP_USER_AGENT'];
+	}
+	public final function doNotTrack() {
+		return isset($this->server['HTTP_DNT']) && !!$this->server['HTTP_DNT'];
+	}
+	public final function getPreferredLanguage() {
+		return $this->server['HTTP_ACCEPT_LANGUAGE'];
+	}
+	
+	public final function getServerSoftware() {
+		return $this->server['SERVER_SOFTWARE'];
+	}
+	public final function getServerName() {
+		return $this->server['SERVER_NAME'];
+	}
+	public final function getServerIpAddr() {
+		return $this->server['SERVER_ADDR'];
+	}
+	public final function getServerPort() {
+		return $this->server['SERVER_PORT'];
+	}
+	public final function isSSL() {
+		return isset($this->server['https']) && $this->server['https'] != 'off' && $this->server['https'];
+	}
+	
+	public final function getRequestMethod() {
+		return $this->server['REQUEST_METHOD'];
+	}
+	public final function getQueryString() {
+		return $this->server['QUERY_STRING'];
+	}
+	public final function getRequestUrl() {
+		return $this->server['REQUEST_URI'];
+	}
+	public final function getRequestTime() {
+		return $this->server['REQUEST_TIME'];
+	}
+	
+	public final function getBaseUrl() {
+		return $this->server['BASE_URL'];
+	}
+	public final function getInternalPath() {
+		return $this->server['INTERNAL_PATH'];
+	}
+	
 }
