@@ -25,15 +25,6 @@ final class Page extends AbstractOutput {
 	/** @var Output	Output object to render a page for */
 	private $main;
 	
-	protected $templateLocation = array(
-			'module' => array(
-					'{$theme}/{$kind}/{$name}/{$file}'
-				),
-			'core' => array(
-					'{$theme}/'
-				),
-		);
-	
 	/**
 	 * 
 	 * @param Output $output
