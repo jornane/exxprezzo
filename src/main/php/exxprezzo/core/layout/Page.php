@@ -25,6 +25,15 @@ final class Page extends AbstractOutput {
 	/** @var Output	Output object to render a page for */
 	private $main;
 	
+	protected $templateLocation = array(
+			'module' => array(
+					'{$theme}/{$kind}/{$name}/{$file}'
+				),
+			'core' => array(
+					'{$theme}/'
+				),
+		);
+	
 	/**
 	 * 
 	 * @param Output $output
@@ -92,9 +101,9 @@ final class Page extends AbstractOutput {
 		
 		if ($widgetOutput instanceof BlockOutput)
 			$widgetOutput->setTemplate(static::getTemplate(
-					'module',
-					$this->layout['theme'],
-					array(strtolower($module->getName()), $this->templateName)
+					$module,
+					$this->templateName,
+					$this->layout['theme']
 				));
 		
 		if (!$widgetOutput->getLength())
@@ -104,9 +113,9 @@ final class Page extends AbstractOutput {
 				);
 		
 		$template = static::getTemplate(
-				'layout',
-				$this->layout['theme'],
-				array($this->layout['name'])
+				$this,
+				$this->layout['name'],
+				$this->layout['theme']
 			);
 		
 		if (!in_array($this->layout['defaultBox'], $template->getBlocks()))
@@ -123,9 +132,9 @@ final class Page extends AbstractOutput {
 		foreach($this->widgets as $box => $widgets) foreach($widgets as $widget) {
 			if ($widget['output'] instanceof BlockOutput)
 				$widget['output']->setTemplate(static::getTemplate(
-						'module',
-						$this->layout['theme'],
-						array(strtolower($widget['module']->getName()), $widget['template'])
+						$widget['module'],
+						$widget['template'],
+						$this->layout['theme']
 					));
 			$outputContent->addLoop($box, array(
 					'CONTENT' => $widget['output'],
@@ -139,13 +148,42 @@ final class Page extends AbstractOutput {
 		return $this->main->getContentType();
 	}
 	
-	public static function getTemplate($kind, $theme, $name) {
-		$tplFile = 'templates'.DIRECTORY_SEPARATOR
-				.$theme.DIRECTORY_SEPARATOR
-				.$kind.'s'.DIRECTORY_SEPARATOR
-				.implode(DIRECTORY_SEPARATOR, $name).'.tpl'
-			;
-		return Template::templateFromFile($tplFile);
+	/**
+	 * 
+	 * @param object $object
+	 * @param string $templateName
+	 * @param string $themeName
+	 */
+	public static function getTemplate($object, $templateName, $themeName) {
+		assert('is_object($object);');
+		assert('is_string($templateName);');
+		assert('is_string($themeName);');
+		
+		$fqn = get_class($object);
+		$fqnSplit = explode('\\', $fqn);
+		$simpleName = array_pop($fqnSplit);
+		$namespace = $fqnSplit;
+		
+		if (array_shift($fqnSplit) != 'exxprezzo')
+			user_error('$object must be from a class in the exxprezzo namespace');
+		if (reset($fqnSplit) == 'core')
+			array_shift($fqnSplit);
+		$kind = array_shift($fqnSplit);
+		
+		$pathOptions = array(
+				'templates' . DIRECTORY_SEPARATOR
+					. $themeName . DIRECTORY_SEPARATOR
+					. $kind.'s' . DIRECTORY_SEPARATOR
+					. reset($fqnSplit) . DIRECTORY_SEPARATOR
+					. $templateName . '.tpl',
+				implode(DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR
+					. 'templates' . DIRECTORY_SEPARATOR
+					. $templateName . '.tpl',
+			);
+		foreach($pathOptions as $pathOption)
+			if (is_readable($pathOption))
+				return Template::templateFromFile($pathOption);
+		user_error('A template could not be found on any of the following locations: \''.implode('\', \'', $pathOptions)).'\'';
 	}
 	
 }
