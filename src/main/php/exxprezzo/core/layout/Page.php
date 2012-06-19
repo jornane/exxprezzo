@@ -1,4 +1,4 @@
-<?php namespace exxprezzo\core\page;
+<?php namespace exxprezzo\core\layout;
 
 use \exxprezzo\core\Core;
 use \exxprezzo\core\Content;

@@ -9,7 +9,7 @@ use \ErrorException;
 use \Exception;
 
 use \exxprezzo\core\module\AbstractModule;
-use \exxprezzo\core\page\Page;
+use \exxprezzo\core\layout\Page;
 
 use \exxprezzo\core\db\SQL;
 
