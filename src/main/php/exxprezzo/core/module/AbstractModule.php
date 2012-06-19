@@ -53,12 +53,17 @@ abstract class AbstractModule implements Runnable {
 				ORDER BY LENGTH(`root`) DESC
 				LIMIT 1', array('options' => $options, 'hostGroup' => $hostGroup->getId()));
 		if ($instanceEntry = $dbh->fetchRow()) {
+			$mainFunctionPath = substr($path, strlen($instanceEntry['root']));
+			if (!$instanceEntry['root'] && !$mainFunctionPath)
+				$mainFunctionPath = '/';
+			if (!$mainFunctionPath)
+				Core::getUrlManager()->redirect($hostGroup, $internalPath.'/');
 			$instance = self::_instantiate(
 						$instanceEntry['module'],
 						$instanceEntry['moduleInstanceId'],
 						$hostGroup,
 						$instanceEntry['root'],
-						'/'.substr($path, strlen($instanceEntry['root'])),
+						$mainFunctionPath,
 						self::parseParam($instanceEntry['param'])
 					);
 			return self::$instances[(int)$instanceEntry['moduleInstanceId']] = $instance;

@@ -66,6 +66,23 @@ abstract class AbstractUrlManager {
 		return HostGroup::getInstance($this->server['HTTP_HOST']);
 	}
 	
+	public static function resolvePath($absolute) {
+		assert('is_string($absolute);');
+		assert('$absolute{0}=="/"');
+		
+		$result = array('');
+		$source = explode('/', $absolute);
+		foreach($source as $segment) {
+			if ($segment == '..')
+				array_pop($result);
+			elseif ($segment && $segment != '.')
+				array_push($result, $segment);
+		}
+		if (!end($source) || end($source) == '.')
+			array_push($result, '');
+		return implode('/', $result);
+	}
+	
 	/**
 	 * Return the part of the URL that reflects which content was requested by the user.
 	 * This is the full URL minus the path to the exxprezzo index.php file
@@ -75,11 +92,18 @@ abstract class AbstractUrlManager {
 	}
 	
 	public function registerMainModule() {
+		if (static::resolvePath($this->getInternalPath()) != $this->getInternalPath())
+			//die(static::resolvePath($this->getInternalPath()));
+			$this->redirect($this->getHostGroup(), static::resolvePath($this->getInternalPath()));
 		$this->server['MODULE_PATH'] = Core::getMainModule()->getModulePath();
 		$this->server['FUNCTION_PATH'] = Core::getMainModule()->getMainFunctionPath();
 	}
 		
 	public abstract function mkurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true);
+	
+	public function redirect($hostGroup, $path, $get=array(), $noGetForce=true) {
+		header('Location: '.$this->mkurl($hostGroup, $path, $get, true, $noGetForce));
+	}
 	
 	public abstract function serverpath($path);
 	
