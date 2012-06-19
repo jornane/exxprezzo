@@ -137,5 +137,11 @@ abstract class AbstractUrlManager {
 	public final function getInternalPath() {
 		return $this->server['INTERNAL_PATH'];
 	}
+	public final function getModulePath() {
+		return $this->server['MODULE_PATH'];
+	}
+	public final function getMainFunctionPath() {
+		return $this->server['FUNCTION_PATH'];
+	}
 	
 }
