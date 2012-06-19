@@ -145,11 +145,26 @@ abstract class AbstractModule implements Runnable {
 	public abstract function getTitle($params);
 	
 	/**
-	 * 
+	 * Will set if the module is main
+	 * If true and no function has been determined earlier,
+	 * an attempt to add a slash to the internal_path is done.
+	 * If this does not correct the problem, an error is given
 	 * @param boolean $isMain
 	 */
 	public function setMain($isMain) {
 		$this->isMain = $isMain;
+		if ($this->isMain() && !$this->getFunctionName()) {
+			if (substr($this->mainFunctionPath, -1) != '/') {
+				foreach(static::$functions as $regex => $function) {
+					if (preg_match('/^'.str_replace('/', '\\/', $regex).'$/', $this->mainFunctionPath.'/'))
+						Core::getUrlManager()->redirect(
+								Core::getUrlManager()->getHostGroup(),
+								Core::getUrlManager()->getInternalPath().'/'
+						);
+				}
+			}
+			user_error('No function matches the function path "'.$this->mainFunctionPath.'" for module '.$this->getName());
+		}
 	}
 	/**
 	 * @return boolean
@@ -187,7 +202,7 @@ abstract class AbstractModule implements Runnable {
 		foreach($paths as $path) {
 			$vars = static::extractVars($path);
 			if($vars === array_keys($args)) {
-				$temp = static::buildFunctionPath($path, $args);
+				$temp = '/'.ltrim(static::buildFunctionPath($path, $args), '/');
 				if(is_null($result) || strlen($temp) < strlen($result) )
 					$result = $temp;
 			}
@@ -325,8 +340,6 @@ abstract class AbstractModule implements Runnable {
 				return;
 			}
 		}
-		if ($this->isMain())
-			user_error('No function matches the function path "'.$this->mainFunctionPath.'" for module '.$this->getName());
 	}
 
 	/**
@@ -366,7 +379,7 @@ abstract class AbstractModule implements Runnable {
 		assert('is_bool($noGetForce);');
 		
 		$functionPath = static::mkFunctionPath($function, $moduleParam);
-		assert('$functionPath{0}=="/"');
+		assert('$functionPath{0}=="/" && $functionPath{1}!="/"');
 		return Core::getUrlManager()->mkurl(
 				$this->getHostGroup(),
 				$this->getModulePath().substr($functionPath, 1),
