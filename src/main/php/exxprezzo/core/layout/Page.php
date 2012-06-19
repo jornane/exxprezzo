@@ -171,13 +171,13 @@ final class Page extends AbstractOutput {
 		$kind = array_shift($fqnSplit);
 		
 		$pathOptions = array(
-				'templates' . DIRECTORY_SEPARATOR
+				'template' . DIRECTORY_SEPARATOR
 					. $themeName . DIRECTORY_SEPARATOR
-					. $kind.'s' . DIRECTORY_SEPARATOR
+					. $kind . DIRECTORY_SEPARATOR
 					. reset($fqnSplit) . DIRECTORY_SEPARATOR
 					. $templateName . '.tpl',
 				implode(DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR
-					. 'templates' . DIRECTORY_SEPARATOR
+					. 'template' . DIRECTORY_SEPARATOR
 					. $templateName . '.tpl',
 			);
 		foreach($pathOptions as $pathOption)
