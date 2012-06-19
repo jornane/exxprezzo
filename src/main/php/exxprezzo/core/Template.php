@@ -164,9 +164,8 @@ class Template {
 		$namespacePath = explode(':', $matches[self::VARNAME]);
 		$varName = array_pop($namespacePath);
 		$content = $this->content;
-		foreach($namespacePath as $namespace) {
-			$content = $content->getNamespace($namespace);
-		}
+		foreach($namespacePath as $namespace)
+			$content = $content->getNamespace($namespace);			
 		$result = $content->getVariableString($varName);
 		if (is_null($result)) {
 			$result = $this->getValueFromObject($varName);
