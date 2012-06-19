@@ -93,7 +93,6 @@ abstract class AbstractUrlManager {
 	
 	public function registerMainModule() {
 		if (static::resolvePath($this->getInternalPath()) != $this->getInternalPath())
-			//die(static::resolvePath($this->getInternalPath()));
 			$this->redirect($this->getHostGroup(), static::resolvePath($this->getInternalPath()));
 		$this->server['MODULE_PATH'] = Core::getMainModule()->getModulePath();
 		$this->server['FUNCTION_PATH'] = Core::getMainModule()->getMainFunctionPath();
