@@ -188,11 +188,11 @@ abstract class AbstractModule implements Runnable {
 			$vars = static::extractVars($path);
 			if($vars === array_keys($args)) {
 				$temp = static::buildFunctionPath($path, $args);
-				if($result === NULL || strlen($temp) < strlen($result) )
+				if(is_null($result) || strlen($temp) < strlen($result) )
 					$result = $temp;
 			}
 		}
-		if($result === NULL)
+		if(is_null($result))
 			user_error(
 					'No suitable path found for function ' . $function
 					. "\nArguments: " . var_export($args, true)
