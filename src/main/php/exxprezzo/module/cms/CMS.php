@@ -1,5 +1,7 @@
 <?php namespace exxprezzo\module\cms;
 
+use exxprezzo\core\output\PostOutput;
+
 use \exxprezzo\core\db\SQL;
 
 use \exxprezzo\core\input\ButtonInput;
@@ -80,8 +82,6 @@ class CMS extends AbstractModule {
 			$content->putVariables($page);
 			$content->putVariable('exists', true);
 			$input->putVariables(array(
-					'formaction' => $this->mkurl('doEdit'),
-					'formmethod' => 'post',
 					'title' => new TextInput('title', $page['title']),
 					'content' => new LongTextInput('content', $page['content']),
 			));
@@ -89,13 +89,11 @@ class CMS extends AbstractModule {
 				$input->putVariable('delete', new ButtonInput('delete', 'Delete'));
 		} else {
 			$input->putVariables(array(
-					'formaction' => $this->mkurl('doEdit'),
-					'formmethod' => 'post',
 					'title' => new TextInput('title', 'New page'),
 					'content' => new LongTextInput('content', 'Lorem ipsum dolor...'),
 			));
 		}
-		return new BlockOutput($this, $content);
+		return new PostOutput(new BlockOutput($this, $content), $this->mkurl('doEdit'));
 	}
 	
 	/**
@@ -115,9 +113,7 @@ class CMS extends AbstractModule {
 			$this->db->delete('pages', array(
 					'path' => $path,
 				));
-			$path = explode('/', $path);
-			array_pop($path);
-			$this->redirect('view', array('path' => implode('/', $path)));
+			$this->redirect('view', array('path' => dirname($this->params['path'])));
 		}
 		$this->redirect('view');
 	}
