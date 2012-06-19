@@ -170,6 +170,9 @@ abstract class AbstractModule implements Runnable {
 	 * as its arguments
 	 */
 	public static function mkFunctionPath($function, $args) {
+		assert('is_string($function);');
+		assert('is_array($args);');
+		
 		if(!isset(static::$paths))
 			user_error('This module has no usable paths');
 		if(!isset(static::$paths[$function]))
@@ -350,6 +353,13 @@ abstract class AbstractModule implements Runnable {
 			$moduleParam = $this->getParameters();
 		if (is_null($this->getModulePath()))
 			user_error('Module '.$this->__toString().' is not exposed and as such no url can be made pointing to it.');
+		
+		assert('is_string($function);');
+		assert('is_array($moduleParam);');
+		assert('is_bool($fullUrl);');
+		assert('is_array($get);');
+		assert('is_bool($noGetForce);');
+		
 		$functionPath = static::mkFunctionPath($function, $moduleParam);
 		assert('$functionPath{0}=="/"');
 		return Core::getUrlManager()->mkurl(
