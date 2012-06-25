@@ -17,10 +17,13 @@ class QueryStringUrlManager extends AbstractUrlManager {
 			header('Location: '.$this->server['BASE_URL'].'?/'.$tmp[0]);
 			exit;
 		}
+		if (strpos($tmp[0], '//') !== false) {
+			header('Location: '.$this->server['BASE_URL'].'?'.preg_replace('_//+_', '/', $tmp[0]));
+			exit;
+		}
 		$this->server['INTERNAL_PATH'] = $tmp[0];
 		$this->server['QUERY_STRING'] = $tmp[1];
 		$this->internalPath = $tmp[0];
-		
 	}
 	
 	public function mkurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true) {

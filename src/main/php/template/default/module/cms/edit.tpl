@@ -1,4 +1,6 @@
-<form action="{input:formaction}" method="{input:formmethod}">
+<!-- NOT exists -->
+<p>The page does not yet exist. A new page is being created.</p>
+<!-- /NOT exists -->
 <h1>Edit page {PATH}</h1>
 <p>Title:<br />
 	{input:title}</p>
@@ -12,4 +14,3 @@
 <p>Content:<br />
 <p>{input:content}</p>
 <p><input type="submit" /> {input:delete}</p>
-</form>

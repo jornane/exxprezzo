@@ -11,7 +11,7 @@ class ExceptionOutput extends AbstractOutput implements PartialOutput {
 		
 	}
 	
-	public function getContentTypes() {
+	public function getContentType() {
 		
 	}
 	

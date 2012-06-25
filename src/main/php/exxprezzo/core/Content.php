@@ -36,7 +36,7 @@ class Content {
 	 */
 	public function addLoop($loopName, $loop) {
 		$parentLoop = &$this->getLoop($loopName);
-		if (is_object($loop) && $loop instanceof Content) {
+		if (is_object($loop)) {
 			$parentLoop[] = $loop;
 		} else if (is_array($loop)) {
 			$content = new Content();
@@ -110,6 +110,17 @@ class Content {
 	
 	public function getNamespace($name) {
 		return $this->namespaces[strtolower($name)];
+	}
+	
+	/**
+	 * Retrieves an array containing the names
+	 * of the variables and loops contained in this
+	 * Content.
+	 * @return string[] The names of the variables and loops in this
+	 * Content object
+	 */
+	public function getVariableNames(){
+		return array_keys($this->vars);
 	}
 	
 }

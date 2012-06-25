@@ -24,7 +24,7 @@ class Menu extends AbstractModule {
 		$this->params = $this->getParameters();
 	}
 	
-	public function getTitle() {
+	public function getTitle($params) {
 		return $this->getName();
 	}
 	

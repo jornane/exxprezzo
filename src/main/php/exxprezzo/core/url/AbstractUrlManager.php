@@ -66,6 +66,23 @@ abstract class AbstractUrlManager {
 		return HostGroup::getInstance($this->server['HTTP_HOST']);
 	}
 	
+	public static function resolvePath($absolute) {
+		assert('is_string($absolute);');
+		assert('$absolute{0}=="/"');
+		
+		$result = array('');
+		$source = explode('/', $absolute);
+		foreach($source as $segment) {
+			if ($segment == '..')
+				array_pop($result);
+			elseif ($segment && $segment != '.')
+				array_push($result, $segment);
+		}
+		if (!end($source) || end($source) == '.')
+			array_push($result, '');
+		return implode('/', $result);
+	}
+	
 	/**
 	 * Return the part of the URL that reflects which content was requested by the user.
 	 * This is the full URL minus the path to the exxprezzo index.php file
@@ -75,11 +92,79 @@ abstract class AbstractUrlManager {
 	}
 	
 	public function registerMainModule() {
+		if (static::resolvePath($this->getInternalPath()) != $this->getInternalPath())
+			$this->redirect($this->getHostGroup(), static::resolvePath($this->getInternalPath()));
 		$this->server['MODULE_PATH'] = Core::getMainModule()->getModulePath();
 		$this->server['FUNCTION_PATH'] = Core::getMainModule()->getMainFunctionPath();
 	}
 		
 	public abstract function mkurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true);
 	
+	public function redirect($hostGroup, $path, $get=array(), $noGetForce=true) {
+		header('Location: '.$this->mkurl($hostGroup, $path, $get, true, $noGetForce));
+	}
+	
 	public abstract function serverpath($path);
+	
+	public final function getUserHostName() {
+		return $this->server['HTTP_HOST'];
+	}
+	public final function getUserIpAddr() {
+		return $this->server['REMOTE_ADDR'];
+	}
+	public final function getUserPort() {
+		return $this->server['REMOTE_PORT'];
+	}
+	public final function getUserAgent() {
+		return $this->server['HTTP_USER_AGENT'];
+	}
+	public final function doNotTrack() {
+		return isset($this->server['HTTP_DNT']) && !!$this->server['HTTP_DNT'];
+	}
+	public final function getPreferredLanguage() {
+		return $this->server['HTTP_ACCEPT_LANGUAGE'];
+	}
+	
+	public final function getServerSoftware() {
+		return $this->server['SERVER_SOFTWARE'];
+	}
+	public final function getServerName() {
+		return $this->server['SERVER_NAME'];
+	}
+	public final function getServerIpAddr() {
+		return $this->server['SERVER_ADDR'];
+	}
+	public final function getServerPort() {
+		return $this->server['SERVER_PORT'];
+	}
+	public final function isSSL() {
+		return isset($this->server['https']) && $this->server['https'] != 'off' && $this->server['https'];
+	}
+	
+	public final function getRequestMethod() {
+		return $this->server['REQUEST_METHOD'];
+	}
+	public final function getQueryString() {
+		return $this->server['QUERY_STRING'];
+	}
+	public final function getRequestUrl() {
+		return $this->server['REQUEST_URI'];
+	}
+	public final function getRequestTime() {
+		return $this->server['REQUEST_TIME'];
+	}
+	
+	public final function getBaseUrl() {
+		return $this->server['BASE_URL'];
+	}
+	public final function getInternalPath() {
+		return $this->server['INTERNAL_PATH'];
+	}
+	public final function getModulePath() {
+		return $this->server['MODULE_PATH'];
+	}
+	public final function getMainFunctionPath() {
+		return $this->server['FUNCTION_PATH'];
+	}
+	
 }

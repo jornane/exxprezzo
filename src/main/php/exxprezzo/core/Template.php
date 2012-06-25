@@ -30,6 +30,9 @@ class Template {
 	/** @var string[] */
 	private $validPrefixes = array();
 	
+	private $extraReplacePattern = array();
+	private $extraReplaceReplacement = array();
+	
 	const REGEX_BLOCK = '_\\<\\!\\-\\- ([a-z0-9\\_\\-\s]+)\s([a-z0-9\\.\\_\\-]+) \\-\\-\\>(.*?)\\<\\!\\-\\- /\\1 \\2 \\-\\-\\>_msi';
 	const REGEX_ANNOTATION = '_\\<\\!\\-\\- ([a-z0-9\\.\\_\\-]+) ([a-z0-9\\.\\_\\-]+) \\-\\-\\>_i';
 	const KEYWORD = 1;
@@ -41,9 +44,14 @@ class Template {
 	
 	const REGEX_COMMENT = '_\\<\\!\\-\\- (.*) \\-\\-\\>_i';
 	
-	public static function templateFromFile($filename) {
+	public static function templateFromFile($filename, $resourceName='resources') {
+		if (!is_string($resourceName) || !$resourceName)
+			$resourceName = 'resources';
 		$result = new Template(file_get_contents($filename));
 		$result->filename = $filename;
+		$result->extraReplacePattern[] = '_(?<=["\'])'.$resourceName.'/(.*?)\\1_';
+		$result->extraReplaceReplacement[] = Core::getUrlManager()->server['BASE_URL'].dirname($filename).'/'.$resourceName.'/';
+		
 		return $result;
 	}
 	
@@ -119,6 +127,7 @@ class Template {
 	public function render() {
 		$templateCode = $this->templateCode;
 		$this->tempVars = array();
+		$templateCode = preg_replace($this->extraReplacePattern, $this->extraReplaceReplacement, $templateCode);
 		$templateCode = preg_replace_callback(self::REGEX_BLOCK, array($this, 'matchBlock'), $templateCode);
 		$templateCode = preg_replace(self::REGEX_ANNOTATION, '', $templateCode);
 		$templateCode = preg_replace_callback(self::REGEX_VAR, array($this, 'matchVar'), $templateCode);
@@ -155,22 +164,29 @@ class Template {
 		$namespacePath = explode(':', $matches[self::VARNAME]);
 		$varName = array_pop($namespacePath);
 		$content = $this->content;
-		foreach($namespacePath as $namespace) {
-			$content = $content->getNamespace($namespace);
-		}
+		foreach($namespacePath as $namespace)
+			$content = $content->getNamespace($namespace);			
 		$result = $content->getVariableString($varName);
 		if (is_null($result)) {
-			$pos = strrpos($varName, '.');
-			if ($pos) {
-				$objectKey = substr($varName, 0, $pos);
-				$fieldKey = substr($varName, $pos+1);
-				$method = 'get'.ucfirst($fieldKey);
-				if (isset($this->objects[$objectKey]) && isset($this->objects[$objectKey]->$fieldKey))
-					$result = $this->objects[$objectKey]->$fieldKey;
-				elseif (isset($this->objects[$objectKey]) && method_exists($this->objects[$objectKey], $method))
-					$result = $this->objects[$objectKey]->$method();
-			}
+			$result = $this->getValueFromObject($varName);
 		}
+		return $result;
+	}
+	
+	protected function getValueFromObject($varName) {
+		$result = NULL;
+		$pos = strrpos($varName, '.');
+		if (!$pos)
+			return NULL;
+		$objectKey = substr($varName, 0, $pos);
+		$fieldKey = substr($varName, $pos+1);
+		$method = 'get'.ucfirst($fieldKey);
+		if (!isset($this->objects[$objectKey]) && strpos($objectKey, '.'))
+			$this->objects[$objectKey] = $this->getValueFromObject($objectKey);
+		if (isset($this->objects[$objectKey]) && isset($this->objects[$objectKey]->$fieldKey))
+			$result = $this->objects[$objectKey]->$fieldKey;
+		elseif (isset($this->objects[$objectKey]) && method_exists($this->objects[$objectKey], $method))
+			$result = $this->objects[$objectKey]->$method();
 		return $result;
 	}
 	
@@ -181,16 +197,17 @@ class Template {
 	 */
 	protected function renderForBlock($blockName) {
 		$blocks = $this->content->getVariable($blockName);
+		if (!$blocks) $blocks = $this->getValueFromObject($blockName);
 		if (!$blocks) $blocks = array();
 		$this->validPrefixes = array_merge($this->validPrefixes, array($blockName => $blockName));
 		$result = '';
 		if (is_array($blocks)) foreach($blocks as $iteration => $block) {
 			$oldContent = $this->content;
-			$var = $this->content->getVariable($blockName);
-			if (is_array($var))
+			if (is_object($block) && $block instanceof Content) {
 				$this->content = $this->content->loopMerge($blockName, $iteration);
-			elseif (is_object($var))
-				$this->objects[$blockName] = $var;
+			} elseif (is_object($block)) {
+				$this->objects[$blockName] = $block;
+			}
 			$result .= $this->render();
 			$this->content = $oldContent;
 		}

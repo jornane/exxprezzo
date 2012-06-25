@@ -53,12 +53,17 @@ abstract class AbstractModule implements Runnable {
 				ORDER BY LENGTH(`root`) DESC
 				LIMIT 1', array('options' => $options, 'hostGroup' => $hostGroup->getId()));
 		if ($instanceEntry = $dbh->fetchRow()) {
+			$mainFunctionPath = substr($path, strlen($instanceEntry['root']));
+			if (!$instanceEntry['root'] && !$mainFunctionPath)
+				$mainFunctionPath = '/';
+			if (!$mainFunctionPath)
+				Core::getUrlManager()->redirect($hostGroup, $internalPath.'/');
 			$instance = self::_instantiate(
 						$instanceEntry['module'],
 						$instanceEntry['moduleInstanceId'],
 						$hostGroup,
 						$instanceEntry['root'],
-						'/'.substr($path, strlen($instanceEntry['root'])),
+						$mainFunctionPath,
 						self::parseParam($instanceEntry['param'])
 					);
 			return self::$instances[(int)$instanceEntry['moduleInstanceId']] = $instance;
@@ -137,14 +142,29 @@ abstract class AbstractModule implements Runnable {
 	/**
 	 * @return string
 	 */
-	public abstract function getTitle();
+	public abstract function getTitle($params);
 	
 	/**
-	 * 
+	 * Will set if the module is main
+	 * If true and no function has been determined earlier,
+	 * an attempt to add a slash to the internal_path is done.
+	 * If this does not correct the problem, an error is given
 	 * @param boolean $isMain
 	 */
 	public function setMain($isMain) {
 		$this->isMain = $isMain;
+		if ($this->isMain() && !$this->getFunctionName()) {
+			if (substr($this->mainFunctionPath, -1) != '/') {
+				foreach(static::$functions as $regex => $function) {
+					if (preg_match('/^'.str_replace('/', '\\/', $regex).'$/', $this->mainFunctionPath.'/'))
+						Core::getUrlManager()->redirect(
+								Core::getUrlManager()->getHostGroup(),
+								Core::getUrlManager()->getInternalPath().'/'
+						);
+				}
+			}
+			user_error('No function matches the function path "'.$this->mainFunctionPath.'" for module '.$this->getName());
+		}
 	}
 	/**
 	 * @return boolean
@@ -170,6 +190,9 @@ abstract class AbstractModule implements Runnable {
 	 * as its arguments
 	 */
 	public static function mkFunctionPath($function, $args) {
+		assert('is_string($function);');
+		assert('is_array($args);');
+		
 		if(!isset(static::$paths))
 			user_error('This module has no usable paths');
 		if(!isset(static::$paths[$function]))
@@ -179,12 +202,12 @@ abstract class AbstractModule implements Runnable {
 		foreach($paths as $path) {
 			$vars = static::extractVars($path);
 			if($vars === array_keys($args)) {
-				$temp = static::buildFunctionPath($path, $args);
-				if($result === NULL || strlen($temp) < strlen($result) )
+				$temp = '/'.ltrim(static::buildFunctionPath($path, $args), '/');
+				if(is_null($result) || strlen($temp) < strlen($result) )
 					$result = $temp;
 			}
 		}
-		if($result === NULL)
+		if(is_null($result))
 			user_error(
 					'No suitable path found for function ' . $function
 					. "\nArguments: " . var_export($args, true)
@@ -317,8 +340,6 @@ abstract class AbstractModule implements Runnable {
 				return;
 			}
 		}
-		if ($this->isMain())
-			user_error('No function matches the function path "'.$this->mainFunctionPath.'" for module '.$this->getName());
 	}
 
 	/**
@@ -350,8 +371,15 @@ abstract class AbstractModule implements Runnable {
 			$moduleParam = $this->getParameters();
 		if (is_null($this->getModulePath()))
 			user_error('Module '.$this->__toString().' is not exposed and as such no url can be made pointing to it.');
+		
+		assert('is_string($function);');
+		assert('is_array($moduleParam);');
+		assert('is_bool($fullUrl);');
+		assert('is_array($get);');
+		assert('is_bool($noGetForce);');
+		
 		$functionPath = static::mkFunctionPath($function, $moduleParam);
-		assert('$functionPath{0}=="/"');
+		assert('$functionPath{0}=="/" && $functionPath{1}!="/"');
 		return Core::getUrlManager()->mkurl(
 				$this->getHostGroup(),
 				$this->getModulePath().substr($functionPath, 1),
