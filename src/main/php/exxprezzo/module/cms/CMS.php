@@ -1,6 +1,6 @@
 <?php namespace exxprezzo\module\cms;
 
-use exxprezzo\core\output\PostOutput;
+use \exxprezzo\core\output\PostOutput;
 
 use \exxprezzo\core\db\SQL;
 
@@ -29,11 +29,17 @@ class CMS extends AbstractModule {
 			'(?<path>.*)/' => 'view',
 			'(?<path>.*)/edit.html' => 'edit',
 			'(?<path>.*)/edit.cgi' => 'doEdit',
+			'(?<path>.*)/files.html' => 'files',
+			'(?<path>.*)/images.html' => 'images',
+			'(?<path>.*)/(?<filename>[^/]+\.[a-zA-Z0-9]+)' => 'file',
 	);
 	protected static $paths = array(
 			'view' => array('{$path}/'),
 			'edit' => array('{$path}/edit.html'),
 			'doEdit' => array('{$path}/edit.cgi'),
+			'files' => array('{$path}/files.html'),
+			'images' => array('{$path}/images.html'),
+			'file' => array('{$path}/{$file}'),
 	);
 	
 	public function init() {
@@ -84,14 +90,14 @@ class CMS extends AbstractModule {
 			$input->putVariables(array(
 					'title' => new TextInput('title', $page['title']),
 					'content' => new LongTextInput('content', $page['content']),
-			));
+				));
 			if ($this->params['path'])
 				$input->putVariable('delete', new ButtonInput('delete', 'Delete'));
 		} else {
 			$input->putVariables(array(
 					'title' => new TextInput('title', 'New page'),
 					'content' => new LongTextInput('content', 'Lorem ipsum dolor...'),
-			));
+				));
 		}
 		return new PostOutput(new BlockOutput($this, $content), $this->mkurl('doEdit'));
 	}
@@ -116,6 +122,33 @@ class CMS extends AbstractModule {
 			$this->redirect('view', array('path' => dirname($this->params['path'])));
 		}
 		$this->redirect('view');
+	}
+	
+	public function files($params, $void, $imagesOnly=false) {
+		$content = new Content();
+		
+		$page = $this->fetchPage($this->params['path']);
+		$this->db->execute('SELECT `filename`, `file` FROM `files` WHERE `path` = $path', array(
+				'path' => ltrim($params['path'], '/'),
+			));
+		
+		while($fileEntry = $this->db->fetchrow()) {
+			// if image
+			$content->addLoop("file", $fileEntry);
+		}
+		return new BlockOutput($this, $content);
+	}
+	
+	public function images($params, $void) {
+		return $this->files($params, $void, true);
+	}
+	
+	public function file($params) {
+		$this->db->execute('SELECT `file` FROM `files` WHERE `path` = $path AND `filename` = $filename', array(
+				'path' => ltrim($params['path'], '/'),
+				'filename' => $params['filename'],
+			));
+		
 	}
 	
 }
