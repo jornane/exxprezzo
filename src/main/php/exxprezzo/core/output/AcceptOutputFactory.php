@@ -14,7 +14,7 @@ use \exxprezzo\core\Content;
  * type given in Access if providable. This factory does not touch 
  * $data if it is already an Output instance
  * 
- * TODO: Implement wildcard media types {@link OutputFactory#newOutput}
+ * TODO: Implement wildcard media type detection {@link OutputFactory#newOutput}
  * @author wilfried
  *
  */
@@ -43,6 +43,10 @@ class AcceptOutputFactory implements OutputFactory {
 			$requestTypes = explode(',', $requestTypes);
 			$intersectKnown = array_values(array_intersect(self::$knownTypes, $requestTypes));
 			if(isset($types) && $types)
+				// XXX I think the wild card detection should be placed instead of this
+				// intersect. */*, for example, would then cause all the known types to be 
+				// included. However the order of this must vary based on the preference 
+				// order in types.
 				$intersect = array_intersect($types, $intersectKnown);
 			if(isset($intersect) && $intersect) {
 				$mediaType = $intersect[0];
