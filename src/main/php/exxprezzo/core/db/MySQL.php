@@ -47,6 +47,11 @@ class MySQL extends SQL {
 		parent::__construct($dbinfo);
 		
 		// Login to MySQL
+		if ($this->port) {
+			if (!is_numeric($this->port) || $this->port < 0 || $this->port > 65535)
+				user_error('Port in invalid range');
+			$this->host .= ':'.$this->port;
+		}
 		$this->connectid = $this->persist ? mysql_pconnect($this->host, $this->user, $this->pass, $this->flags) : mysql_connect($this->host, $this->user, $this->pass, false, $this->flags);
 		if (!$this->connectid) {
 			throw new DatabaseConnectionException('Can\'t connect to database server');
