@@ -39,7 +39,7 @@ class CMS extends AbstractModule {
 			'doEdit' => array('{$path}/edit.cgi'),
 			'files' => array('{$path}/files.html'),
 			'images' => array('{$path}/images.html'),
-			'file' => array('{$path}/{$file}'),
+			'file' => array('{$path}/{$filename}'),
 	);
 	
 	public function init() {
