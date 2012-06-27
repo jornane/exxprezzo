@@ -44,13 +44,13 @@ class Template {
 	
 	const REGEX_COMMENT = '_\\<\\!\\-\\- (.*) \\-\\-\\>_i';
 	
-	public static function templateFromFile($filename, $resourceName='resources') {
+	public static function templateFromFile($filename, $resourceName='./.') {
 		if (!is_string($resourceName) || !$resourceName)
 			$resourceName = 'resources';
 		$result = new Template(file_get_contents($filename));
 		$result->filename = $filename;
 		$result->extraReplacePattern[] = '_(?<=["\'])'.$resourceName.'/(.*?)\\1_';
-		$result->extraReplaceReplacement[] = Core::getUrlManager()->server['BASE_URL'].dirname($filename).'/'.$resourceName.'/';
+		$result->extraReplaceReplacement[] = Core::getUrlManager()->server['BASE_URL'].dirname($filename).'/';
 		
 		return $result;
 	}
