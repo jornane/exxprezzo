@@ -53,7 +53,7 @@ abstract class AbstractModule implements Runnable {
 				ORDER BY LENGTH(`root`) DESC
 				LIMIT 1', array('options' => $options, 'hostGroup' => $hostGroup->getId()));
 		if ($instanceEntry = $dbh->fetchRow()) {
-			$mainFunctionPath = substr($path, strlen($instanceEntry['root']));
+			$mainFunctionPath = '/'.substr($path, strlen($instanceEntry['root']));
 			if (!$instanceEntry['root'] && !$mainFunctionPath)
 				$mainFunctionPath = '/';
 			if (!$mainFunctionPath)
@@ -100,6 +100,54 @@ abstract class AbstractModule implements Runnable {
 			return self::$instances[$moduleInstanceId];
 		}
 		user_error('There is no mobule with instance '.$moduleInstanceId);
+	}
+	
+	/**
+	 * 
+	 * @param string $class
+	 * @return SingletonModule
+	 */
+	public static function getSingleton($class) {
+		assert('is_string($class)');
+		assert('is_subclass_of($class, \'\\\\exxprezzo\\\\core\\\\module\\\\SingletonModule\'');
+		return $instance;
+	}
+	
+	/**
+	 * Returns, if possible, an instance of the given class for
+	 * this instance of AbstractModule.
+	 * @param string $class
+	 * @return AbstractModule
+	 */
+	public function getInstanceByName($class) {
+		assert('is_string($class)');
+		$dbh = Core::getDatabaseConnection();
+		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `hostGroup`, 
+				`param`, `module_link`.`mainFunctionPath` FROM `moduleInstance`
+				JOIN `module_link` ml ON (`module_link`.`owned` = `moduleInstance`.`moduleInstanceId`
+				WHERE `module` = :module AND `module_link`.`owner` = :moduleInstanceId
+				ORDER BY LENGTH(`root`) DESC
+				LIMIT 1', array(
+						'moduleInstanceId' => (int)$this->getInstanceId(), 
+						'module' => $class,
+						));
+		if ($instanceEntry = $dbh->fetchRow()) {
+			if(array_key_exists((int)$instanceEntry['moduleInstanceId'], self::$instances))
+				return self::$instances[(int)$instanceEntry['moduleInstanceId']];
+			self::$instances[(int)$instanceEntry['moduleInstanceId']] =
+				self::_instantiate(
+						$instanceEntry['module'],
+						(int)$instanceEntry['moduleInstanceId'],
+						new HostGroup($instanceEntry['hostGroup']),
+						$instanceEntry['root'],
+						$instanceEntry['mainFunctionPath'],
+						self::parseParam($instanceEntry['param'])
+					);
+			return self::$instances[(int)$instanceEntry['moduleInstanceId']] = $instance;
+		}
+		user_error('There is no module instance for the class ' 
+				. $class . ' for ' . self::getName() . ' id ' 
+				. $this->getInstanceId());
 	}
 	
 	/**

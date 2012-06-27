@@ -21,7 +21,10 @@ interface OutputFactory {
 	 * 
 	 * The client may present additional constraints by indicating a list of types
 	 * the factory must choose from. This is also a preference list. The order is
-	 * the preference order. Note that adding &lowast;/&lowast; to this list gives the factory a 
+	 * the preference order. 
+	 * 
+	 * TODO: Extend the following to allow different wild card types.
+	 * Note that adding &lowast;/&lowast; to this list gives the factory a 
 	 * possibility to choose the type freely. If no types are given the factory
 	 * may choose any type based on the runtime environment.
 	 * 
