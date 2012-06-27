@@ -13,7 +13,7 @@ use \exxprezzo\core\layout\Page;
 
 use \exxprezzo\core\db\SQL;
 
-class Core {
+final class Core {
 	
 	/** @var (string)[] */
 	private static $config = array();
