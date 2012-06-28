@@ -32,7 +32,7 @@ class Content {
 	/**
 	 * 
 	 * @param string $loopName
-	 * @param string[]|Content $loop
+	 * @param string[]|object $loop
 	 */
 	public function addLoop($loopName, $loop) {
 		$parentLoop = &$this->getLoop($loopName);
