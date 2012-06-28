@@ -64,12 +64,14 @@ class CMS extends AbstractModule {
 				'path' => ltrim($path, '/'),
 			));
 		static::$pages[$path] = $this->db->fetchrow();
-		static::$pages[$path]['rawcontent'] = static::$pages[$path]['content'];
-		static::$pages[$path]['content'] = preg_replace(
-				'_(?<=["\'])././(.*?)\\1_',
-				$this->mkurl('view'),
-				static::$pages[$path]['content']
-			);
+		if (static::$pages[$path]) {
+			static::$pages[$path]['rawcontent'] = static::$pages[$path]['content'];
+			static::$pages[$path]['content'] = preg_replace(
+					'_(?<=["\'])././(.*?)\\1_',
+					$this->mkurl('view'),
+					static::$pages[$path]['content']
+				);
+		}
 		return static::$pages[$path];
 	}
 	
