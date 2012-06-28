@@ -1,7 +1,7 @@
 <!-- if menuItem -->
-<ul>
+<ul id="nav">
 <!-- for menuItem -->
-	<li><a href="{menuItem.url}">{menuItem.caption}</a></li>
+	<li><a href="{menuItem.url}" onmousedown="return false;">{menuItem.caption}</a></li>
 <!-- /for menuItem -->
 </ul>
 <!-- /if menuItem -->

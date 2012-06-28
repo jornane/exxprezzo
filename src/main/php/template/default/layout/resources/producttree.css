@@ -1,0 +1,118 @@
+#producttree {
+	float: left;
+	width: 17.5em;
+	border-right: 1px solid #ddd;
+	font-size: 0.9em;
+}
+#producttree li {
+	list-style: none;
+	line-height: 2em;
+}
+#producttree li > ul {
+	padding-left: 1em;
+}
+#producttree li a:before {
+	float: left;
+	content: "▶";
+	color: #a00;
+	margin-right: 0.5em;
+	margin-left: 0.5em;
+	
+}
+#producttree li > a:active:before {
+	-webkit-transform: rotate(45deg) translate(0, 1px) !important;
+}
+
+#producttree li.last {
+	font-weight: bold;
+}
+#producttree li.last:before {
+	font-weight: normal;
+	content: "➜";
+	float: right;
+	color: #aaa;
+	font-size: 1.5em;
+	padding-right: 0.5em;
+}
+#producttree li.last:hover:before {
+	color: #800;
+}
+#producttree li.last ul {
+	font-weight: normal;
+}
+#producttree li.open > a:before {
+	-webkit-transform: rotate(90deg);
+}
+#producttree li.open > a {
+	background: #ddd;
+	background: -webkit-gradient(linear,
+		left top, left bottom, from(#eeeeee), to(#dfdfdf));
+}
+#producttree li ul li {
+	line-height: 0;
+	opacity: 0;
+	margin: 0;
+	padding: 0;
+	-webkit-transition-property : line-height, opacity;
+	-webkit-transition-duration : 0.3s; 
+}
+#producttree li.open > ul > li {
+	opacity: 1;
+	line-height: 2em;
+}
+#producttree li > ul > li > ul {
+	display: none;
+}
+#producttree li.open > ul > li > ul {
+	display: block;
+}
+#producttree > li:hover > a:before, #producttree > li:hover a:hover:before {
+	color: white;
+}
+#producttree li a {
+	text-decoration: none;
+	color: #800;
+	display: block;
+	padding: 0 0.5em 1px 0.5em;
+	text-shadow: white 0 0 3px;
+}
+#producttree li:hover > a {
+	background: #a00;
+	background: -webkit-gradient(linear,
+               left top, left bottom, from(#b00), to(#900));
+}
+#producttree li:hover > a, #producttree li:hover > a:before {
+	color: white;
+}
+#producttree li a:active {
+	border-top: 1px solid #400 !important;
+	background: #800;
+	padding-bottom: 0;
+	text-shadow: white 0 0 2px;
+}
+#producttree li.big {
+	margin-bottom: 0.5em;
+	margin-right: 1em;
+}
+#producttree li.big a, #producttree li.big a img {
+	width: 100%;
+}
+#producttree li.big a {
+	color: #444;
+	text-align: center;
+	vertical-align: bottom;
+}
+#producttree li.big a:after {
+	content: attr(title);
+}
+#producttree li.big a:hover {
+	background-color: #ddd;
+	border-color: #ccc !important;
+}
+#producttree li.big a:hover:after {
+	font-size: 1em;
+	float: none;
+}
+#producttree input {
+	width: 100%;
+}

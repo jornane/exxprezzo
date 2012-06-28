@@ -1,0 +1,97 @@
+#login
+{
+	padding:15px;
+	width:50%;
+	margin-left:auto;
+	margin-right:auto;
+	margin-top:50px;
+	margin-bottom:50px;
+}
+
+#login form input
+{
+	color: #666;
+	padding:7px;
+	font-size:14px;
+	width:94%;
+	margin-bottom:5px;
+}
+
+#login form button
+{
+	float:right;
+	padding:10px;
+	padding-left:17px;
+	padding-right:17px;
+	cursor: pointer;
+	font-size:14px;
+	text-transform: uppercase;
+	color:#fff;
+	background: #600;
+	background: -moz-linear-gradient(top, #700, #500);
+	/* Chrome, Safari:*/
+	background: -webkit-gradient(linear, left top, left bottom, from(#700), to(#500));
+	/* MSIE */
+	filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr='#770000', EndColorStr='#550000', GradientType=0);
+	border:none;
+	margin-right:-1px;
+	border-radius: 0.5em;
+}
+
+#login form button:hover
+{
+	background: #400;
+	background: -moz-linear-gradient(top, #500, #300);
+   /* Chrome, Safari:*/
+   background: -webkit-gradient(linear,
+               left top, left bottom, from(#500), to(#300));
+   /* MSIE */
+   filter: progid:DXImageTransform.Microsoft.Gradient(
+               StartColorStr='#550000', EndColorStr='#330000', GradientType=0);
+}
+
+#login form button:active
+{
+	box-shadow:inset 0 0 10px #400;
+}
+
+#explain
+{
+	margin-left:20px;
+	text-align: justify;
+	width:90%;
+}
+
+#history
+{
+	width:100%;
+	padding:5px;
+	border-collapse:collapse;
+}
+
+#history tr
+{
+	border-bottom:solid 1px #ddd;
+}
+
+#history tr:last-child
+{
+	border-bottom:none;
+}
+
+#history td
+{
+	padding:5px;
+	padding-top:8px;
+}
+
+#history td:first-child
+{
+	width:10% !important;
+}
+
+#history td img
+{
+	width:60px;
+	height:60px;
+}

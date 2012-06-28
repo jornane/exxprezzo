@@ -1,0 +1,62 @@
+#banner {
+	margin: 2em;
+}
+#banner li.prev {
+	position:absolute;
+	left:1em;
+	margin-top: 0.5em;
+}
+#banner li.next {
+	position:absolute;
+	right:1em;
+	margin-top: 0.5em;
+}
+#banner li {
+	background: white;
+	min-height: 4em;
+	padding: 0.25em;
+	list-style: none;
+	box-shadow: 0 0.5em 1em -0.5em #000;
+}
+#banner li:nth-child(n+4) {
+	display: none;
+}
+#banner li img {
+	display: block;
+	width: 100%;
+}
+#banner li.prev, #banner li.next {
+	-moz-transform:none;
+	-webkit-transform:none;
+	border: none;
+	background:none;
+	box-shadow: none;
+	font-size: 4em;
+	z-index: 1000;
+	text-shadow: white 0 0 0.375em;
+}
+#banner li.prev a, #banner li.next a {
+	display: block;
+	width: 1em;
+	height: 1em;
+	text-align: center;
+	text-decoration: none;
+	color: #888;
+	border-radius: 1em;
+	padding-bottom: 0.33em;
+}
+#banner li.prev a {
+	padding-right: 0.33em;
+}
+#banner li.next a {
+	padding-left: 0.33em;
+}
+#banner li.prev a:hover, #banner li.next a:hover {
+	background: #888;
+	color: white;
+	box-shadow: 0 0 0.625em 0 black;
+}
+#banner li.prev a:active, #banner li.next a:active {
+	background: #666;
+	box-shadow: 0 0 0.375em 0 black;
+}

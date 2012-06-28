@@ -1,0 +1,234 @@
+html, body, ul, li {
+	margin: 0 auto;
+	padding: 0;
+	font-family: "Lucida Grande", "Helvetica", "Verdana", sans-serif;
+}
+ul, li {
+}
+html, body {
+}
+html {
+	background: white url('background.png');
+	width: 70em;
+	padding: 1em;
+}
+@media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
+	html {
+		font-size: 0.825em;
+	}
+}
+@media only screen and (max-width: 1175px) {
+	html {
+		font-size: 0.825em;
+	}
+}
+@media only screen and (max-width: 950px) {
+	html {
+		font-size: 0.7em;
+	}
+}
+@media only screen and (min-width: 1300px) {
+	html {
+		font-size: 1.1em;
+	}
+}
+body {
+	font-size: 0.9em;
+}
+::selection {
+	background: #d2d9e2; /* Safari */
+}
+::-moz-selection {
+	background: #d2d9e2; /* Firefox */
+}
+
+#nav {
+	text-align: center;
+	margin: 0 auto;
+	white-space:nowrap;
+	border-radius: 0.75em;
+	box-shadow: 0 0.25em 0.375em #000;
+	table-layout: fixed;
+	display: table;
+	width: 75%;
+	margin-bottom: 2em;
+}
+#nav li {
+	line-height: 2.5em;
+	display: table-cell;
+	letter-spacing: 0.1em;
+	font-size: 1.125em;
+}
+#nav a, #nav form {
+	display: block;
+	color: white;
+	text-decoration: none;
+	background: #800;
+	background-image: -moz-linear-gradient(top, #900, #600);
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#900), to(#600));
+	background-image: -o-linear-gradient(top, #900, #600);
+	background-image: linear-gradient(top, #900, #600);
+	filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr=#990000, EndColorStr=#660000, GradientType=0);
+	border: 0.075em solid #a00;
+	border-bottom: 0.075em solid #600;
+	border-right: 0.075em solid #600;
+	text-shadow: #000 0 0.1em 0.1875em;
+	box-shadow:inset 0 0 0.1em #700;
+}
+#nav > *:first-child {
+	border-left: none;
+}
+#nav > *:first-child a, #nav > *:first-child form {
+	border-top-left-radius: 0.5em;
+	border-bottom-left-radius: 0.5em;
+}
+#nav > *:last-child a, #nav > *:last-child form {
+	border-top-right-radius: 0.5em;
+	border-bottom-right-radius: 0.5em;
+}
+#nav input {
+	width: 100%;
+	height: 100%;
+}
+#nav form {
+	padding: 0 0.5em;
+}
+#nav a:hover, #nav a:active {
+	background: #500;
+	background-image: -moz-linear-gradient(top, #600, #400);
+   background-image: -webkit-gradient(linear, left top, left bottom, from(#600), to(#400));
+	background-image: -o-linear-gradient(top, #600, #400);
+	background-image: linear-gradient(top, #600, #400);
+   filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr=#660000, EndColorStr=#440000, GradientType=0);
+	border-color: #500;
+	box-shadow:inset 0 0 0.625em #700;
+}
+#nav a:active {
+	box-shadow:inset 0 0 0.625em #400;
+}
+
+
+#static div{
+	width:49%;
+}
+
+#static div:nth-child(odd){
+	float:left;
+	clear:left;
+}
+
+#static div:nth-child(even){
+	float:right;
+	clear:right;
+}
+
+#static:after{
+	content:" ";
+	display:block;
+	clear:both;
+}
+
+#static div p
+{
+	text-align:justify;
+}
+
+
+
+.box {
+	background: #f6f6f6;
+	background: -moz-linear-gradient(top, #fefefe, #efefef);
+	background: -webkit-gradient(linear, left top, left bottom, from(#fefefe), to(#efefef));
+	background-image: -o-linear-gradient(top, #fefefe, #efefef);
+	background-image: linear-gradient(top, #fefefe, #efefef);
+	filter: progid:DXImageTransform.Microsoft.Gradient(StartColorStr=#fefefe, EndColorStr=#efefef, GradientType=0);
+	border-radius: 0.5em;
+	border-top: 0.1em solid white;
+	border-bottom: 0.1em solid gray;
+	box-shadow: 0 0.125em 0.25em 0em gray;
+	padding: 1em;
+	margin: 0;
+	margin-top: 1em;
+	clear: both;
+}
+.box:after {
+	content: " ";
+	clear: left;
+}
+.box h1 {
+	color: #888;
+	text-shadow: #fff 0.075em 0.075em 0;
+	margin: 0;
+	padding: 0;
+	font-size: 1.2em;
+}
+ul.box {
+	display: table;
+	table-layout: fixed;
+	margin-left: auto;
+	margin-right: auto;
+}
+ul.box li {
+	display: table-cell;
+	border-right: 0.1em solid #ddd;
+	height: 11em;
+	overflow: hidden;
+	margin: 0;
+	padding: 1em;
+	list-style: none;
+}
+ul.box li:last-child {
+	float: none;
+}
+ul.box img {
+	float: left;
+	max-height: 2em;
+}
+ul.box img.side {
+	float: right;
+	width: 40%;
+	margin-left: 1em;
+	max-height: none;
+}
+ul.box.col2 li{
+	width: 36em;
+}
+ul.box.col3 li {
+	width: 24em;
+}
+ul.box.col4 li {
+	width: 18em;
+}
+ul.box li:last-child {
+	border-right: none;
+}
+
+p {
+	text-align: left;
+}
+input {
+	font-size: 1em;
+}
+a {
+	color: #a00;
+}
+a:active {
+	color: #c00;
+}
+hr {
+	clear: both;
+	border: none;
+}
+
+#footer {
+	font-size: 0.75em;
+	text-align: center;
+	margin-top: 5em;
+	border: 0.125em #ddd;
+	padding: 0.75em 0;
+	border-style: solid none;
+}
+#footer span {
+	margin: 0 2em;
+	white-space: nowrap;
+}
