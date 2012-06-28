@@ -63,7 +63,21 @@ class CMS extends AbstractModule {
 		$this->db->execute('SELECT `title`, `content` FROM `pages` WHERE `path` = $path LIMIT 1', array(
 				'path' => ltrim($path, '/'),
 			));
-		return static::$pages[$path] = $this->db->fetchrow();
+		static::$pages[$path] = $this->db->fetchrow();
+		static::$pages[$path]['rawcontent'] = static::$pages[$path]['content'];
+		/*
+		static::$pages[$path]['content'] = preg_replace_callback(
+				'_(?<=["\'])././([^"^\']*)(?=["\'])_',
+				array(new URLMaker($this, $path), 'mkurl'),
+				static::$pages[$path]['content']
+			);
+		*/
+		static::$pages[$path]['content'] = preg_replace(
+				'_(?<=["\'])././(.*?)\\1_',
+				$this->mkurl('view'),
+				static::$pages[$path]['content']
+			);
+		return static::$pages[$path];
 	}
 	
 	public function getTitle($params) {
@@ -96,7 +110,7 @@ class CMS extends AbstractModule {
 			$content->putVariable('exists', true);
 			$input->putVariables(array(
 					'title' => new TextInput('title', $page['title']),
-					'content' => new LongTextInput('content', $page['content']),
+					'content' => new LongTextInput('content', $page['rawcontent']),
 				));
 			if ($this->params['path'])
 				$input->putVariable('delete', new ButtonInput('delete', 'Delete'));
