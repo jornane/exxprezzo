@@ -297,7 +297,7 @@ abstract class AbstractModule implements Runnable {
 	 * in path
 	 */
 	private static function extractVars($path) {
-		$regex = '/({\\$(?<name>.*)})/';
+		$regex = '/({\\$(?<name>.*?)})/';
 		$mathes = array();
 		preg_match_all($regex,$path,$mathes);
 		$names = $mathes['name'];
