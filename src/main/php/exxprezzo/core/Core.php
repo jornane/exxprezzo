@@ -45,6 +45,9 @@ final class Core {
 			// Set assertion handler
 			assert_options(ASSERT_CALLBACK, array('\exxprezzo\core\Core', 'handleAssertion'));
 			
+			assert('!get_magic_quotes_gpc()');
+			assert('!get_magic_quotes_runtime()');
+			
 			// Read config file
 			self::readConfigFile();
 			
