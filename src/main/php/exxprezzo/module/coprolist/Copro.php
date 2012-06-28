@@ -7,7 +7,7 @@ class Copro
 	private $name = 'Pietje Puk';
 	private $commissions = array();
 	private $photo = 'pietjepuk.jpg';
-	public static $imagepath = 'templates/default/modules/coprolist/resources/';
+	public static $imagepath = 'template/default/module/coprolist/resources/';
 
 	// Constructor
 	public function  __construct($name, $photo, $commissions){
