@@ -65,13 +65,6 @@ class CMS extends AbstractModule {
 			));
 		static::$pages[$path] = $this->db->fetchrow();
 		static::$pages[$path]['rawcontent'] = static::$pages[$path]['content'];
-		/*
-		static::$pages[$path]['content'] = preg_replace_callback(
-				'_(?<=["\'])././([^"^\']*)(?=["\'])_',
-				array(new URLMaker($this, $path), 'mkurl'),
-				static::$pages[$path]['content']
-			);
-		*/
 		static::$pages[$path]['content'] = preg_replace(
 				'_(?<=["\'])././(.*?)\\1_',
 				$this->mkurl('view'),
