@@ -17,7 +17,7 @@ class Playground extends AbstractModule {
 		return new BlockOutput($this, $content);
 	}
 	
-	public function getTitle(){
+	public function getTitle($void){
 		return 'Playground';
 	}
 	
