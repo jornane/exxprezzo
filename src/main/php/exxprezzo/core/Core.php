@@ -73,6 +73,8 @@ final class Core {
 				/** @var \exxprezzo\core\Output */
 				$outputObject = self::$mainModule->run();
 			} catch (Exception $e) {
+				Core::handleException($e, false, true);
+				exit;
 				$outputObject = new ExceptionOutput(self::$mainModule, $e);
 			}
 			
@@ -89,6 +91,7 @@ final class Core {
 				trigger_error('No errors occurred, but no output was generated either.');
 		} catch (Exception $e) {
 			Core::handleException($e, false, true);
+			exit;
 		}
 	}
 	
