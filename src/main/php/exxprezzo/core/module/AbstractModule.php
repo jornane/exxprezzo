@@ -417,6 +417,8 @@ abstract class AbstractModule implements Runnable {
 	public final function mkurl($function, $moduleParam=NULL, $fullUrl=false, $get=array(), $noGetForce=true) {
 		if (is_null($moduleParam))
 			$moduleParam = $this->getParameters();
+		else
+			$moduleParam = array_merge($this->getParameters(), $moduleParam);
 		if (is_null($this->getModulePath()))
 			user_error('Module '.$this->__toString().' is not exposed and as such no url can be made pointing to it.');
 		
