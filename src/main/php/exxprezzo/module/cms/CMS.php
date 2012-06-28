@@ -1,5 +1,10 @@
 <?php namespace exxprezzo\module\cms;
 
+use exxprezzo\core\input\FileInput;
+
+use \exxprezzo\module\filemanager\FileManager;
+use \exxprezzo\module\filemanager\File;
+
 use \exxprezzo\core\output\PostOutput;
 
 use \exxprezzo\core\db\SQL;
@@ -20,7 +25,7 @@ class CMS extends AbstractModule {
 	/** @var string[][] */
 	protected static $pages;
 	
-	/**	@var SQL */
+	/**	@var \exxprezzo\core\db\SQL */
 	protected $db;
 	/** @var string[] */
 	protected $params;
@@ -30,6 +35,7 @@ class CMS extends AbstractModule {
 			'(?<path>.*)/edit.html' => 'edit',
 			'(?<path>.*)/edit.cgi' => 'doEdit',
 			'(?<path>.*)/files.html' => 'files',
+			'(?<path>.*)/files.cgi' => 'editFiles',
 			'(?<path>.*)/images.html' => 'images',
 			'(?<path>.*)/(?<filename>[^/]+\.[a-zA-Z0-9]+)' => 'file',
 	);
@@ -38,6 +44,7 @@ class CMS extends AbstractModule {
 			'edit' => array('{$path}/edit.html'),
 			'doEdit' => array('{$path}/edit.cgi'),
 			'files' => array('{$path}/files.html'),
+			'editFiles' => array('{$path}/files.cgi'),
 			'images' => array('{$path}/images.html'),
 			'file' => array('{$path}/{$filename}'),
 	);
@@ -124,19 +131,40 @@ class CMS extends AbstractModule {
 		$this->redirect('view');
 	}
 	
+	public function editFiles($params, $content) {
+		/** @var \exxprezzo\module\filemanager\File */
+		$file = FileManager::storeUploadFile($this, 'file');
+		$this->db->replace('files', array(
+				'path' => ltrim($params['path'], '/'),
+				'filename' => $file->getFilename(),
+				'file' => $file->getFileId(),
+			));
+		$this->redirect('files');
+	}
+	
 	public function files($params, $void, $imagesOnly=false) {
 		$content = new Content();
+		$input = new Content();
+		$content->putNamespace('input', $input);
 		
 		$page = $this->fetchPage($this->params['path']);
 		$this->db->execute('SELECT `filename`, `file` FROM `files` WHERE `path` = $path', array(
 				'path' => ltrim($params['path'], '/'),
 			));
-		
-		while($fileEntry = $this->db->fetchrow()) {
+		$fileEntries = array();
+		while($entry = $this->db->fetchrow())
+			$fileEntries[$entry['filename']] = $entry['file'];
+		$files = File::getLoadedInstances($this, $fileEntries);
+		foreach($files as $file) {
 			// if image
-			$content->addLoop("file", $fileEntry);
+			//TEMPORARY:
+			$file->href = $this->mkurl('file', array('filename'=>$file->getFilename()));
+			$content->addLoop('file', $file);
 		}
-		return new BlockOutput($this, $content);
+		$input->putVariables(array(
+				'file' => new FileInput('file'),
+			));
+		return new PostOutput(new BlockOutput($this, $content), $this->mkurl('editFiles'), true);
 	}
 	
 	public function images($params, $void) {
@@ -148,7 +176,12 @@ class CMS extends AbstractModule {
 				'path' => ltrim($params['path'], '/'),
 				'filename' => $params['filename'],
 			));
-		
+		if ($entry = $this->db->fetchrow()) {
+			$file = new File($this, $entry['file']);
+			$file->passthru();
+			exit;
+		}
+		user_error('File not found'); // Make me a 404
 	}
 	
 }
