@@ -109,7 +109,10 @@ class Content {
 	}
 	
 	public function getNamespace($name) {
-		return $this->namespaces[strtolower($name)];
+		if (isset($this->namespaces[strtolower($name)]))
+			return $this->namespaces[strtolower($name)];
+		else
+			return new Content();
 	}
 	
 	/**
