@@ -38,7 +38,7 @@ class CMS extends AbstractModule {
 			'(?<path>.*)/files.cgi' => 'editFiles',
 			'(?<path>.*)/images.html' => 'images',
 			'(?<path>.*)/(?<filename>[^/]+\.[a-zA-Z0-9]+)' => 'file',
-	);
+		);
 	protected static $paths = array(
 			'view' => array('{$path}/'),
 			'edit' => array('{$path}/edit.html'),
@@ -47,7 +47,7 @@ class CMS extends AbstractModule {
 			'editFiles' => array('{$path}/files.cgi'),
 			'images' => array('{$path}/images.html'),
 			'file' => array('{$path}/{$filename}'),
-	);
+		);
 	
 	public function init() {
 		parent::init();
@@ -88,11 +88,10 @@ class CMS extends AbstractModule {
 			if ($canEdit)
 				$content->putVariable('editHref', $this->mkurl('edit'));
 			return new BlockOutput($this, $content);
-		} else if ($canEdit) {
+		} else if ($canEdit)
 			$this->redirect('edit');
-		} else {
+		else
 			user_error('Page not found.');
-		}
 	}
 	
 	public function edit($params) {
