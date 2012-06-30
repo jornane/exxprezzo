@@ -88,7 +88,7 @@ final class Page extends AbstractOutput {
 		/** @var AbstractModule */
 		$module = $this->main->getSource();
 		/** @var Output */
-		$widgetOutput = $module->run();
+		$widgetOutput = $this->main;
 		
 		if ($widgetOutput instanceof BlockOutput)
 			$widgetOutput->setTemplate(static::getTemplate(
