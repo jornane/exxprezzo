@@ -2,7 +2,7 @@
 
 class Content {
 
-	/** @var string[]|Content[][]|object[] */
+	/** @var (string|Content[]|object)[] */
 	protected $vars = array();
 	/** @var Content[] */
 	protected $namespaces = array();
