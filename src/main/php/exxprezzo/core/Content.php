@@ -1,6 +1,6 @@
 <?php namespace exxprezzo\core;
 
-class Content {
+class Content implements \JsonSerializable {
 
 	/** @var (string|Content[]|object)[] */
 	protected $vars = array();
@@ -124,6 +124,10 @@ class Content {
 	 */
 	public function getVariableNames(){
 		return array_keys($this->vars);
+	}
+	
+	public function jsonSerialize() {
+		return $this->vars;
 	}
 	
 }
