@@ -93,7 +93,7 @@ final class Page extends AbstractOutput {
 		if ($widgetOutput instanceof BlockOutput)
 			$widgetOutput->setTemplate(static::getTemplate(
 					$module,
-					$this->templateName,
+					is_null($widgetOutput->getPreferredTemplate()) ? $this->templateName : $widgetOutput->getPreferredTemplate(),
 					$this->layout['theme']
 				));
 		
