@@ -6,7 +6,7 @@ use \exxprezzo\core\Core;
 
 use \DateTime;
 
-class File {
+class File implements \JsonSerializable{
 	
 	/** @var \exxprezzo\core\module\AbstractModule */
 	protected $module;
@@ -235,6 +235,13 @@ class File {
 			return !Core::$db->fetchrow();
 		}
 		return false;
+	}
+	
+	public function jsonSerialize() {
+		$result = $this->filedata;
+		$result['fileId'] = $this->fileId;
+		unset($result['path']);
+		return $result;
 	}
 		
 }
