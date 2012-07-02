@@ -6,12 +6,12 @@ use \exxprezzo\core\Template;
 abstract class FormOutput extends BlockOutput {
 	/**	@var Content */
 	protected $formContent;
-	/** @var Output */
+	/** @var FormattableOutput */
 	protected $blockOutput;
 	
 	/**
 	 * 
-	 * @param Output $formOutput
+	 * @param FormattableOutput $formOutput
 	 * @param string $action
 	 * @param boolean $multipart
 	 */
@@ -51,6 +51,10 @@ abstract class FormOutput extends BlockOutput {
 		if (is_null($this->template))
 			user_error('No template specified');
 		return $this->template->render();
+	}
+	
+	public function getContentObject() {
+		return $this->formContent->getContentObject();
 	}
 	
 }
