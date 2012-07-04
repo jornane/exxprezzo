@@ -1422,8 +1422,8 @@
 			if (ed.dom.getAttrib(ed.selection.getNode(), 'class', '').indexOf('mceItem') != -1)
 				return;
 
-			ed.windowManager.open({
-				url : ed.settings.link_href ? ed.settings.link_href : this.url + '/image.htm',
+			var w = ed.windowManager.open({
+				url : ed.settings.image_href ? ed.settings.image_href : this.url + '/image.htm',
 				width : 355 + parseInt(ed.getLang('advanced.image_delta_width', 0)),
 				height : 275 + parseInt(ed.getLang('advanced.image_delta_height', 0)),
 				inline : true,
@@ -1431,6 +1431,25 @@
 			}, {
 				theme_url : this.url
 			});
+			var url = this.url;
+			var iframe = document.getElementById(w.iframeElement.id);
+			iframe.onload = function() {
+				var links = [];
+				var callback = new RegExp('\\bcallback\\b');
+				var elem = iframe.contentDocument.getElementsByTagName('a');
+				for (var i = 0; i < elem.length; i++) {
+					var classes = elem[i].className;
+					if (callback.test(classes)) elem[i].rel = "imageCallback";
+				}
+				
+				var head = iframe.contentDocument.getElementsByTagName("head")[0];
+				var script = document.createElement("script");
+				script.setAttribute('src', url + '/../../tiny_mce_popup.js');
+				head.appendChild(script);
+				script = document.createElement("script");
+				script.setAttribute('src', url + '/js/exxprezzo.js');
+				head.appendChild(script);
+			};
 		},
 
 		_mceLink : function(ui, val) {
@@ -1450,21 +1469,20 @@
 			var url = this.url;
 			var iframe = document.getElementById(w.iframeElement.id);
 			iframe.onload = function() {
+				var links = [];
+				var callback = new RegExp('\\bcallback\\b');
+				var elem = iframe.contentDocument.getElementsByTagName('a');
+				for (var i = 0; i < elem.length; i++) {
+					var classes = elem[i].className;
+					if (callback.test(classes)) elem[i].rel = "linkCallback";
+				}
+				
 				var head = iframe.contentDocument.getElementsByTagName("head")[0];
 				var script = document.createElement("script");
 				script.setAttribute('src', url + '/../../tiny_mce_popup.js');
 				head.appendChild(script);
 				script = document.createElement("script");
-				script.setAttribute('src', url + '/../../utils/mctabs.js');
-				head.appendChild(script);
-				script = document.createElement("script");
-				script.setAttribute('src', url + '/../../utils/form_utils.js');
-				head.appendChild(script);
-				script = document.createElement("script");
-				script.setAttribute('src', url + '/../../utils/validate.js');
-				head.appendChild(script);
-				script = document.createElement("script");
-				script.setAttribute('src', url + '/js/link.js');
+				script.setAttribute('src', url + '/js/exxprezzo.js');
 				head.appendChild(script);
 			};
 		},
