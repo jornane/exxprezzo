@@ -129,10 +129,12 @@ class FileManager extends AbstractModule {
 		 * In case of a new file it won't happen anyway, because the while loop states that the file cannot exist
 		 * Only do it when $result evaluates to true, which means the last SQL query completed (it was either an insert or update)
 		 */
-		mkdir(self::$storedir.$module->getName().DIRECTORY_SEPARATOR.$module->getInstanceId().DIRECTORY_SEPARATOR, 0777, true);
+		$dir = self::$storedir.$module->getName().DIRECTORY_SEPARATOR.$module->getInstanceId().DIRECTORY_SEPARATOR;
+		if (!file_exists($dir))
+			mkdir($dir, 0777, true);
 		if ($result && isset($id) && $isUploaded
-				? move_uploaded_file($fileSource, self::$storedir.$module->getName().DIRECTORY_SEPARATOR.$module->getInstanceId().DIRECTORY_SEPARATOR.$id)
-				: copy($fileSource, self::$storedir.$module->getName().DIRECTORY_SEPARATOR.$module->getInstanceId().DIRECTORY_SEPARATOR.$id)
+				? move_uploaded_file($fileSource, $dir.$id)
+				: copy($fileSource, $dir.$id)
 		) {
 			return new File($module, $id);
 		}
