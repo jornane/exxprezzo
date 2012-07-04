@@ -1,5 +1,7 @@
 <?php namespace exxprezzo\module\filemanager;
 
+use \exxprezzo\core\type\Size;
+
 use \exxprezzo\core\module\AbstractModule;
 
 use \exxprezzo\core\Core;
@@ -188,19 +190,22 @@ class File implements \JsonSerializable{
 	public function getTouched() {
 		if (is_null($this->filedata))
 			$this->fetchdata();
-		return $this->filedata['touched'];
+		return new DateTime('@'.$this->filedata['touched']);
 	}
 	
 	public function getUpdated() {
 		if (is_null($this->filedata))
 			$this->fetchdata();
-		return $this->filedata['updated'];
+		return $this->filedata['updated']
+			? new DateTime('@'.$this->filedata['updated'])
+			: NULL
+			;
 	}
 	
 	public function getCreated() {
 		if (is_null($this->filedata))
 			$this->fetchdata();
-		return $this->filedata['created'];
+		return new DateTime('@'.$this->filedata['created']);
 	}
 	
 	public function getDownloads() {
@@ -210,7 +215,7 @@ class File implements \JsonSerializable{
 	}
 	
 	public function getSize() {
-		return filesize(FileManager::$storedir.$this->module->getName().DIRECTORY_SEPARATOR.$this->module->getInstanceId().DIRECTORY_SEPARATOR.$this->fileId);
+		return new Size(filesize(FileManager::$storedir.$this->module->getName().DIRECTORY_SEPARATOR.$this->module->getInstanceId().DIRECTORY_SEPARATOR.$this->fileId));
 	}
 	
 	/**
