@@ -2,7 +2,7 @@
 
 class Content implements \JsonSerializable {
 
-	/** @var (string|Content[]|object)[] */
+	/** @var (string|\exxprezzo\core\Content[]|object)[] */
 	protected $vars = array();
 	/** @var Content[] */
 	protected $namespaces = array();
@@ -12,6 +12,9 @@ class Content implements \JsonSerializable {
 	}
 	public function putVariables($variables) {
 		$this->vars = array_merge($this->vars, $variables);
+	}
+	public function removeVariable($key) {
+		unset($this->vars[$key]);
 	}
 	
 	/**
@@ -47,19 +50,6 @@ class Content implements \JsonSerializable {
 		}
 		
 	}
-	/**
-	 * 
-	 * @param string $loopName
-	 * @param string[] $variables
-	 */
-	public function appendLoop($loopName, $variables) {
-		$parentLoop = &$this->getLoop($loopName);
-		$parentLoop[count($parentLoop)-1]->vars
-			= array_merge(
-					$parentLoop[count($this->vars)-1]->vars,
-					$variables
-				);
-	}
 	
 	/**
 	 * 
@@ -90,7 +80,10 @@ class Content implements \JsonSerializable {
 	public function loopMerge($loopName, $iteration) {
 		$loop = $this->vars[$loopName];
 		$result = clone $this;
-		unset($result->vars[$loopName]);
+		if (isset($result->vars[$loopName][$iteration]->vars[$loopName]))
+			$result->vars[$loopName] = $result->vars[$loopName][$iteration]->vars[$loopName];
+		else
+			unset($result->vars[$loopName]);
 		foreach($loop[$iteration]->vars as $key => $value)
 			$result->vars[$loopName.'.'.$key] = $value;
 		return $result;
