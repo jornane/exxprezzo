@@ -11,7 +11,7 @@ will overwrite the existing file</p>
 	</tr>
 <!-- FOR file -->
 	<tr>
-		<td><a href="{file.href}">{file.filename}</a></td>
+		<td><a href="{file.href}" class="callback">{file.filename}</a></td>
 		<td>{file.created}</td>
 		<td>{file.updated}</td>
 		<td>{file.size}</td>
