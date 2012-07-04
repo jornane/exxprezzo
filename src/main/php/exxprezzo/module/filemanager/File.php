@@ -1,12 +1,14 @@
 <?php namespace exxprezzo\module\filemanager;
 
+use \exxprezzo\core\type\Size;
+
 use \exxprezzo\core\module\AbstractModule;
 
 use \exxprezzo\core\Core;
 
 use \DateTime;
 
-class File {
+class File implements \JsonSerializable{
 	
 	/** @var \exxprezzo\core\module\AbstractModule */
 	protected $module;
@@ -55,7 +57,7 @@ class File {
 	 */
 	public function fetch() {
 		$now = time();
-		if (is_readable(FileManager::$storedir.$this->fileId)) {
+		if (is_readable(FileManager::$storedir.$this->module->getName().DIRECTORY_SEPARATOR.$this->module->getInstanceId().DIRECTORY_SEPARATOR.$this->fileId)) {
 			Core::getDatabaseConnection()->query('UPDATE `file` SET `touched` = $touched, `downloads` = `downloads`+1 WHERE `id` = $file AND `moduleInstance` = $instanceId', array(
 					'touched' => $now,
 					'file' => $this->fileId,
@@ -63,7 +65,7 @@ class File {
 			));
 			$this->filedata['touched'] = $now;
 			$this->filedata['downloads']++;
-			return file_get_contents(FileManager::$storedir.$this->fileId);
+			return file_get_contents(FileManager::$storedir.$this->module->getName().DIRECTORY_SEPARATOR.$this->module->getInstanceId().DIRECTORY_SEPARATOR.$this->fileId);
 		}
 		return false;
 	}
@@ -78,14 +80,14 @@ class File {
 			'file' => (integer)$this->fileId,
 			'instanceId' => $this->module->getInstanceId(),
 		));
-		if ($filedata = $db->fetchrow()) if (is_readable(FileManager::$storedir.$this->fileId)) {
+		if ($filedata = $db->fetchrow()) if (is_readable(FileManager::$storedir.$this->module->getName().DIRECTORY_SEPARATOR.$this->module->getInstanceId().DIRECTORY_SEPARATOR.$this->fileId)) {
 			if (!headers_sent()) { // If headers are already sent, header() will fail anyway
 				if (is_null($cache)) $cache = 3600; // @TODO read from config
 				header('Content-type: '.$filedata['mimetype']);
 				// Text and application mimetypes can contain malicious code. They should always be sent as attachment
 				$attachment = $filedata['mimetype'] != 'text/plain' && substr($filedata['mimetype'], 0, 5) == 'text/' || substr($filedata['mimetype'], 0, 12) == 'application/';
 				header('Content-Disposition: '.($attachment?'attachment; ':'').'filename="'.addslashes($filedata['filename']).'"');
-				header('Content-length: '.filesize(FileManager::$storedir.$this->fileId));
+				header('Content-length: '.filesize(FileManager::$storedir.$this->module->getName().DIRECTORY_SEPARATOR.$this->module->getInstanceId().DIRECTORY_SEPARATOR.$this->fileId));
 				header('Last-Modified: '.date(DateTime::RFC1123, is_null($filedata['updated'])?$filedata['created']:$filedata['updated']));
 				if ($cache) {
 					header('Cache-Control: max-age='.(integer)$cache.' public');
@@ -96,7 +98,7 @@ class File {
 				}
 			}
 			
-			readfile(FileManager::$storedir.$this->fileId);
+			readfile(FileManager::$storedir.$this->module->getName().DIRECTORY_SEPARATOR.$this->module->getInstanceId().DIRECTORY_SEPARATOR.$this->fileId);
 			$db->query('UPDATE `file` SET `touched` = $touched, `downloads` = `downloads`+1 WHERE `id` = $file AND `moduleInstance` = $instanceId', array(
 					'touched' => $now,
 					'file' => $this->fileId,
@@ -106,7 +108,7 @@ class File {
 			$this->filedata['downloads']++;
 			return true;
 		} else
-			throw new FileException('File not readable: '.FileManager::$storedir.$this->fileId);
+			throw new FileException('File not readable: '.FileManager::$storedir.$this->module->getName().DIRECTORY_SEPARATOR.$this->module->getInstanceId().DIRECTORY_SEPARATOR.$this->fileId);
 	}
 		
 	/**
@@ -124,7 +126,7 @@ class File {
 		
 		assert('is_array($files)');
 		
-		$query = 'SELECT `id`, `filename`, `mimetype`, `touched`, `updated`, `created`, `downloads` FROM `file` WHERE `moduleInstance` = $instanceId AND (0';
+		$query = 'SELECT `id`, `moduleInstance`, `filename`, `mimetype`, `touched`, `updated`, `created`, `downloads` FROM `file` WHERE `moduleInstance` = $instanceId AND (0';
 		foreach($files as $curfile) {
 			assert('is_numeric($curfile)');
 			assert('(int)$curfile==$curfile');
@@ -137,7 +139,8 @@ class File {
 	
 		$result = array();
 		while ($filedata = $db->fetchrow()) {
-			$filedata['path'] = FileManager::$storedir.$filedata['id'];
+			$filedata['path'] = FileManager::$storedir.AbstractModule::getInstance($filedata['moduleInstance'])->getName().DIRECTORY_SEPARATOR.$filedata['moduleInstance'].DIRECTORY_SEPARATOR.$filedata['id'];
+			//$filedata['path'] = FileManager::$storedir.$filedata['id'];
 			if (is_readable($filedata['path'])) {
 				$filedata['filesize'] = filesize($filedata['path']);
 				$id = $filedata['id'];
@@ -158,13 +161,14 @@ class File {
 		$db->execute($query, array(
 				'instanceId' => $this->module->getInstanceId(),
 			));
-	
-		if ($filedata = $db->fetchrow()) if(is_readable(FileManager::$storedir.$filedata['id'])) {
-			$filedata['path'] = FileManager::$storedir.$filedata['id'];
-			$filedata['filesize'] = filesize(FileManager::$storedir.$filedata['id']);
+
+		$filename = FileManager::$storedir.$this->module->getName().DIRECTORY_SEPARATOR.$this->module->getInstanceId().DIRECTORY_SEPARATOR.$this->fileId;
+		if ($filedata = $db->fetchrow()) if(is_readable($filename)) {
+			$filedata['path'] = $filename;
+			$filedata['filesize'] = filesize($filename);
 			return $this->filedata = $filedata;
 		}
-		user_error('File not found: '.FileManager::$storedir.$filedata['id']);
+		user_error('File not found: '.$filename);
 	}
 	
 	public function getFileId() {
@@ -186,19 +190,22 @@ class File {
 	public function getTouched() {
 		if (is_null($this->filedata))
 			$this->fetchdata();
-		return $this->filedata['touched'];
+		return new DateTime('@'.$this->filedata['touched']);
 	}
 	
 	public function getUpdated() {
 		if (is_null($this->filedata))
 			$this->fetchdata();
-		return $this->filedata['updated'];
+		return $this->filedata['updated']
+			? new DateTime('@'.$this->filedata['updated'])
+			: NULL
+			;
 	}
 	
 	public function getCreated() {
 		if (is_null($this->filedata))
 			$this->fetchdata();
-		return $this->filedata['created'];
+		return new DateTime('@'.$this->filedata['created']);
 	}
 	
 	public function getDownloads() {
@@ -208,7 +215,7 @@ class File {
 	}
 	
 	public function getSize() {
-		return filesize(FileManager::$storedir.$this->fileId);
+		return new Size(filesize(FileManager::$storedir.$this->module->getName().DIRECTORY_SEPARATOR.$this->module->getInstanceId().DIRECTORY_SEPARATOR.$this->fileId));
 	}
 	
 	/**
@@ -218,7 +225,10 @@ class File {
 	 */
 	public function delete() {
 		$db = Core::getDatabaseConnection();
-		if (!file_exists(FileManager::$storedir.$this->fileId) || unlink(FileManager::$storedir.$this->fileId)) {
+		if (
+				!file_exists(FileManager::$storedir.$this->module->getName().DIRECTORY_SEPARATOR.$this->module->getInstanceId().DIRECTORY_SEPARATOR.$this->fileId)
+				|| unlink(FileManager::$storedir.$this->module->getName().DIRECTORY_SEPARATOR.$this->module->getInstanceId().DIRECTORY_SEPARATOR.$this->fileId))
+		{
 			Core::$db->query('DELETE FROM `file` WHERE `id` = $file AND `moduleInstance` = $instanceId LIMIT 1', array(
 					'file' => $this->fileId,
 					'instanceId' => $this->module->getInstanceId(),
@@ -230,6 +240,13 @@ class File {
 			return !Core::$db->fetchrow();
 		}
 		return false;
+	}
+	
+	public function jsonSerialize() {
+		$result = $this->filedata;
+		$result['fileId'] = $this->fileId;
+		unset($result['path']);
+		return $result;
 	}
 		
 }

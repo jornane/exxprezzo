@@ -45,6 +45,9 @@ final class Core {
 			// Set assertion handler
 			assert_options(ASSERT_CALLBACK, array('\exxprezzo\core\Core', 'handleAssertion'));
 			
+			assert('!get_magic_quotes_gpc()');
+			assert('!get_magic_quotes_runtime()');
+			
 			// Read config file
 			self::readConfigFile();
 			
@@ -109,11 +112,11 @@ final class Core {
 	private static function readConfigFile() {
 		$contents = file_get_contents('exxprezzo/Config.php');
 		$pos = strpos($contents, '?>', 0);
-		self::$config = unserialize(substr($contents, $pos+2));
+		self::$config = json_decode(substr($contents, $pos+2), true);
 	}
 	
 	private static function readConfigFromDB() {
-		foreach(self::getDatabaseConnection()->query('SELECT `key`, `value` from `config`') as $entry) {
+			foreach(self::getDatabaseConnection()->query('SELECT `key`, `value` from `config`') as $entry) {
 			if (isset(self::$config[$entry['key']]))
 				trigger_error('Duplicate config key: '.$entry['key']);
 			try {

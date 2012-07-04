@@ -22,20 +22,6 @@ class JSONOutput extends AbstractFormattableOutput {
 	}
 	
 	private function buildJSON($content) {
-		return json_encode($this->_buildJSON($content));
-	}
-	
-	private function _buildJSON($content) {
-		$result = array();
-		foreach ($content->getVariableNames() as $value) {
-			if($content->getVariable($value) instanceof Content) {
-				$result[$value] = $this->_buildJSON($content->getVariable($value));
-			} else {
-				// FIXME: Is this correct? Are there other possibilities
-				// and how should they be handled
-				$result[$value] = $content->getVariableString($value);
-			}
-		}
-		return $result;
+		return json_encode($content);
 	}
 }

@@ -38,7 +38,7 @@ class CMS extends AbstractModule {
 			'(?<path>.*)/files.cgi' => 'editFiles',
 			'(?<path>.*)/images.html' => 'images',
 			'(?<path>.*)/(?<filename>[^/]+\.[a-zA-Z0-9]+)' => 'file',
-	);
+		);
 	protected static $paths = array(
 			'view' => array('{$path}/'),
 			'edit' => array('{$path}/edit.html'),
@@ -47,7 +47,7 @@ class CMS extends AbstractModule {
 			'editFiles' => array('{$path}/files.cgi'),
 			'images' => array('{$path}/images.html'),
 			'file' => array('{$path}/{$filename}'),
-	);
+		);
 	
 	public function init() {
 		parent::init();
@@ -63,7 +63,16 @@ class CMS extends AbstractModule {
 		$this->db->execute('SELECT `title`, `content` FROM `pages` WHERE `path` = $path LIMIT 1', array(
 				'path' => ltrim($path, '/'),
 			));
-		return static::$pages[$path] = $this->db->fetchrow();
+		static::$pages[$path] = $this->db->fetchrow();
+		if (static::$pages[$path]) {
+			static::$pages[$path]['rawcontent'] = static::$pages[$path]['content'];
+			static::$pages[$path]['content'] = preg_replace(
+					'_(?<=["\'])././(.*?)\\1_',
+					$this->mkurl('view'),
+					static::$pages[$path]['content']
+				);
+		}
+		return static::$pages[$path];
 	}
 	
 	public function getTitle($params) {
@@ -79,11 +88,10 @@ class CMS extends AbstractModule {
 			if ($canEdit)
 				$content->putVariable('editHref', $this->mkurl('edit'));
 			return new BlockOutput($this, $content);
-		} else if ($canEdit) {
+		} else if ($canEdit)
 			$this->redirect('edit');
-		} else {
+		else
 			user_error('Page not found.');
-		}
 	}
 	
 	public function edit($params) {
@@ -96,7 +104,7 @@ class CMS extends AbstractModule {
 			$content->putVariable('exists', true);
 			$input->putVariables(array(
 					'title' => new TextInput('title', $page['title']),
-					'content' => new LongTextInput('content', $page['content']),
+					'content' => new LongTextInput('content', $page['rawcontent']),
 				));
 			if ($this->params['path'])
 				$input->putVariable('delete', new ButtonInput('delete', 'Delete'));

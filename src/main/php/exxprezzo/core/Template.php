@@ -1,5 +1,7 @@
 <?php namespace exxprezzo\core;
 
+use \DateTime;
+
 class Template {
 	
 	/** @var string */
@@ -17,7 +19,7 @@ class Template {
 		unset($this->blockKeywords, $this->annotations, $this->blocks, $this->variables);
 	}
 	
-	/** @var Content */
+	/** @var \exxprezzo\core\Content */
 	protected $content;
 	/** @var object[] */
 	protected $objects = array();
@@ -170,6 +172,12 @@ class Template {
 		if (is_null($result)) {
 			$result = $this->getValueFromObject($varName);
 		}
+		if (is_object($result)) {
+			if ($result instanceof DateTime)
+				$result = $result->format(DateTime::W3C);
+			else
+				$result = $result->__toString();
+		}
 		return $result;
 	}
 	
@@ -203,12 +211,19 @@ class Template {
 		$result = '';
 		if (is_array($blocks)) foreach($blocks as $iteration => $block) {
 			$oldContent = $this->content;
+			$oldObjects = $this->objects;
+			$oldVar = $this->content->getVariable($blockName);
 			if (is_object($block) && $block instanceof Content) {
 				$this->content = $this->content->loopMerge($blockName, $iteration);
+				unset($this->objects[$blockName]);
 			} elseif (is_object($block)) {
+				$this->content->removeVariable($blockName);
 				$this->objects[$blockName] = $block;
 			}
+			$this->content->putVariable($blockName.'.RECURSE', $this->renderForBlock($blockName));
+			$this->content->putVariable($blockName, $oldVar);
 			$result .= $this->render();
+			$this->objects = $oldObjects;
 			$this->content = $oldContent;
 		}
 		return $result;
