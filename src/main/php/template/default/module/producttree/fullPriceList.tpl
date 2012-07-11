@@ -1,6 +1,6 @@
 <ul>
 <!-- FOR category -->
-<li>{category.name}</li>
+<li><a href="{category.id}">{category.name}</a></li>
 <ul>
     {category.RECURSE}
 </ul>
