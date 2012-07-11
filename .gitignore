@@ -4,3 +4,5 @@
 src/main/php/exxprezzo/Config.php
 src/main/php/upload
 .idea
+.settings
+.DS_Store
