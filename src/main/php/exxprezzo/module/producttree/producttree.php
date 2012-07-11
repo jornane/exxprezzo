@@ -1,5 +1,9 @@
 <?php namespace exxprezzo\module\producttree;
 
+use \exxprezzo\core\Content;
+
+use \exxprezzo\core\output\BlockOutput;
+
 use \exxprezzo\core\module\AbstractModule;
 
 class ProductTree extends AbstractModule
@@ -25,21 +29,27 @@ class ProductTree extends AbstractModule
 
     public function fullPriceList()
     {
-        $this->displayProductTree($this->products["tree"]);
+        $tree = new Content();
+        $this->displayProductTree($this->products["tree"], $tree);
+        return new BlockOutput($this, $tree);
     }
 
-    public function displayProductTree($curProducts)
+    public function displayProductTree($curProducts, $cat)
     {
         for($i = 0; $i < sizeof($curProducts); $i++)
         {
             if(isset($curProducts[$i]["contents"]))
             {
-                echo "Category: " . $curProducts[$i]["name"] . "</label><br/>";
-                $this->displayProductTree($curProducts[$i]["contents"]);
+                $category = new Content();
+                $category->putVariables($curProducts[$i]);
+                $cat->addLoop('category', $category);
+                $this->displayProductTree($curProducts[$i]["contents"], $category);
             }
             else
             {
-                echo "Product " . $curProducts[$i]["id"] . ": " . $curProducts[$i]["name"] . "</label><br/>";
+                $product = new Content();
+                $product->putVariables($curProducts[$i]);
+                $cat->addLoop('category', $product);
             }
         }
     }
