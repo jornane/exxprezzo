@@ -165,7 +165,7 @@ final class Page extends AbstractOutput {
 				'template' . DIRECTORY_SEPARATOR
 					. $themeName . DIRECTORY_SEPARATOR
 					. $kind . DIRECTORY_SEPARATOR
-					. reset($fqnSplit) . DIRECTORY_SEPARATOR
+					. (reset($fqnSplit) ? reset($fqnSplit) . DIRECTORY_SEPARATOR : '')
 					. $templateName . '.tpl',
 				implode(DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR
 					. 'template' . DIRECTORY_SEPARATOR
