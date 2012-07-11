@@ -218,6 +218,11 @@ class Template {
 				unset($this->objects[$blockName]);
 			} elseif (is_object($block)) {
 				$this->content->removeVariable($blockName);
+				foreach(array_keys($this->objects) as $key) {
+					if (substr($key, 0, $blockName+1) == $blockName+'.') {
+						unset($this->objects[$key]);
+					}
+				}
 				$this->objects[$blockName] = $block;
 			}
 			$this->content->putVariable($blockName.'.RECURSE', $this->renderForBlock($blockName));
