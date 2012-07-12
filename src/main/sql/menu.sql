@@ -7,7 +7,7 @@
 #
 # Host: localhost (MySQL 5.5.23)
 # Database: exxprezzo
-# Generation Time: 2012-07-02 13:09:21 +0000
+# Generation Time: 2012-07-12 09:31:18 +0000
 # ************************************************************
 
 
@@ -23,6 +23,8 @@
 # Dump of table menu_menu
 # ------------------------------------------------------------
 
+DROP TABLE IF EXISTS `menu_menu`;
+
 CREATE TABLE `menu_menu` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `moduleInstance` int(10) unsigned DEFAULT NULL,
@@ -31,6 +33,15 @@ CREATE TABLE `menu_menu` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+LOCK TABLES `menu_menu` WRITE;
+/*!40000 ALTER TABLE `menu_menu` DISABLE KEYS */;
+
+INSERT INTO `menu_menu` (`id`, `moduleInstance`, `path`, `caption`)
+VALUES
+	(1,1,'','Home');
+
+/*!40000 ALTER TABLE `menu_menu` ENABLE KEYS */;
+UNLOCK TABLES;
 
 
 
