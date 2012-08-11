@@ -45,8 +45,8 @@ final class Core {
 			// Set assertion handler
 			assert_options(ASSERT_CALLBACK, array('\exxprezzo\core\Core', 'handleAssertion'));
 			
-			assert('!get_magic_quotes_gpc()');
-			assert('!get_magic_quotes_runtime()');
+			define('PHPVERSION', (real)preg_replace("_^([0-9]+)\.([0-9]+)(.*)_", "\\1.\\2", phpversion()));
+			assert('PHPVERSION >= 5.4');
 			
 			// Read config file
 			self::readConfigFile();
