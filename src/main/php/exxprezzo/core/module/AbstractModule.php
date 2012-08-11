@@ -402,7 +402,7 @@ abstract class AbstractModule implements Runnable {
 		if (!method_exists($this, $name))
 			user_error('Invalid function '.$name.' for module '.$this->getName());
 		$content = new Content();
-		$content->putVariables($_POST);
+		$content->putVariables(Core::getUrlManager()->getRawPost());
 		return $this->$name($this->getParameters(), $content);
 	}
 	
