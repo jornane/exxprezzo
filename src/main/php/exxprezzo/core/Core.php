@@ -177,7 +177,7 @@ final class Core {
 		} else {
 			$title = '';
 			$className = get_class($e);
-			for($i=0;$i<strlen($className)-9;$i++) {
+			for($i=strrpos($className, '\\')+1;$i<strlen($className)-9;$i++) {
 				if (strtoupper($className{$i}) == $className{$i})
 					$title .= ' ';
 				$title .= $className{$i};
@@ -195,8 +195,9 @@ final class Core {
 					'__autoload',
 					'trigger_error',
 					'user_error',
+					'loadClass',
 				))) {
-					$tracestart = $id-1;
+					$tracestart = $id;
 				}
 		}
 		//if ($tracestart > 0)
