@@ -141,6 +141,9 @@ final class Core {
 	}
 	
 	// Is public, but is only intended for use in the core namespace.
+	/**
+	 * @return \exxprezzo\core\db\SQL
+	 */
 	public static function getDatabaseConnection() {
 		if (is_null(self::$database))
 			self::$database = SQL::createConnection(self::$config['db']);
