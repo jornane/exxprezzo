@@ -5,6 +5,9 @@ use \exxprezzo\core\Core;
 abstract class AbstractUrlManager {
 	
 	protected $internalPath;
+	protected $forcedGetVars = array(), $forcedPostVars = array();
+	
+	protected $server, $get, $post, $cookie, $env;
 	
 	public function __construct(&$server, &$get, &$post, &$cookie, &$env) {
 		if (!is_array($server)) $server = $_SERVER;
@@ -106,6 +109,17 @@ abstract class AbstractUrlManager {
 	
 	public abstract function serverpath($path);
 	
+	public final function forceGetVariable($key, $value) {
+		$this->forcedGetVars[$key] = $value;
+	}
+	public final function forcePostVariable($key, $value) {
+		$this->forcedPostVars[$key] = $value;
+	}
+	public final function forceVariable($key, $value) {
+		$this->forceGetVariable($key, $value);
+		$this->forcePostVariable($key, $value);
+	}
+	
 	public final function getUserHostName() {
 		return $this->server['HTTP_HOST'];
 	}
@@ -117,6 +131,9 @@ abstract class AbstractUrlManager {
 	}
 	public final function getUserAgent() {
 		return $this->server['HTTP_USER_AGENT'];
+	}
+	public final function getReferer() {
+		return $this->server['HTTP_REFERER'];
 	}
 	public final function doNotTrack() {
 		return isset($this->server['HTTP_DNT']) && !!$this->server['HTTP_DNT'];
@@ -141,6 +158,15 @@ abstract class AbstractUrlManager {
 		return isset($this->server['https']) && $this->server['https'] != 'off' && $this->server['https'];
 	}
 	
+	public final function isPost() {
+		return $this->server['REQUEST_METHOD'] == 'POST';
+	}
+	public final function isHead() {
+		return $this->server['REQUEST_METHOD'] == 'HEAD';
+	}
+	public final function isGet() {
+		return $this->server['REQUEST_METHOD'] == 'GET' || $this->server['REQUEST_METHOD'] == 'HEAD';
+	}
 	public final function getRequestMethod() {
 		return $this->server['REQUEST_METHOD'];
 	}
@@ -165,6 +191,37 @@ abstract class AbstractUrlManager {
 	}
 	public final function getMainFunctionPath() {
 		return $this->server['FUNCTION_PATH'];
+	}
+	
+	public final function getPost($key) {
+		if (isset($this->post[$key]))
+			return $this->post[$key];
+	}
+	public final function getGet($key) {
+		if (isset($this->get[$key]))
+			return $this->get[$key];
+	}
+	public final function getCookie($key) {
+		if (isset($this->cookie[$key]))
+			return $this->cookie[$key];
+	}
+	public final function isInPost($key) {
+		return isset($this->post[$key]);
+	}
+	public final function isInGet($key) {
+		return isset($this->get[$key]);
+	}
+	public final function isInCookie($key) {
+		return isset($this->cookie[$key]);
+	}
+	public final function getRawPost() {
+		return $this->post;
+	}
+	public final function getRawGet() {
+		return $this->get;
+	}
+	public final function getRawCookie() {
+		return $this->cookie;
 	}
 	
 }

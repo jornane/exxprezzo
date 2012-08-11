@@ -52,7 +52,7 @@ class Template {
 		$result = new Template(file_get_contents($filename));
 		$result->filename = $filename;
 		$result->extraReplacePattern[] = '_(?<=["\'])'.$resourceName.'/(.*?)\\1_';
-		$result->extraReplaceReplacement[] = Core::getUrlManager()->server['BASE_URL'].dirname($filename).'/';
+		$result->extraReplaceReplacement[] = Core::getUrlManager()->getBaseUrl().dirname($filename).'/';
 		
 		return $result;
 	}
