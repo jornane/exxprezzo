@@ -430,7 +430,7 @@ abstract class AbstractModule implements Runnable {
 		
 		$functionPath = static::mkFunctionPath($function, $moduleParam);
 		assert('is_string($functionPath)');
-		assert('$functionPath');
+		assert('strlen($functionPath) > 0');
 		assert('$functionPath{0}=="/"');
 		assert('strlen($functionPath) == 1 || $functionPath{1}!="/"');
 		return Core::getUrlManager()->mkurl(
