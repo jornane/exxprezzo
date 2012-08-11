@@ -414,7 +414,7 @@ abstract class AbstractModule implements Runnable {
 	 * @param array $get
 	 * @param boolean $noGetForce
 	 */
-	public final function mkurl($function, $moduleParam=NULL, $fullUrl=false, $get=array(), $noGetForce=true) {
+	public final function mkurl($function, $moduleParam=NULL, $fullUrl=false, $get=array(), $noGetForce=false) {
 		if (is_null($moduleParam))
 			$moduleParam = $this->getParameters();
 		else
