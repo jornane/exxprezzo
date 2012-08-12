@@ -161,7 +161,7 @@ abstract class AbstractModule implements Runnable {
 	 */
 	private static function _instantiate($module, $instanceId, $hostGroup, $modulePath, $mainFunctionPath, $param) {
 		$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
-		/** @var AbstractModule */
+		/** @var \exxprezzo\core\module\AbstractModule */
 		$result = new $moduleFQN;
 		$result->instanceId = $instanceId;
 		$result->hostGroup = $hostGroup;
