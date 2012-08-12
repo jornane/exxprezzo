@@ -53,7 +53,7 @@ abstract class AbstractModule implements Runnable {
 				ORDER BY LENGTH(`root`) DESC
 				LIMIT 1', array('options' => $options, 'hostGroup' => $hostGroup->getId()));
 		if ($instanceEntry = $dbh->fetchRow()) {
-			$mainFunctionPath = '/'.substr($path, strlen($instanceEntry['root']));
+			$mainFunctionPath = '/'.substr($path, strlen($instanceEntry['root'])+1);
 			if (!$instanceEntry['root'] && !$mainFunctionPath)
 				$mainFunctionPath = '/';
 			if (!$mainFunctionPath)
