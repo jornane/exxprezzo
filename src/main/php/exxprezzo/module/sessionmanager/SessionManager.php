@@ -75,6 +75,7 @@ class SessionManager extends AbstractModule {
 	/**
 	 * 
 	 * @param \exxprezzo\core\module\AbstractModule $module
+	 * @return \exxprezzo\module\session\Session
 	 */
 	public function getSession($module) {
 		return new Session($module, $this->sid);
