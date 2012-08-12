@@ -150,31 +150,36 @@ final class Page extends AbstractOutput {
 		assert('is_string($templateName);');
 		assert('is_string($themeName);');
 		
-		$fqn = get_class($object);
-		$fqnSplit = explode('\\', $fqn);
-		$simpleName = array_pop($fqnSplit);
-		$namespace = $fqnSplit;
+		$pathOptions = array();
 		
-		if (array_shift($fqnSplit) != 'exxprezzo')
-			user_error('$object must be from a class in the exxprezzo namespace');
-		if (reset($fqnSplit) == 'core')
-			array_shift($fqnSplit);
-		$kind = array_shift($fqnSplit);
-		
-		$pathOptions = array(
-				'template' . DIRECTORY_SEPARATOR
-					. $themeName . DIRECTORY_SEPARATOR
-					. $kind . DIRECTORY_SEPARATOR
-					. (reset($fqnSplit) ? reset($fqnSplit) . DIRECTORY_SEPARATOR : '')
-					. $templateName . '.tpl',
-				implode(DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR
-					. 'template' . DIRECTORY_SEPARATOR
-					. $templateName . '.tpl',
-			);
+		$first = true;
+		while($object) { // While there is a parent class
+			$fqn = $first||is_object($object) ? get_class($object) : $object;
+			$fqnSplit = explode('\\', $fqn);
+			$simpleName = array_pop($fqnSplit);
+			$namespace = $fqnSplit;
+			$object = get_parent_class($object);
+			$first = false;
+			
+			if (array_shift($fqnSplit) != 'exxprezzo')
+				user_error('$object must be from a class in the exxprezzo namespace');
+			if (reset($fqnSplit) == 'core')
+				array_shift($fqnSplit);
+			$kind = array_shift($fqnSplit);
+			
+			$pathOptions[] = 'template' . DIRECTORY_SEPARATOR
+						. $themeName . DIRECTORY_SEPARATOR
+						. $kind . DIRECTORY_SEPARATOR
+						. (reset($fqnSplit) ? reset($fqnSplit) . DIRECTORY_SEPARATOR : '')
+						. $templateName . '.tpl';
+			$pathOptions[] = implode(DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR
+						. 'template' . DIRECTORY_SEPARATOR
+						. $templateName . '.tpl';
+		}
 		foreach($pathOptions as $pathOption)
 			if (is_readable($pathOption))
 				return Template::templateFromFile($pathOption);
-		user_error('A template could not be found on any of the following locations: \''.implode('\', \'', $pathOptions)).'\'';
+		user_error("A template could not be found on any of the following locations: \n'".implode("',\n'", $pathOptions)).'\'';
 	}
 	
 }
