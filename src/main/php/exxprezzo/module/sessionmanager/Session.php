@@ -1,4 +1,4 @@
-<?php namespace exxprezzo\module\session;
+<?php namespace exxprezzo\module\sessionmanager;
 
 use \exxprezzo\core\db\SQL;
 
@@ -17,10 +17,14 @@ class Session {
 	/** @var SQL */
 	protected $db;
 	
-	protected function __construct($sessionManager, $moduleId, $sid=NULL) {
+	public function __construct($sessionManager, $moduleId, $sid=NULL) {
+		assert('$sessionManager instanceof \exxprezzo\module\sessionmanager\SessionManager');
+		assert('is_numeric($moduleId)');
+		assert('is_string($moduleId)');
 		$this->sessionManager = $sessionManager;
 		$this->moduleId = $moduleId;
 		$this->sid = $sid;
+		$this->db = $sessionManager->db;
 	}
 	
 	public function __set($key, $value) {
@@ -100,10 +104,8 @@ class Session {
 		if (is_null($this->sid))
 			return;
 		$result = $this->db->query('SELECT MAX(`touched`+`lifetime`) `max` FROM `var`
-				WHERE `key` = $key
-				AND `session` = $session
+				WHERE `session` = $session
 				AND `moduleInstance` = $moduleInstance', array(
-						'key' => $key,
 						'session' => $this->sid,
 						'moduleInstance' => $this->moduleId,
 			));
@@ -112,12 +114,12 @@ class Session {
 				$this->sessionManager->session_cookie_name,
 				$this->sid,
 				$expire,
-				$this->sessionManager->session_cookie_path,
+				Core::getUrlManager()->getBaseUrl(),
 				'',
 				false,
 				true
 			);
-		if ($uri->isInCookie($this->sessionManager->session_cookie_name))
+		if (Core::getUrlManager()->isInCookie($this->sessionManager->session_cookie_name))
 			Core::getUrlManager()->forcePostVariable($this->sessionManager->session_cookie_name, $this->sid);
 		else
 			Core::getUrlManager()->forceVariable($this->sessionManager->session_cookie_name, $this->sid);

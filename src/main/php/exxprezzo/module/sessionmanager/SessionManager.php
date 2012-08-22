@@ -1,22 +1,25 @@
 <?php namespace exxprezzo\module\sessionmanager;
 
-use exxprezzo\core\url\HostGroup;
+use \exxprezzo\core\url\HostGroup;
 
-use exxprezzo\module\session\Session;
+use \exxprezzo\core\Core;
 
-use exxprezzo\core\Core;
-
-use exxprezzo\core\module\AbstractModule;
+use \exxprezzo\core\module\AbstractModule;
 
 class SessionManager extends AbstractModule {
 	
 	protected $sid;//session id
-	protected $session_cookie_name;
+	public $session_cookie_name;
 	
 	protected $allowInsecurePost = true;
 	
+	public function getTitle($params) {
+		return 'Login';
+	}
+	
 	public function init() {
-		parent::init();
+		//parent::init();
+		$this->db = $this->getModuleParam();
 		
 		$this->cookie_name = 'SESSION';
 		
@@ -60,7 +63,7 @@ class SessionManager extends AbstractModule {
 				 * A refercheck must protect against XSS attacks now.
 				 */
 				$refererData = parse_url($uri->getReferer());
-				if ((!$allowInsecurePost || $uri->getHostGroup() != HostGroup::getInstance($refererData['host'], true))
+				if ((!$this->allowInsecurePost || $uri->getHostGroup() != HostGroup::getInstance($refererData['host'], true))
 						&& !$uri->$uri->isInGet($this->session_cookie_name)
 						&& !$uri->isInCookie($this->session_cookie_name))
 					throw new SecurityException(
@@ -78,8 +81,8 @@ class SessionManager extends AbstractModule {
 	 * @return \exxprezzo\module\session\Session
 	 */
 	public function getSession($module) {
-		return new Session($module, $this->sid);
-		//if (!mt_rand(0,100))
+		return new Session($this, $module->getInstanceId(), $this->sid);
+		//	if (!mt_rand(0,100))
 			$this->cleanup();
 	}
 	
