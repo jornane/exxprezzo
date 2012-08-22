@@ -41,7 +41,8 @@ final class Page extends AbstractOutput {
 		$this->main = $outputObject;
 		$this->mainModule = $this->main->getSource();
 		$dbh = Core::getDatabaseConnection();
-		$dbh->execute('SELECT `pageId`, `preferredFunctionTemplate`, `theme`, `name`, `defaultBox` FROM `page`
+		$dbh->execute('SELECT `pageId`, `preferredFunctionTemplate`, `theme`, `name`, `defaultBox`
+				FROM `page`
 				JOIN `layout` ON `layout`.`layoutId` = `page`.`layoutId`
 				WHERE (`moduleInstanceId` = :moduleInstanceId OR `moduleInstanceId` IS NULL)
 				AND (`function` = :function OR `function` IS NULL)
@@ -64,7 +65,9 @@ final class Page extends AbstractOutput {
 		} else {
 			user_error("No layout found. Did you forget to specify a default layout?");
 		}
-		$dbh->execute('SELECT `widgetId`, `moduleInstanceId`, `function`, `preferredFunctionTemplate`, `box`, `param` FROM `widget`
+		$dbh->execute('SELECT `widgetId`, `moduleInstanceId`, `function`,
+				`preferredFunctionTemplate`, `box`, `param`
+				FROM `widget`
 				WHERE `pageId` = :pageId OR `pageId` IS NULL
 				ORDER BY `priority` ASC', array(
 						'pageId' => $this->pageId,
@@ -74,8 +77,10 @@ final class Page extends AbstractOutput {
 			$module = AbstractModule::getInstance($widget['moduleInstanceId']);
 			$param = AbstractModule::parseParam($widget['param']);
 			$this->widgets[$widget['box']][$widget['widgetId']]['module'] = $module;
-			$this->widgets[$widget['box']][$widget['widgetId']]['output'] = $module->$widget['function']($param);
-			$this->widgets[$widget['box']][$widget['widgetId']]['template'] = $widget['preferredFunctionTemplate']
+			$this->widgets[$widget['box']][$widget['widgetId']]['output']
+				= $module->$widget['function']($param);
+			$this->widgets[$widget['box']][$widget['widgetId']]['template']
+				= $widget['preferredFunctionTemplate']
 					? $widget['preferredFunctionTemplate']
 					: $widget['function']
 				;
@@ -93,7 +98,9 @@ final class Page extends AbstractOutput {
 		if ($widgetOutput instanceof BlockOutput)
 			$widgetOutput->setTemplate(static::getTemplate(
 					$module,
-					is_null($widgetOutput->getPreferredTemplate()) ? $this->templateName : $widgetOutput->getPreferredTemplate(),
+					is_null($widgetOutput->getPreferredTemplate())
+						? $this->templateName
+						: $widgetOutput->getPreferredTemplate(),
 					$this->layout['theme']
 				));
 		
@@ -179,7 +186,8 @@ final class Page extends AbstractOutput {
 		foreach($pathOptions as $pathOption)
 			if (is_readable($pathOption))
 				return Template::templateFromFile($pathOption);
-		user_error("A template could not be found on any of the following locations: \n'".implode("',\n'", $pathOptions)).'\'';
+		user_error('A template for "'.$templateName."\" could not be found.\n'".
+				implode("',\n'", $pathOptions)).'\'';
 	}
 	
 }
