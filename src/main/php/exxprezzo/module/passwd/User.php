@@ -1,13 +1,21 @@
 <?php namespace exxprezzo\module\passwd;
 
-abstract class User {
+interface User {
 
-	public abstract function __set($name, $value);
-	public abstract function __get($name);
-	public abstract function __isset($name);
-	public abstract function __unset($name);
+	function __set($name, $value);
+	function __get($name);
+	function __isset($name);
+	function __unset($name);
 	
-	public abstract function destroy();
-	public abstract function 
+	function getId();
+	function getUserName();
+	
+	function destroy();
+	function checkPassword($password);
+	
+	function isInGroup($group);
+	function addToGroup($group);
+	function removeFromGroup($group);
+	function getGroups();
 	
 }
