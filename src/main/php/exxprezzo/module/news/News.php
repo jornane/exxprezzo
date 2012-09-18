@@ -27,10 +27,10 @@ class News extends AbstractModule
 	
 	public function news()
 	{
-		$sql = $this->db->query('SELECT * FROM `news` LIMIT 5');
+		$sql = $this->db->query('SELECT * FROM `news` LIMIT 5 ');
 		$news = new Content();
 		
-		for($i = 0; $i < sizeof($news); $i++)
+		for($i = 0; $i < 2; $i++)
 		{
 			$newsItem = new Content();
 			$newsItem->putVariables($sql[$i]);
