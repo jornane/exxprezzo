@@ -149,12 +149,14 @@ final class Page extends AbstractOutput {
 	/**
 	 * 
 	 * @param object $object
-	 * @param string $templateName
+	 * @param string|Template $template
 	 * @param string $themeName
 	 */
-	public static function getTemplate($object, $templateName, $themeName) {
+	public static function getTemplate($object, $template, $themeName) {
+		if ($template instanceof Template)
+			return $template;
 		assert('is_object($object);');
-		assert('is_string($templateName);');
+		assert('is_string($template);');
 		assert('is_string($themeName);');
 		
 		$pathOptions = array();
@@ -178,15 +180,15 @@ final class Page extends AbstractOutput {
 						. $themeName . DIRECTORY_SEPARATOR
 						. $kind . DIRECTORY_SEPARATOR
 						. (reset($fqnSplit) ? reset($fqnSplit) . DIRECTORY_SEPARATOR : '')
-						. $templateName . '.tpl';
+						. $template . '.tpl';
 			$pathOptions[] = implode(DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR
 						. 'template' . DIRECTORY_SEPARATOR
-						. $templateName . '.tpl';
+						. $template . '.tpl';
 		}
 		foreach($pathOptions as $pathOption)
 			if (is_readable($pathOption))
 				return Template::templateFromFile($pathOption);
-		user_error('A template for "'.$templateName."\" could not be found.\n'".
+		user_error('A template for "'.$template."\" could not be found.\n'".
 				implode("',\n'", $pathOptions)).'\'';
 	}
 	
