@@ -1,8 +1,13 @@
 <?php namespace exxprezzo\module\databasepasswd;
 
+use \ArrayAccess;
+use \ArrayIterator;
+use \Countable;
+use \IteratorAggregate;
+
 use \exxprezzo\module\passwd\User;
 
-class DatabaseUser implements User {
+class DatabaseUser implements User, IteratorAggregate, ArrayAccess, Countable {
 
 	protected $username = NULL;
 	protected $id = 0;
@@ -28,41 +33,41 @@ class DatabaseUser implements User {
 	}
 	
 	public function __set($key, $value) {
-		$changes[$key] = $value;
-		unset($removes[$key]);
+		$this->changes[$key] = $value;
+		unset($this->removes[$key]);
 	}
 	public function __get($key) {
 		$this->lazyLoad();
-		if (isset($changes[$key]))
-			return $changes[$key];
-		if (isset($data[$key]))
-			return $data[$key];
+		if (isset($this->changes[$key]))
+			return $this->changes[$key];
+		if (isset($this->data[$key]))
+			return $this->data[$key];
 	}
 	public function __isset($key) {
 		$this->lazyLoad();
-		return !isset($removes[$key]) && (isset($data[$key]) || isset($changes[$key]));
+		return !isset($this->removes[$key]) && (isset($this->data[$key]) || isset($this->changes[$key]));
 	}
 	public function __unset($key) {
-		$removes[$key] = $key;
+		$this->removes[$key] = $key;
 	}
 	
 	public function destroy() {
 		$this->lazyLoad();
 		$users = $this->db->query('SELECT `username`, `id` FROM `user` WHERE `id` = $id AND `username` = $username;', array(
-				'id' => $this->id,
-				'username' => $this->username,
+				'id' => $this->getId(),
+				'username' => $this->getUserName(),
 			));
 		assert('$users[0]["username"] == $this->username');
 		assert('$users[0]["id"] == $this->id');
 		$this->db->delete('member', array(
-				'user' => $this->id,
+				'user' => $this->getId(),
 			));
 		$this->db->delete('userfield', array(
-				'user' => $this->id,
+				'user' => $this->getId(),
 			));
 		$this->db->delete('user', array(
-				'id' => $this->id,
-				'username' => $this->username,
+				'id' => $this->getId(),
+				'username' => $this->getUserName(),
 			));
 	}
 	public function save() {
@@ -91,10 +96,27 @@ class DatabaseUser implements User {
 				));
 		}
 	}
+	public function setLastLogin($time=NULL) {
+		if (is_null($time))
+			$time = time();
+		assert('is_integer($time)');
+		$this->db->update('user', array(
+				'lastLogin' => $time,
+			), array(
+				'id' => $this->getId(),
+				'username' => $this->getUserName(),
+			));
+	}
+	public function getLastLogin() {
+		$lastLogin = $this->db->query('SELECT `lastLogin` FROM `user` WHERE `id` = $id;', array(
+				'id' => $this->getId(),
+			));
+		return (int)$lastLogin[0]['lastLogin'];
+	}
 	public function checkPassword($password) {
 		$this->lazyLoad();
 		$passwords = $this->db->query('SELECT `password`, `lastChange`, `passwordExpires`, `accountExpires` FROM `user` WHERE `id` = $id;', array(
-				'id' => $this->id,
+				'id' => $this->getId(),
 			));
 		if (!isset($passwords[0]))
 			return false;
@@ -105,7 +127,7 @@ class DatabaseUser implements User {
 		$this->db->update('user', array(
 				'password' => NULL,
 				), array(
-				'id' => $this->id,
+				'id' => $this->getId(),
 			));
 	}
 	public function setPassword($password) {
@@ -124,17 +146,15 @@ class DatabaseUser implements User {
 		assert('isset($this->id)');
 		$encPassword = $this->encrypt($password, $lastChange);
 		assert('!is_null($encPassword)');
-		$this->db->replace('user', array(
-				'id' => $this->id,
-				'username' => $this->username,
+		$this->db->update('user', array(
 				'password' => $encPassword,
 				'lastChange' => $lastChange,
-				'changeDeadline' => NULL,
-				'deadlineWarning' => NULL,
-				'passwordExpires' => NULL,
+			), array(
+				'id' => $this->getId(),
+				'username' => $this->getUserName(),
 			));
 	}
-	protected function encrypt($password, $lastChange, $hash=NULL) {
+	protected static function encrypt($password, $lastChange, $hash=NULL) {
 		if (is_null($hash)) {
 			if (CRYPT_SHA512)
 				$salt = '$6$rounds=5000$';
@@ -179,24 +199,34 @@ class DatabaseUser implements User {
 	}
 	public function getUserName() {
 		if (!isset($this->username)) {
-			$users = $this->db->query('SELECT `username`, `accountExpires` FROM `user` WHERE `id` = $id;', array(
+			$users = $this->db->query('SELECT `username`, `realname`, `accountExpires` FROM `user` WHERE `id` = $id;', array(
 					'id' => $this->id,
 				));
 			$this->username = $users[0]['username'];
-			if ($users[0]['accountExpires'] < time())
-				user_error('Account ".$this->username." is expired.');
+			$this->realname = $users[0]['realname'];
+			if ($users[0]['accountExpires'] && $users[0]['accountExpires'] < time())
+				user_error('Account '.$this->username.' is expired.');
 		}
 		assert(isset($this->username));
 		return $this->username;
 	}
+	public function getRealName() {
+		if (!isset($this->realname)) {
+			$this->lazyLoad();
+			$this->getUserName();
+		}
+		assert(isset($this->realname));
+		return $this->realname;
+	}
 	
 	protected function lazyLoad() {
 		if (!isset($this->id)) {
-			$users = $this->db->query('SELECT `id`, `accountExpires` FROM `user` WHERE `username` = $username;', array(
+			$users = $this->db->query('SELECT `id`, `realname`, `accountExpires` FROM `user` WHERE `username` = $username;', array(
 					'username' => $this->username,
 				));
 			if ($users) {
 				$this->id = (int)$users[0]['id'];
+				$this->realname = $users[0]['realname'];
 				if (isset($users[0]['accountExpires']) && $users[0]['accountExpires'] < time())
 					user_error('Account ".$this->username." is expired.');
 			}
@@ -211,4 +241,29 @@ class DatabaseUser implements User {
 		}
 	}
 	
+	
+	/// IteratorAggregate
+	public function getIterator() {
+		return new ArrayIterator($this->data);
+	}
+	
+	/// ArrayAccess
+	public function offsetExists($offset) {
+		return $this->__isset($offset);
+	}
+	public function offsetGet($offset) {
+		return $this->__get($offset);
+	}
+	public function offsetSet($offset, $value) {
+		return $this->__set($offset, $value);
+	}
+	public function offsetUnset($offset) {
+		return $this->__unset($offset);
+	}
+	
+	/// Countable
+	public function count() {
+		return count($this->data);
+	}
+
 }

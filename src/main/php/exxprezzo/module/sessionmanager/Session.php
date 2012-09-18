@@ -46,13 +46,13 @@ class Session {
 				WHERE `key` = $key
 				AND `session` = $session
 				AND `moduleInstance` = $moduleInstance
-				AND `touched`+`lifetime` < $now', array(
+				AND `touched`+`lifetime` > $now', array(
 						'key' => $key,
 						'session' => $this->sid,
 						'moduleInstance' => $this->moduleId,
 						'now' => time(),
 			));
-		return isset($result[0]['value']) ? $result[0]['value'] : NULL;
+		return isset($result[0]['value']) ? unserialize($result[0]['value']) : NULL;
 	}
 	public function __isset($key) {
 		if (is_null($this->sid))
@@ -93,7 +93,8 @@ class Session {
 		$this->updateCookie();
 	}
 	
-	protected function randomString($length) {
+	protected static function randomString($length) {
+		mt_srand();
 		$str = '';
 		for($i=0;$i<((int)($length*0.75));$i++)
 			$str .= chr(mt_rand(0,255));
@@ -109,19 +110,25 @@ class Session {
 						'session' => $this->sid,
 						'moduleInstance' => $this->moduleId,
 			));
-		$expire = isset($result[0]['max']) ? $result[0]['max'] : 0;
+		if (isset($result[0]['max'])) {
+			$expire = isset($result[0]['max']) ? $result[0]['max'] : 1;
+		} else {
+			$expire = 1;
+			$this->sid = NULL;
+		}
+		assert('$this->sessionManager->cookie_name');
 		setcookie(
-				$this->sessionManager->session_cookie_name,
+				$this->sessionManager->cookie_name,
 				$this->sid,
 				$expire,
-				Core::getUrlManager()->getBaseUrl(),
+				false,
 				'',
 				false,
 				true
 			);
-		if (Core::getUrlManager()->isInCookie($this->sessionManager->session_cookie_name))
-			Core::getUrlManager()->forcePostVariable($this->sessionManager->session_cookie_name, $this->sid);
+		if (Core::getUrlManager()->isInCookie($this->sessionManager->cookie_name))
+			Core::getUrlManager()->forcePostVariable($this->sessionManager->cookie_name, $this->sid);
 		else
-			Core::getUrlManager()->forceVariable($this->sessionManager->session_cookie_name, $this->sid);
+			Core::getUrlManager()->forceVariable($this->sessionManager->cookie_name, $this->sid);
 	}
 }

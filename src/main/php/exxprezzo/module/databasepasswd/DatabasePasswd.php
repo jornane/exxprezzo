@@ -1,30 +1,35 @@
 <?php namespace exxprezzo\module\databasepasswd;
 
-use \exxprezzo\core\output\PostOutput;
+use \exxprezzo\core\output\StringOutput;
 
-use \exxprezzo\core\input\PasswordInput;
-
-use \exxprezzo\core\input\TextInput;
+use \exxprezzo\core\Template;
 
 use \exxprezzo\core\Content;
-
-use \exxprezzo\core\output\BlockOutput;
-
 use \exxprezzo\core\Core;
-
-use \exxprezzo\module\sessionmanager\SessionManager;
 
 use \exxprezzo\core\db\SQL;
 
+use \exxprezzo\core\output\PostOutput;
+use \exxprezzo\core\output\BlockOutput;
+
+use \exxprezzo\core\input\PasswordInput;
+use \exxprezzo\core\input\TextInput;
+
+use \exxprezzo\module\sessionmanager\SessionManager;
+
 use \exxprezzo\module\passwd\Passwd;
+
+use \DateTime;
 
 class DatabasePasswd extends Passwd {
 	
 	protected static $functions = array(
 			'/login.html' => 'login',
 			'/register.html' => 'register',
-			'/users/(?<user>.*)' => 'viewUser',
-		);
+			'/password.html' => 'password',
+			'/users/(?<user>.*)/(?<page>[^/]*)' => 'viewUser',
+			'/groups/(?<group>.*)/(?<page>[^/]*)' => 'viewUser',
+	);
 	protected static $paths = array(
 			'login' => array('login.html'),
 			'register' => array('register.html'),
@@ -114,7 +119,19 @@ class DatabasePasswd extends Passwd {
 	}
 	
 	public function viewUser($params, $content) {
+		$content = new Content();
+		$user = $this->getUserByName($params['user']);
 		
+		$content->putVariables(array(
+				'realName' => $user->getRealName(),
+				'userData' => $user,
+			));
+		$pageData = $this->db->query('SELECT `content` FROM `page` WHERE `page` = $page', array(
+				'page' => $params['page']
+			));
+		if (!isset($pageData[0]))
+			user_error('The page "'.$params['page'].'" does not exist.');
+		return new BlockOutput($this, $content, new Template($pageData[0]['content']));
 	}
 	public function viewGroup($params, $content) {
 		
@@ -122,19 +139,40 @@ class DatabasePasswd extends Passwd {
 	public function login($params, $input) {
 		if (Core::getUrlManager()->isPost()) {
 			$session = SessionManager::getInstance()->getSession($this);
-			$user = $this->getUserByName(Core::getUrlManager()->getPost('username'));
-			if ($user->checkPassword(Core::getUrlManager()->getPost('password')))
-				$session->user_id = $user->getId();
-			else
-				user_error('Unable to login.');
+			if ($session->user_id) {
+				unset($session->user_id);
+			} elseif (Core::getUrlManager()->isInPost('username') && Core::getUrlManager()->isInPost('password')) {
+				$user = $this->getUserByName(Core::getUrlManager()->getPost('username'));
+				if ($user->checkPassword(Core::getUrlManager()->getPost('password'))) {
+					$session->user_id = $user->getId();
+					$user->setLastLogin();
+				} else
+					user_error('Unable to login.');
+			}
+			$this->redirect('login');
 		} else {
+			$session = SessionManager::getInstance()->getSession($this);
 			$content = new Content();
+			$login = new Content();
+			$logout = new Content();
 			$input = new Content();
-			$content->putNamespace('input', $input);
-			$input->putVariables(array(
-					'username' => new TextInput('username', ''),
-					'password' => new PasswordInput('password'),
-				));
+			
+			if ($session->user_id) {
+				$user = $this->getUserById($session->user_id);
+				$content->putNamespace('logout', $logout);
+				$logout->putNamespace('input', $input);
+				$logout->putVariables(array(
+						'realName' => $user->getRealName(),
+						'lastLogin' => new DateTime('@'.$user->getLastLogin()),
+					));
+			} else {
+				$content->putNamespace('login', $login);
+				$login->putNamespace('input', $input);
+				$input->putVariables(array(
+						'username' => new TextInput('username', ''),
+						'password' => new PasswordInput('password'),
+					));
+			}
 			
 			return new PostOutput(new BlockOutput($this, $content), $this->mkurl('login'), true);
 		}
