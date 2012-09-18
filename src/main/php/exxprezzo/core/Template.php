@@ -1,6 +1,7 @@
 <?php namespace exxprezzo\core;
 
 use \DateTime;
+use \DateTimeZone;
 
 class Template {
 	
@@ -116,7 +117,8 @@ class Template {
 	}
 	
 	public function __toString() {
-		$this->render();
+		$result = $this->render();
+		return $result;
 	}
 	
 	public function getFilename() {
@@ -173,9 +175,10 @@ class Template {
 			$result = $this->getValueFromObject($varName);
 		}
 		if (is_object($result)) {
-			if ($result instanceof DateTime)
-				$result = $result->format(DateTime::W3C);
-			else
+			if ($result instanceof DateTime) {
+				$result->setTimezone(new DateTimeZone(date_default_timezone_get()));
+				$result = $result->format(DATE_RFC2822);
+			} else
 				$result = $result->__toString();
 		}
 		return $result;
@@ -270,8 +273,9 @@ class Template {
 	 * @param string[] $validPrefixes
 	 */
 	protected function renderNsBlock($block) {
-		if ($origContent = $this->content->getNamespace($block)) {
-			$this->content = clone $origContent;
+		if ($newContent = $this->content->getNamespace($block)) {
+			$origContent = $this->content;
+			$this->content = clone $newContent;
 			$this->content->putNamespace('parent', $origContent);
 			return $this->render();
 		}
