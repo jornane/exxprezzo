@@ -15,7 +15,7 @@ class ProductTree extends AbstractModule
     {
         parent::init();
         $this->skrol = new Skrol('https://skrol.iapc.utwente.nl/skrol-service-1.6-SNAPSHOT/', 'foo');
-        $this->products = $this->skrol->getTotalPriceList();
+        $this->webGroups = $this->skrol->getWebgroupChildrenOf(0);
     }
 
     public function getTitle($params)
@@ -30,7 +30,7 @@ class ProductTree extends AbstractModule
     public function fullPriceList()
     {
         $tree = new Content();
-        $this->displayProductTree($this->products["tree"], $tree);
+        $tree->add('category', $this->webGroups[1]['id']);
         return new BlockOutput($this, $tree);
     }
 
@@ -38,19 +38,9 @@ class ProductTree extends AbstractModule
     {
         for($i = 0; $i < sizeof($curProducts); $i++)
         {
-            if(isset($curProducts[$i]["contents"]))
-            {
-                $category = new Content();
-                $category->putVariables($curProducts[$i]);
-                $cat->addLoop('category', $category);
-                $this->displayProductTree($curProducts[$i]["contents"], $category);
-            }
-            else
-            {
-                $product = new Content();
-                $product->putVariables($curProducts[$i]);
-                $cat->addLoop('category', $product);
-            }
+            $webgroup = new Content();
+            $webgroup->putVariables($curProducts[$i]);
+            $cat->addLoop('category', $webgroup);
         }
     }
 }
