@@ -1,6 +1,6 @@
 <?php namespace exxprezzo\module\cms;
 
-use exxprezzo\core\input\FileInput;
+use \exxprezzo\core\input\FileInput;
 
 use \exxprezzo\module\filemanager\FileManager;
 use \exxprezzo\module\filemanager\File;
