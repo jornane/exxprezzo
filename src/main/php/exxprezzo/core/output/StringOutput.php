@@ -12,6 +12,8 @@ class StringOutput extends AbstractOutput {
 	}
 	
 	public function getContent() {
+		if (is_object($this->string))
+			return $this->string->__toString();
 		return $this->string;
 	}
 	

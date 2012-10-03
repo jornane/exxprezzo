@@ -1,5 +1,8 @@
 <?php namespace exxprezzo\core;
 
+use \DateTime;
+use \DateTimeZone;
+
 class Content implements \JsonSerializable {
 
 	/** @var (string|\exxprezzo\core\Content[]|object)[] */
@@ -56,10 +59,16 @@ class Content implements \JsonSerializable {
 	 * @param string $name
 	 */
 	public function getVariableString($name) {
-		return isset($this->vars[$name]) && is_object($this->vars[$name])
-				? (method_exists($this->vars[$name], '__toString') ? $this->vars[$name]->__toString() : get_class($this->vars[$name]))
-				: $this->getVariable($name)
-			;
+		if (isset($this->vars[$name]) && is_object($this->vars[$name])) {
+			if (method_exists($this->vars[$name], '__toString'))
+				return $this->vars[$name]->__toString();
+			if ($this->vars[$name] instanceof DateTime) {
+				$this->vars[$name]->setTimezone(new DateTimeZone(date_default_timezone_get()));
+				return $this->vars[$name]->format(DATE_RFC2822);
+			}
+			return '<i>Class '.get_class($this->vars[$name]).'</i>';
+		}
+		return $this->getVariable($name);
 	}
 	
 	/**
@@ -71,8 +80,8 @@ class Content implements \JsonSerializable {
 	}
 	
 	/**
-	 * @access protected
 	 * This method is namespace protected
+	 * @access protected
 	 *
 	 * @param string $loopName
 	 * @param int $iteration
@@ -105,7 +114,7 @@ class Content implements \JsonSerializable {
 		if (isset($this->namespaces[strtolower($name)]))
 			return $this->namespaces[strtolower($name)];
 		else
-			return new Content();
+			return null;
 	}
 	
 	/**

@@ -7,7 +7,7 @@
 #
 # Host: localhost (MySQL 5.5.23)
 # Database: exxprezzo
-# Generation Time: 2012-07-02 13:10:21 +0000
+# Generation Time: 2012-07-12 10:02:43 +0000
 # ************************************************************
 
 
@@ -37,15 +37,6 @@ CREATE TABLE `file` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-LOCK TABLES `file` WRITE;
-/*!40000 ALTER TABLE `file` DISABLE KEYS */;
-
-INSERT INTO `file` (`id`, `moduleInstance`, `filename`, `mimetype`, `touched`, `updated`, `created`, `downloads`)
-VALUES
-	(1,1,'01528_crocus_2560x1600.jpg','image/jpeg',1341230525,NULL,1340893178,34);
-
-/*!40000 ALTER TABLE `file` ENABLE KEYS */;
-UNLOCK TABLES;
 
 
 
