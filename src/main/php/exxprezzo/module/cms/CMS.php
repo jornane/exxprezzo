@@ -101,7 +101,10 @@ class CMS extends AbstractModule {
 		$content->putNamespace('input', $input);
 		if($page = $this->fetchPage($this->params['path'])) {
 			$content->putVariables($page);
-			$content->putVariable('exists', true);
+			$content->putVariables(array(
+					'exists' => true,
+					'path' => $this->params['path'],
+				));
 			$input->putVariables(array(
 					'title' => new TextInput('title', $page['title']),
 					'content' => new LongTextInput('content', $page['rawcontent']),
