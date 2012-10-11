@@ -9,12 +9,21 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 	protected $vars = array();
 	/** @var Content[] */
 	protected $namespaces = array();
-		
+	
+	public function __construct($initialValue=NULL) {
+		if (!is_null($initialValue))
+			$this->putVariables($initialValue);
+	}
+	
 	public function putVariable($key, $value) {
-		$this->vars[$key] = $value;
+		if (is_array($value))
+			$this->vars[$key] = new Content($value);
+		else
+			$this->vars[$key] = $value;
 	}
 	public function putVariables($variables) {
-		$this->vars = array_merge($this->vars, $variables);
+		foreach($variables as $key => $value)
+			$this->putVariable($key, $value);
 	}
 	public function removeVariable($key) {
 		unset($this->vars[$key]);
@@ -45,9 +54,7 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 		if (is_object($loop)) {
 			$parentLoop[] = $loop;
 		} else if (is_array($loop)) {
-			$content = new Content();
-			$content->vars = $loop;
-			$parentLoop[] = $content;
+			$parentLoop[] = new Content($loop);
 		} else {
 			user_error('Invalid type for $loop: '.gettype($loop));
 		}
