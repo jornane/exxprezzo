@@ -62,16 +62,6 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 	}
 	
 	/**
-	 * Sets $loop as the loop for the given
-	 * $loopName
-	 * @param string $loopName
-	 * @param unknown $loop
-	 */
-	public function setLoop($loopName, $loop) {
-		
-	}
-	
-	/**
 	 * 
 	 * @param string $name
 	 */
