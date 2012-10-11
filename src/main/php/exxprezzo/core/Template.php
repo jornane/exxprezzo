@@ -185,20 +185,7 @@ class Template {
 	}
 	
 	protected function getValueFromObject($varName) {
-		$result = NULL;
-		$pos = strrpos($varName, '.');
-		if (!$pos)
-			return NULL;
-		$objectKey = substr($varName, 0, $pos);
-		$fieldKey = substr($varName, $pos+1);
-		$method = 'get'.ucfirst($fieldKey);
-		if (!isset($this->objects[$objectKey]) && strpos($objectKey, '.'))
-			$this->objects[$objectKey] = $this->getValueFromObject($objectKey);
-		if (isset($this->objects[$objectKey]) && isset($this->objects[$objectKey]->$fieldKey))
-			$result = $this->objects[$objectKey]->$fieldKey;
-		elseif (isset($this->objects[$objectKey]) && method_exists($this->objects[$objectKey], $method))
-			$result = $this->objects[$objectKey]->$method();
-		return $result;
+		return Core::resolve($this->objects, $varName);
 	}
 	
 	/**

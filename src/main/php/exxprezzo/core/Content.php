@@ -3,7 +3,7 @@
 use \DateTime;
 use \DateTimeZone;
 
-class Content implements \JsonSerializable {
+class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 
 	/** @var (string|\exxprezzo\core\Content[]|object)[] */
 	protected $vars = array();
@@ -59,16 +59,20 @@ class Content implements \JsonSerializable {
 	 * @param string $name
 	 */
 	public function getVariableString($name) {
-		if (isset($this->vars[$name]) && is_object($this->vars[$name])) {
-			if (method_exists($this->vars[$name], '__toString'))
-				return $this->vars[$name]->__toString();
-			if ($this->vars[$name] instanceof DateTime) {
-				$this->vars[$name]->setTimezone(new DateTimeZone(date_default_timezone_get()));
-				return $this->vars[$name]->format(DATE_RFC2822);
+		$var = $this->getVariable($name);
+		if (is_object($var)) {
+			if (method_exists($var, '__toString'))
+				return $var->__toString();
+			if ($var instanceof DateTime) {
+				$var->setTimezone(new DateTimeZone(date_default_timezone_get()));
+				return $var->format(DATE_RFC2822);
 			}
-			return '<i>Class '.get_class($this->vars[$name]).'</i>';
-		}
-		return $this->getVariable($name);
+			return 'Object';
+		} elseif (is_string($var))
+			return $var;
+		elseif (is_null($var))
+			return '';
+		user_error('The variable {'.$name.'} is of type '.gettype($var).', must be string or object with __toString() method');
 	}
 	
 	/**
@@ -76,7 +80,7 @@ class Content implements \JsonSerializable {
 	 * @param string|Content[]|object $name
 	 */
 	public function getVariable($name) {
-		return isset($this->vars[$name]) ? $this->vars[$name] : NULL;
+		return Core::resolve($this->vars, $name);
 	}
 	
 	/**
@@ -131,5 +135,22 @@ class Content implements \JsonSerializable {
 	public function jsonSerialize() {
 		return $this->vars;
 	}
+	
+	public function offsetExists($offset) {
+		return isset($this->vars[$offset]);
+	}
+	public function offsetGet($offset) {
+		return $this->vars[$offset];
+	}
+	public function offsetSet($offset, $value) {
+		$this->vars[$offset] = $value;
+	}
+	public function offsetUnset($offset) {
+		unset($this->vars[$offset]);
+	}
+	public function getIterator() {
+		return new ArrayObject($this->vars);
+	}
+	
 	
 }

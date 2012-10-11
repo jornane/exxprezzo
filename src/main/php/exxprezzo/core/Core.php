@@ -237,4 +237,35 @@ final class Core {
 			}
 		}
 	}
+	
+	public static function resolve($var, $path, $delim='.') {
+		assert('is_array($var) || is_object($var)');
+		assert('is_string($path)');
+		assert('strlen($delim) == 1');
+		if ($path == '')
+			return $var;
+		$segments = explode($delim, $path);
+		$remaining = $segments;
+		while(count($segments) > 0 && count($remaining) > 0) {
+			$result = NULL;
+			while(is_null($result) && count($segments) > 0) {
+				$key = implode($delim, $segments);
+				$last = array_pop($segments);
+				$method = 'get'.ucfirst($key);
+				if (is_array($var) && isset($var[$key]))
+					$result = $var[$key];
+				else if (is_object($var) && $var instanceof \ArrayAccess && $var->offsetExists($key))
+					$result = $var->offsetGet($key);
+				else if (is_object($var) && isset($var->$key))
+					$result = $var->$key;
+				else if (!strpos($method, $delim) && is_object($var) && method_exists($var, $method))
+					$result = $var->$method();
+			}
+			for($i=0;$i<count($segments)+1;$i++)
+				array_shift($remaining);
+			$segments = $remaining;
+			$var = $result;
+		}
+		return $var;
+	}
 }

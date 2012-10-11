@@ -78,10 +78,10 @@ abstract class AbstractUrlManager {
 		foreach($source as $segment) {
 			if ($segment == '..')
 				array_pop($result);
-			elseif ($segment && $segment != '.')
+			elseif ($segment != '' && $segment != '.')
 				array_push($result, $segment);
 		}
-		if (!end($source) || end($source) == '.')
+		if (end($source) == '' || end($source) == '.')
 			array_push($result, '');
 		return implode('/', $result);
 	}
