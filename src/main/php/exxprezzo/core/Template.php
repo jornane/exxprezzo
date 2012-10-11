@@ -171,9 +171,8 @@ class Template {
 		foreach($namespacePath as $namespace)
 			$content = $content->getNamespace($namespace);			
 		$result = $content->getVariableString($varName);
-		if (is_null($result)) {
+		if (is_null($result))
 			$result = $this->getValueFromObject($varName);
-		}
 		if (is_object($result)) {
 			if ($result instanceof DateTime) {
 				$result->setTimezone(new DateTimeZone(date_default_timezone_get()));
@@ -200,26 +199,30 @@ class Template {
 		$this->validPrefixes = array_merge($this->validPrefixes, array($blockName => $blockName));
 		$result = '';
 		if (is_array($blocks)) foreach($blocks as $iteration => $block) {
+			
 			$oldContent = $this->content;
 			$oldObjects = $this->objects;
 			$oldVar = $this->content->getVariable($blockName);
+			
 			if (is_object($block) && $block instanceof Content) {
 				$this->content = $this->content->loopMerge($blockName, $iteration);
 				unset($this->objects[$blockName]);
+				$this->content->putVariable($blockName.'.RECURSE', $this->renderForBlock($blockName));
+				$this->content->putVariable($blockName, $oldVar);
 			} elseif (is_object($block)) {
-				$this->content->removeVariable($blockName);
+				/*$this->content->removeVariable($blockName);
 				foreach(array_keys($this->objects) as $key) {
 					if (substr($key, 0, $blockName+1) == $blockName+'.') {
 						unset($this->objects[$key]);
 					}
-				}
-				$this->objects[$blockName] = $block;
+				}*/
+				$this->objects[$blockName] = $block; 
 			}
-			$this->content->putVariable($blockName.'.RECURSE', $this->renderForBlock($blockName));
-			$this->content->putVariable($blockName, $oldVar);
 			$result .= $this->render();
+				
 			$this->objects = $oldObjects;
 			$this->content = $oldContent;
+			
 		}
 		return $result;
 	}
@@ -230,7 +233,10 @@ class Template {
 	 * @param string $block
 	 */
 	protected function renderIfBlock($block) {
-		if ($var = $this->content->getVariable($block)) {
+		$var = $this->content->getVariable($block);
+		if (is_null($var))
+			$var = $this->getValueFromObject($block);
+		if (!is_null($var)) {
 			if (is_array($var))
 				$this->content->putVariables($var);
 			elseif (is_object($var))
