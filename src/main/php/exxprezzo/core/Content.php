@@ -21,7 +21,7 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 		else
 			$this->vars[$key] = $value;
 	}
-	public function putVariables($variables) {
+	public function putVariables(array $variables) {
 		foreach($variables as $key => $value)
 			$this->putVariable($key, $value);
 	}
@@ -44,6 +44,16 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 		return $root[$last];
 	}
 	
+	public function putLoop($loopName, $loop) {
+		$loops = explode('.', $loopName);
+		$last = array_pop($loops);
+		$root = &$this->vars;
+		foreach($loops as $loopName) {
+			$root = &$root[$loopName];
+			$root = &$root[count($root)-1]->vars;
+		}
+		$root[$last] = $loop;
+	}
 	/**
 	 * 
 	 * @param string $loopName
