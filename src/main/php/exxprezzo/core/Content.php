@@ -70,6 +70,8 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 			return 'Object';
 		} elseif (is_string($var))
 			return $var;
+		elseif (is_numeric($var))
+			return '' . $var;
 		elseif (is_null($var))
 			return '';
 		user_error('The variable {'.$name.'} is of type '.gettype($var).', must be string or object with __toString() method');

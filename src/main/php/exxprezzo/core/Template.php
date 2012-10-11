@@ -199,6 +199,10 @@ class Template {
 		if (!$blocks) $blocks = array();
 		$this->validPrefixes = array_merge($this->validPrefixes, array($blockName => $blockName));
 		$result = '';
+		/*
+var_dump($this->content);
+		die;
+*/
 		if (is_array($blocks)) foreach($blocks as $iteration => $block) {
 			$oldContent = $this->content;
 			$oldObjects = $this->objects;

@@ -27,7 +27,12 @@ class ProductTree extends AbstractModule
         '/' => 'fullPriceList',
         '/json/webgroup/(?<id>\d+)' => 'getWebgroup'
     );
-
+    
+    protected static $paths = array
+    (
+    	'getWebgroup' => array('/json/webgroup/{$id}')
+    );
+    
     public function fullPriceList()
     {
     	var_dump($this->skrol->getTotalPriceList());
@@ -36,18 +41,21 @@ class ProductTree extends AbstractModule
     public function getWebgroup($input)
     {
 	    $output = new Content();
-	    var_dump($this->skrol->getWebgroupChildrenOf($input['id']));
+	    $children = $this->skrol->getWebgroupChildrenOf($input['id'])['children'];
+	    foreach($children as $child)
+	    {
+	    	if( isset($child['contents']) )
+	    	{
+	    		$child['href'] = $this->mkurl('getWebgroup', array('id'=>$child['id']));
+		    	//$output->addLoop('webgroup', $child);
+		    }
+		    else
+		    {
+			    $product = $this->skrol->getArticle($child['id']);
+			    //$output->addLoop('product', $product);
+		    }
+	    }
+	    $output->putVariable('webgroup', $children);
+	    return new BlockOutput($this, $output);
     }
-
-    /*
-	public function displayProductTree($curProducts, $cat)
-    {
-        for($i = 0; $i < sizeof($curProducts); $i++)
-        {
-            $webgroup = new Content();
-            $webgroup->putVariables($curProducts[$i]);
-            $cat->addLoop('category', $webgroup);
-        }
-    }
-*/
 }
