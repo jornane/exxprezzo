@@ -45,8 +45,8 @@ final class Core {
 			// Set assertion handler
 			assert_options(ASSERT_CALLBACK, array('\exxprezzo\core\Core', 'handleAssertion'));
 			
-			assert('!get_magic_quotes_gpc()');
-			assert('!get_magic_quotes_runtime()');
+			define('PHPVERSION', (real)preg_replace("_^([0-9]+)\.([0-9]+)(.*)_", "\\1.\\2", phpversion()));
+			assert('PHPVERSION >= 5.4');
 			
 			// Read config file
 			self::readConfigFile();
@@ -141,6 +141,9 @@ final class Core {
 	}
 	
 	// Is public, but is only intended for use in the core namespace.
+	/**
+	 * @return \exxprezzo\core\db\SQL
+	 */
 	public static function getDatabaseConnection() {
 		if (is_null(self::$database))
 			self::$database = SQL::createConnection(self::$config['db']);
@@ -177,7 +180,7 @@ final class Core {
 		} else {
 			$title = '';
 			$className = get_class($e);
-			for($i=0;$i<strlen($className)-9;$i++) {
+			for($i=strrpos($className, '\\')+1;$i<strlen($className)-9;$i++) {
 				if (strtoupper($className{$i}) == $className{$i})
 					$title .= ' ';
 				$title .= $className{$i};
@@ -195,8 +198,9 @@ final class Core {
 					'__autoload',
 					'trigger_error',
 					'user_error',
+					'loadClass',
 				))) {
-					$tracestart = $id-1;
+					$tracestart = $id;
 				}
 		}
 		//if ($tracestart > 0)
@@ -232,5 +236,36 @@ final class Core {
 				echo $output;
 			}
 		}
+	}
+	
+	public static function resolve($var, $path, $delim='.') {
+		assert('is_array($var) || is_object($var)');
+		assert('is_string($path)');
+		assert('strlen($delim) == 1');
+		if ($path == '')
+			return $var;
+		$segments = explode($delim, $path);
+		$remaining = $segments;
+		while(count($segments) > 0 && count($remaining) > 0) {
+			$result = NULL;
+			while(is_null($result) && count($segments) > 0) {
+				$key = implode($delim, $segments);
+				$last = array_pop($segments);
+				$method = 'get'.ucfirst($key);
+				if (is_array($var) && isset($var[$key]))
+					$result = $var[$key];
+				else if (is_object($var) && $var instanceof \ArrayAccess && $var->offsetExists($key))
+					$result = $var->offsetGet($key);
+				else if (is_object($var) && isset($var->$key))
+					$result = $var->$key;
+				else if (!strpos($method, $delim) && is_object($var) && method_exists($var, $method))
+					$result = $var->$method();
+			}
+			for($i=0;$i<count($segments)+1;$i++)
+				array_shift($remaining);
+			$segments = $remaining;
+			$var = $result;
+		}
+		return $var;
 	}
 }

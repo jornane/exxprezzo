@@ -206,7 +206,7 @@ class MySQL extends SQL {
 		$this->lastresult = mysql_query($query, $this->connectid);
 		$this->lastquery = $query;
 		if (!$this->lastresult) throw new DatabaseQueryException($this);
-		return $this->lastresult;
+		return mysql_insert_id($this->connectid);
 	}
 	
 	/**

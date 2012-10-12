@@ -53,9 +53,7 @@ abstract class AbstractModule implements Runnable {
 				ORDER BY LENGTH(`root`) DESC
 				LIMIT 1', array('options' => $options, 'hostGroup' => $hostGroup->getId()));
 		if ($instanceEntry = $dbh->fetchRow()) {
-			$mainFunctionPath = '/'.substr($path, strlen($instanceEntry['root']));
-			if (!$instanceEntry['root'] && !$mainFunctionPath)
-				$mainFunctionPath = '/';
+			$mainFunctionPath = '/'.substr($path, strlen(ltrim($instanceEntry['root'].'/', '/')));
 			if (!$mainFunctionPath)
 				Core::getUrlManager()->redirect($hostGroup, $internalPath.'/');
 			$instance = self::_instantiate(
@@ -76,18 +74,33 @@ abstract class AbstractModule implements Runnable {
 	 * @param int $moduleInstanceId
 	 * @return AbstractModule
 	 */
-	public static function getInstance($moduleInstanceId, $mainFunctionPath = NULL) {
-		assert('is_numeric($moduleInstanceId)');
+	public static function getInstance($moduleInstanceId = NULL, $mainFunctionPath = NULL) {
+		assert('is_null($moduleInstanceId) || is_numeric($moduleInstanceId)');
 		assert('is_null($mainFunctionPath) || is_string($mainFunctionPath)');
 		
-		if(array_key_exists($moduleInstanceId, self::$instances))
-			return self::$instances[$moduleInstanceId];
 		$dbh = Core::getDatabaseConnection();
-		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `hostGroup`, `param` FROM `moduleInstance`
-				WHERE `moduleInstanceId` = :moduleInstanceId
-				ORDER BY LENGTH(`root`) DESC
-				LIMIT 1', array('moduleInstanceId' => (int)$moduleInstanceId));
+		// TODO Find which instance should be returned, right now it's the first that pops up.
+		if (is_null($moduleInstanceId)) {
+			$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `hostGroup`, `param` FROM `moduleInstance`
+					WHERE `module` = :module
+					ORDER BY LENGTH(`root`) DESC
+					LIMIT 1', array(
+							'module' => substr(get_called_class(), strrpos(get_called_class(), '\\')+1),
+						)
+				);
+		} else {
+			if(array_key_exists($moduleInstanceId, self::$instances))
+				return self::$instances[$moduleInstanceId];
+			$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `hostGroup`, `param` FROM `moduleInstance`
+					WHERE `moduleInstanceId` = :moduleInstanceId
+					ORDER BY LENGTH(`root`) DESC
+					LIMIT 1', array(
+							'moduleInstanceId' => (int)$moduleInstanceId
+						)
+				);
+		}
 		if ($instanceEntry = $dbh->fetchrow()) {
+			$moduleInstanceId = $instanceEntry['moduleInstanceId'];
 			self::$instances[$moduleInstanceId] =
 				self::_instantiate(
 						$instanceEntry['module'],
@@ -99,7 +112,10 @@ abstract class AbstractModule implements Runnable {
 					);
 			return self::$instances[$moduleInstanceId];
 		}
-		user_error('There is no mobule with instance '.$moduleInstanceId);
+		if (is_null($moduleInstanceId))
+			user_error('No instance was found for module '.substr(get_called_class(), strrpos(get_called_class(), '\\')+1));
+		else
+			user_error('There is no module with instance '.$moduleInstanceId);
 	}
 	
 	/**
@@ -114,43 +130,6 @@ abstract class AbstractModule implements Runnable {
 	}
 	
 	/**
-	 * Returns, if possible, an instance of the given class for
-	 * this instance of AbstractModule.
-	 * @param string $class
-	 * @return AbstractModule
-	 */
-	public function getInstanceByName($class) {
-		assert('is_string($class)');
-		$dbh = Core::getDatabaseConnection();
-		$dbh->execute('SELECT `moduleInstanceId`, `module`, `root`, `hostGroup`, 
-				`param`, `module_link`.`mainFunctionPath` FROM `moduleInstance`
-				JOIN `module_link` ml ON (`module_link`.`owned` = `moduleInstance`.`moduleInstanceId`
-				WHERE `module` = :module AND `module_link`.`owner` = :moduleInstanceId
-				ORDER BY LENGTH(`root`) DESC
-				LIMIT 1', array(
-						'moduleInstanceId' => (int)$this->getInstanceId(), 
-						'module' => $class,
-						));
-		if ($instanceEntry = $dbh->fetchRow()) {
-			if(array_key_exists((int)$instanceEntry['moduleInstanceId'], self::$instances))
-				return self::$instances[(int)$instanceEntry['moduleInstanceId']];
-			self::$instances[(int)$instanceEntry['moduleInstanceId']] =
-				self::_instantiate(
-						$instanceEntry['module'],
-						(int)$instanceEntry['moduleInstanceId'],
-						new HostGroup($instanceEntry['hostGroup']),
-						$instanceEntry['root'],
-						$instanceEntry['mainFunctionPath'],
-						self::parseParam($instanceEntry['param'])
-					);
-			return self::$instances[(int)$instanceEntry['moduleInstanceId']] = $instance;
-		}
-		user_error('There is no module instance for the class ' 
-				. $class . ' for ' . self::getName() . ' id ' 
-				. $this->getInstanceId());
-	}
-	
-	/**
 	 * 
 	 * @param string $module
 	 * @param int $instanceId
@@ -161,7 +140,7 @@ abstract class AbstractModule implements Runnable {
 	 */
 	private static function _instantiate($module, $instanceId, $hostGroup, $modulePath, $mainFunctionPath, $param) {
 		$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
-		/** @var AbstractModule */
+		/** @var \exxprezzo\core\module\AbstractModule */
 		$result = new $moduleFQN;
 		$result->instanceId = $instanceId;
 		$result->hostGroup = $hostGroup;
@@ -328,7 +307,7 @@ abstract class AbstractModule implements Runnable {
 	 * @return string
 	 */
 	public function getModulePath() {
-		return is_null($this->modulePath) ? NULL : $this->modulePath.'/';
+		return is_null($this->modulePath) ? NULL : $this->modulePath;
 	}
 	/**
 	 * Get the host group for this module
@@ -402,7 +381,7 @@ abstract class AbstractModule implements Runnable {
 		if (!method_exists($this, $name))
 			user_error('Invalid function '.$name.' for module '.$this->getName());
 		$content = new Content();
-		$content->putVariables($_POST);
+		$content->putVariables(Core::getUrlManager()->getRawPost());
 		return $this->$name($this->getParameters(), $content);
 	}
 	
@@ -414,7 +393,7 @@ abstract class AbstractModule implements Runnable {
 	 * @param array $get
 	 * @param boolean $noGetForce
 	 */
-	public final function mkurl($function, $moduleParam=NULL, $fullUrl=false, $get=array(), $noGetForce=true) {
+	public final function mkurl($function, $moduleParam=NULL, $fullUrl=false, $get=array(), $noGetForce=false) {
 		if (is_null($moduleParam))
 			$moduleParam = $this->getParameters();
 		else
@@ -430,12 +409,12 @@ abstract class AbstractModule implements Runnable {
 		
 		$functionPath = static::mkFunctionPath($function, $moduleParam);
 		assert('is_string($functionPath)');
-		assert('$functionPath');
+		assert('strlen($functionPath) > 0');
 		assert('$functionPath{0}=="/"');
 		assert('strlen($functionPath) == 1 || $functionPath{1}!="/"');
 		return Core::getUrlManager()->mkurl(
 				$this->getHostGroup(),
-				$this->getModulePath().substr($functionPath, 1),
+				rtrim('/'.$this->getModulePath(), '/').$functionPath,
 				$get,
 				$fullUrl,
 				$noGetForce

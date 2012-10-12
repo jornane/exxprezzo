@@ -1,6 +1,7 @@
 <?php namespace exxprezzo\core;
 
 use \DateTime;
+use \DateTimeZone;
 
 class Template {
 	
@@ -52,7 +53,7 @@ class Template {
 		$result = new Template(file_get_contents($filename));
 		$result->filename = $filename;
 		$result->extraReplacePattern[] = '_(?<=["\'])'.$resourceName.'/(.*?)\\1_';
-		$result->extraReplaceReplacement[] = Core::getUrlManager()->server['BASE_URL'].dirname($filename).'/';
+		$result->extraReplaceReplacement[] = Core::getUrlManager()->getBaseUrl().dirname($filename).'/';
 		
 		return $result;
 	}
@@ -116,7 +117,8 @@ class Template {
 	}
 	
 	public function __toString() {
-		$this->render();
+		$result = $this->render();
+		return $result;
 	}
 	
 	public function getFilename() {
@@ -169,33 +171,20 @@ class Template {
 		foreach($namespacePath as $namespace)
 			$content = $content->getNamespace($namespace);			
 		$result = $content->getVariableString($varName);
-		if (is_null($result)) {
+		if (is_null($result))
 			$result = $this->getValueFromObject($varName);
-		}
 		if (is_object($result)) {
-			if ($result instanceof DateTime)
-				$result = $result->format(DateTime::W3C);
-			else
+			if ($result instanceof DateTime) {
+				$result->setTimezone(new DateTimeZone(date_default_timezone_get()));
+				$result = $result->format(DATE_RFC2822);
+			} else
 				$result = $result->__toString();
 		}
 		return $result;
 	}
 	
 	protected function getValueFromObject($varName) {
-		$result = NULL;
-		$pos = strrpos($varName, '.');
-		if (!$pos)
-			return NULL;
-		$objectKey = substr($varName, 0, $pos);
-		$fieldKey = substr($varName, $pos+1);
-		$method = 'get'.ucfirst($fieldKey);
-		if (!isset($this->objects[$objectKey]) && strpos($objectKey, '.'))
-			$this->objects[$objectKey] = $this->getValueFromObject($objectKey);
-		if (isset($this->objects[$objectKey]) && isset($this->objects[$objectKey]->$fieldKey))
-			$result = $this->objects[$objectKey]->$fieldKey;
-		elseif (isset($this->objects[$objectKey]) && method_exists($this->objects[$objectKey], $method))
-			$result = $this->objects[$objectKey]->$method();
-		return $result;
+		return Core::resolve($this->objects, $varName);
 	}
 	
 	/**
@@ -210,21 +199,30 @@ class Template {
 		$this->validPrefixes = array_merge($this->validPrefixes, array($blockName => $blockName));
 		$result = '';
 		if (is_array($blocks)) foreach($blocks as $iteration => $block) {
+			
 			$oldContent = $this->content;
 			$oldObjects = $this->objects;
 			$oldVar = $this->content->getVariable($blockName);
+			
 			if (is_object($block) && $block instanceof Content) {
 				$this->content = $this->content->loopMerge($blockName, $iteration);
 				unset($this->objects[$blockName]);
+				$this->content->putVariable($blockName.'.RECURSE', $this->renderForBlock($blockName));
+				$this->content->putVariable($blockName, $oldVar);
 			} elseif (is_object($block)) {
-				$this->content->removeVariable($blockName);
-				$this->objects[$blockName] = $block;
+				/*$this->content->removeVariable($blockName);
+				foreach(array_keys($this->objects) as $key) {
+					if (substr($key, 0, $blockName+1) == $blockName+'.') {
+						unset($this->objects[$key]);
+					}
+				}*/
+				$this->objects[$blockName] = $block; 
 			}
-			$this->content->putVariable($blockName.'.RECURSE', $this->renderForBlock($blockName));
-			$this->content->putVariable($blockName, $oldVar);
 			$result .= $this->render();
+				
 			$this->objects = $oldObjects;
 			$this->content = $oldContent;
+			
 		}
 		return $result;
 	}
@@ -235,7 +233,10 @@ class Template {
 	 * @param string $block
 	 */
 	protected function renderIfBlock($block) {
-		if ($var = $this->content->getVariable($block)) {
+		$var = $this->content->getVariable($block);
+		if (is_null($var))
+			$var = $this->getValueFromObject($block);
+		if (!is_null($var)) {
 			if (is_array($var))
 				$this->content->putVariables($var);
 			elseif (is_object($var))
@@ -265,8 +266,9 @@ class Template {
 	 * @param string[] $validPrefixes
 	 */
 	protected function renderNsBlock($block) {
-		if ($origContent = $this->content->getNamespace($block)) {
-			$this->content = clone $origContent;
+		if ($newContent = $this->content->getNamespace($block)) {
+			$origContent = $this->content;
+			$this->content = clone $newContent;
 			$this->content->putNamespace('parent', $origContent);
 			return $this->render();
 		}

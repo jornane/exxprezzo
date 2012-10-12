@@ -41,7 +41,8 @@ final class Page extends AbstractOutput {
 		$this->main = $outputObject;
 		$this->mainModule = $this->main->getSource();
 		$dbh = Core::getDatabaseConnection();
-		$dbh->execute('SELECT `pageId`, `preferredFunctionTemplate`, `theme`, `name`, `defaultBox` FROM `page`
+		$dbh->execute('SELECT `pageId`, `preferredFunctionTemplate`, `theme`, `name`, `defaultBox`
+				FROM `page`
 				JOIN `layout` ON `layout`.`layoutId` = `page`.`layoutId`
 				WHERE (`moduleInstanceId` = :moduleInstanceId OR `moduleInstanceId` IS NULL)
 				AND (`function` = :function OR `function` IS NULL)
@@ -64,7 +65,9 @@ final class Page extends AbstractOutput {
 		} else {
 			user_error("No layout found. Did you forget to specify a default layout?");
 		}
-		$dbh->execute('SELECT `widgetId`, `moduleInstanceId`, `function`, `preferredFunctionTemplate`, `box`, `param` FROM `widget`
+		$dbh->execute('SELECT `widgetId`, `moduleInstanceId`, `function`,
+				`preferredFunctionTemplate`, `box`, `param`
+				FROM `widget`
 				WHERE `pageId` = :pageId OR `pageId` IS NULL
 				ORDER BY `priority` ASC', array(
 						'pageId' => $this->pageId,
@@ -74,8 +77,10 @@ final class Page extends AbstractOutput {
 			$module = AbstractModule::getInstance($widget['moduleInstanceId']);
 			$param = AbstractModule::parseParam($widget['param']);
 			$this->widgets[$widget['box']][$widget['widgetId']]['module'] = $module;
-			$this->widgets[$widget['box']][$widget['widgetId']]['output'] = $module->$widget['function']($param);
-			$this->widgets[$widget['box']][$widget['widgetId']]['template'] = $widget['preferredFunctionTemplate']
+			$this->widgets[$widget['box']][$widget['widgetId']]['output']
+				= $module->$widget['function']($param);
+			$this->widgets[$widget['box']][$widget['widgetId']]['template']
+				= $widget['preferredFunctionTemplate']
 					? $widget['preferredFunctionTemplate']
 					: $widget['function']
 				;
@@ -93,7 +98,9 @@ final class Page extends AbstractOutput {
 		if ($widgetOutput instanceof BlockOutput)
 			$widgetOutput->setTemplate(static::getTemplate(
 					$module,
-					is_null($widgetOutput->getPreferredTemplate()) ? $this->templateName : $widgetOutput->getPreferredTemplate(),
+					is_null($widgetOutput->getPreferredTemplate())
+						? $this->templateName
+						: $widgetOutput->getPreferredTemplate(),
 					$this->layout['theme']
 				));
 		
@@ -142,39 +149,47 @@ final class Page extends AbstractOutput {
 	/**
 	 * 
 	 * @param object $object
-	 * @param string $templateName
+	 * @param string|Template $template
 	 * @param string $themeName
 	 */
-	public static function getTemplate($object, $templateName, $themeName) {
+	public static function getTemplate($object, $template, $themeName) {
+		if ($template instanceof Template)
+			return $template;
 		assert('is_object($object);');
-		assert('is_string($templateName);');
+		assert('is_string($template);');
 		assert('is_string($themeName);');
 		
-		$fqn = get_class($object);
-		$fqnSplit = explode('\\', $fqn);
-		$simpleName = array_pop($fqnSplit);
-		$namespace = $fqnSplit;
+		$pathOptions = array();
 		
-		if (array_shift($fqnSplit) != 'exxprezzo')
-			user_error('$object must be from a class in the exxprezzo namespace');
-		if (reset($fqnSplit) == 'core')
-			array_shift($fqnSplit);
-		$kind = array_shift($fqnSplit);
-		
-		$pathOptions = array(
-				'template' . DIRECTORY_SEPARATOR
-					. $themeName . DIRECTORY_SEPARATOR
-					. $kind . DIRECTORY_SEPARATOR
-					. reset($fqnSplit) . DIRECTORY_SEPARATOR
-					. $templateName . '.tpl',
-				implode(DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR
-					. 'template' . DIRECTORY_SEPARATOR
-					. $templateName . '.tpl',
-			);
+		$first = true;
+		while($object) { // While there is a parent class
+			$fqn = $first||is_object($object) ? get_class($object) : $object;
+			$fqnSplit = explode('\\', $fqn);
+			$simpleName = array_pop($fqnSplit);
+			$namespace = $fqnSplit;
+			$object = get_parent_class($object);
+			$first = false;
+			
+			if (array_shift($fqnSplit) != 'exxprezzo')
+				user_error('$object must be from a class in the exxprezzo namespace');
+			if (reset($fqnSplit) == 'core')
+				array_shift($fqnSplit);
+			$kind = array_shift($fqnSplit);
+			
+			$pathOptions[] = 'template' . DIRECTORY_SEPARATOR
+						. $themeName . DIRECTORY_SEPARATOR
+						. $kind . DIRECTORY_SEPARATOR
+						. (reset($fqnSplit) ? reset($fqnSplit) . DIRECTORY_SEPARATOR : '')
+						. $template . '.tpl';
+			$pathOptions[] = implode(DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR
+						. 'template' . DIRECTORY_SEPARATOR
+						. $template . '.tpl';
+		}
 		foreach($pathOptions as $pathOption)
 			if (is_readable($pathOption))
 				return Template::templateFromFile($pathOption);
-		user_error('A template could not be found on any of the following locations: \''.implode('\', \'', $pathOptions)).'\'';
+		user_error('A template for "'.$template."\" could not be found.\n'".
+				implode("',\n'", $pathOptions)).'\'';
 	}
 	
 }

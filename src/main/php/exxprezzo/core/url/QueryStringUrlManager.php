@@ -14,10 +14,14 @@ class QueryStringUrlManager extends AbstractUrlManager {
 				: substr($this->server['REQUEST_URI'], 0, strpos($this->server['REQUEST_URI'], '?'))
 			;
 		if (!$tmp[0] || $tmp[0]{0} != '/') {
+			if (!$this->isGet())
+				user_error('Incorrectly formatted URL provided with POST request.');
 			header('Location: '.$this->server['BASE_URL'].'?/'.$tmp[0]);
 			exit;
 		}
 		if (strpos($tmp[0], '//') !== false) {
+			if (!$this->isGet())
+				user_error('Incorrectly formatted URL provided with POST request.');
 			header('Location: '.$this->server['BASE_URL'].'?'.preg_replace('_//+_', '/', $tmp[0]));
 			exit;
 		}
@@ -27,6 +31,8 @@ class QueryStringUrlManager extends AbstractUrlManager {
 	}
 	
 	public function mkurl($hostGroup, $path, $get=array(), $fullUrl=false, $noGetForce=true) {
+		if (!$noGetForce)
+			$get = array_merge($this->forcedGetVars, $get);
 		$base = $fullUrl ? $this->server['BASE_URL'] : '';
 		// TODO merge $get with forced vars
 		if ($get)

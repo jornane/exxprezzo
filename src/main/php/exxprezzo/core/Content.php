@@ -1,17 +1,29 @@
 <?php namespace exxprezzo\core;
 
-class Content implements \JsonSerializable {
+use \DateTime;
+use \DateTimeZone;
+
+class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 
 	/** @var (string|\exxprezzo\core\Content[]|object)[] */
 	protected $vars = array();
 	/** @var Content[] */
 	protected $namespaces = array();
-		
-	public function putVariable($key, $value) {
-		$this->vars[$key] = $value;
+	
+	public function __construct($initialValue=NULL) {
+		if (!is_null($initialValue))
+			$this->putVariables($initialValue);
 	}
-	public function putVariables($variables) {
-		$this->vars = array_merge($this->vars, $variables);
+	
+	public function putVariable($key, $value) {
+		if (is_array($value))
+			$this->vars[$key] = new Content($value);
+		else
+			$this->vars[$key] = $value;
+	}
+	public function putVariables(array $variables) {
+		foreach($variables as $key => $value)
+			$this->putVariable($key, $value);
 	}
 	public function removeVariable($key) {
 		unset($this->vars[$key]);
@@ -32,6 +44,16 @@ class Content implements \JsonSerializable {
 		return $root[$last];
 	}
 	
+	public function putLoop($loopName, $loop) {
+		$loops = explode('.', $loopName);
+		$last = array_pop($loops);
+		$root = &$this->vars;
+		foreach($loops as $loopName) {
+			$root = &$root[$loopName];
+			$root = &$root[count($root)-1]->vars;
+		}
+		$root[$last] = $loop;
+	}
 	/**
 	 * 
 	 * @param string $loopName
@@ -42,9 +64,7 @@ class Content implements \JsonSerializable {
 		if (is_object($loop)) {
 			$parentLoop[] = $loop;
 		} else if (is_array($loop)) {
-			$content = new Content();
-			$content->vars = $loop;
-			$parentLoop[] = $content;
+			$parentLoop[] = new Content($loop);
 		} else {
 			user_error('Invalid type for $loop: '.gettype($loop));
 		}
@@ -56,10 +76,22 @@ class Content implements \JsonSerializable {
 	 * @param string $name
 	 */
 	public function getVariableString($name) {
-		return isset($this->vars[$name]) && is_object($this->vars[$name])
-				? (method_exists($this->vars[$name], '__toString') ? $this->vars[$name]->__toString() : get_class($this->vars[$name]))
-				: $this->getVariable($name)
-			;
+		$var = $this->getVariable($name);
+		if (is_object($var)) {
+			if (method_exists($var, '__toString'))
+				return $var->__toString();
+			if ($var instanceof DateTime) {
+				$var->setTimezone(new DateTimeZone(date_default_timezone_get()));
+				return $var->format(DATE_RFC2822);
+			}
+			return 'Object';
+		} elseif (is_string($var))
+			return $var;
+		elseif (is_numeric($var))
+			return '' . $var;
+		elseif (is_null($var))
+			return null;
+		user_error('The variable {'.$name.'} is of type '.gettype($var).', must be string or object with __toString() method');
 	}
 	
 	/**
@@ -67,12 +99,12 @@ class Content implements \JsonSerializable {
 	 * @param string|Content[]|object $name
 	 */
 	public function getVariable($name) {
-		return isset($this->vars[$name]) ? $this->vars[$name] : NULL;
+		return Core::resolve($this->vars, $name);
 	}
 	
 	/**
-	 * @access protected
 	 * This method is namespace protected
+	 * @access protected
 	 *
 	 * @param string $loopName
 	 * @param int $iteration
@@ -105,7 +137,7 @@ class Content implements \JsonSerializable {
 		if (isset($this->namespaces[strtolower($name)]))
 			return $this->namespaces[strtolower($name)];
 		else
-			return new Content();
+			return null;
 	}
 	
 	/**
@@ -122,5 +154,22 @@ class Content implements \JsonSerializable {
 	public function jsonSerialize() {
 		return $this->vars;
 	}
+	
+	public function offsetExists($offset) {
+		return isset($this->vars[$offset]);
+	}
+	public function offsetGet($offset) {
+		return $this->vars[$offset];
+	}
+	public function offsetSet($offset, $value) {
+		$this->vars[$offset] = $value;
+	}
+	public function offsetUnset($offset) {
+		unset($this->vars[$offset]);
+	}
+	public function getIterator() {
+		return new ArrayObject($this->vars);
+	}
+	
 	
 }

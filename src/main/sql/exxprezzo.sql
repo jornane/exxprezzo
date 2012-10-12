@@ -7,7 +7,7 @@
 #
 # Host: localhost (MySQL 5.5.23)
 # Database: exxprezzo
-# Generation Time: 2012-05-29 18:50:07 +0000
+# Generation Time: 2012-07-12 10:03:04 +0000
 # ************************************************************
 
 
@@ -99,7 +99,7 @@ DROP TABLE IF EXISTS `moduleInstance`;
 CREATE TABLE `moduleInstance` (
   `moduleInstanceId` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `module` varchar(255) NOT NULL DEFAULT '',
-  `root` varchar(255) NOT NULL DEFAULT '',
+  `root` varchar(255) DEFAULT '',
   `hostGroup` int(11) unsigned NOT NULL,
   `param` text,
   PRIMARY KEY (`moduleInstanceId`),
@@ -111,7 +111,8 @@ LOCK TABLES `moduleInstance` WRITE;
 
 INSERT INTO `moduleInstance` (`moduleInstanceId`, `module`, `root`, `hostGroup`, `param`)
 VALUES
-	(1,'CMS','',1,NULL);
+	(1,'CMS','',1,'exxprezzo://localhost/core#cms'),
+	(2,'Menu',NULL,1,'exxprezzo://localhost/core#cms');
 
 /*!40000 ALTER TABLE `moduleInstance` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -143,6 +144,23 @@ VALUES
 UNLOCK TABLES;
 
 
+# Dump of table session_session
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `session_session`;
+
+CREATE TABLE `session_session` (
+  `id` varchar(128) NOT NULL DEFAULT '',
+  `touched` int(8) NOT NULL,
+  `lifetime` int(4) NOT NULL,
+  `ip` varchar(22) NOT NULL DEFAULT '',
+  `userAgent` varchar(255) NOT NULL DEFAULT '',
+  `data` longtext NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+
 # Dump of table widget
 # ------------------------------------------------------------
 
@@ -161,6 +179,15 @@ CREATE TABLE `widget` (
   KEY `pageId` (`pageId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+LOCK TABLES `widget` WRITE;
+/*!40000 ALTER TABLE `widget` DISABLE KEYS */;
+
+INSERT INTO `widget` (`widgetId`, `pageId`, `moduleInstanceId`, `function`, `preferredFunctionTemplate`, `box`, `priority`, `param`)
+VALUES
+	(1,NULL,2,'menu',NULL,'menu',1,NULL);
+
+/*!40000 ALTER TABLE `widget` ENABLE KEYS */;
+UNLOCK TABLES;
 
 
 
