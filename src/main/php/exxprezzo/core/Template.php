@@ -53,7 +53,9 @@ class Template {
 		$result = new Template(file_get_contents($filename));
 		$result->filename = $filename;
 		$result->extraReplacePattern[] = '_(?<=["\'])'.$resourceName.'/(.*?)\\1_';
-		$result->extraReplaceReplacement[] = Core::getUrlManager()->getBaseUrl().dirname($filename).'/';
+		$filenameSplice = explode('/', $filename);
+		$result->extraReplaceReplacement[] = Core::getUrlManager()->getBaseUrl() .
+			implode('/', array_slice($filenameSplice, 0, array_search('template', $filenameSplice)+2)).'/';
 		
 		return $result;
 	}
