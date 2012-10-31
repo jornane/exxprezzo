@@ -400,6 +400,8 @@ abstract class AbstractModule implements Runnable {
 			$moduleParam = array_merge($this->getParameters(), $moduleParam);
 		if (is_null($this->getModulePath()))
 			user_error('Module '.$this->__toString().' is not exposed and as such no url can be made pointing to it.');
+		if (is_null($fullUrl))
+			$fullUrl = false;
 		
 		assert('is_string($function);');
 		assert('is_array($moduleParam);');
