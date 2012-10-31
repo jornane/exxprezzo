@@ -109,6 +109,10 @@ class CMS extends AbstractModule {
 					'title' => new TextInput('title', $page['title']),
 					'content' => new LongTextInput('content', $page['rawcontent']),
 				));
+			$content->putVariables(array(
+					'fileManager' => array('href' => $this->mkurl('files')),
+					'imageManager' => array('href' => $this->mkurl('images')),
+				));
 			if ($this->params['path'])
 				$input->putVariable('delete', new ButtonInput('delete', 'Delete'));
 		} else {
@@ -167,10 +171,20 @@ class CMS extends AbstractModule {
 			$fileEntries[$entry['filename']] = $entry['file'];
 		$files = File::getLoadedInstances($this, $fileEntries);
 		foreach($files as $file) {
-			// if image
-			//TEMPORARY:
-			$file->href = $this->mkurl('file', array('filename'=>$file->getFilename()));
-			$content->addLoop('file', $file);
+			$content->addLoop('file', array(
+					'href' => $this->mkurl('file', array('filename'=>$file->getFilename())),
+					'file' => $file
+				));
+			
+			$content->addLoop('image', array(
+					'href' => $this->mkurl('file', array('filename'=>$file->getFilename())),
+					'thumbnail' => array(
+							'thumb' => $this->mkurl('file', array('filename'=>$file->getFilename()), NULL, array(
+									'thumb' => 'thumb'
+								)),
+						),
+					'file' => $file
+				));
 		}
 		$input->putVariables(array(
 				'file' => new FileInput('file'),
