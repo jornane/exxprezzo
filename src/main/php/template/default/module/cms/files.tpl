@@ -11,10 +11,10 @@ will overwrite the existing file</p>
 	</tr>
 <!-- FOR file -->
 	<tr>
-		<td><a href="{file.href}" class="callback">{file.filename}</a></td>
-		<td>{file.created}</td>
-		<td>{file.updated}</td>
-		<td>{file.size}</td>
+		<td><a href="{file.href}" class="callback">{file.file.filename}</a></td>
+		<td>{file.file.created}</td>
+		<td>{file.file.updated}</td>
+		<td>{file.file.size}</td>
 	</tr>
 <!-- /FOR file -->
 </table>
