@@ -7,7 +7,7 @@ class Copro
 	private $name = 'Pietje Puk';
 	private $commissions = array();
 	private $photo = 'pietjepuk.jpg';
-	public static $imagepath = 'template/default/module/coprolist/resources/';
+	public static $imagepath = 'https://www.iapc.utwente.nl/intern/cooperanten/';
 
 	// Constructor
 	public function  __construct($name, $photo, $commissions){

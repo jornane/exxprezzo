@@ -7,8 +7,10 @@ use \exxprezzo\core\output\BlockOutput;
 use \exxprezzo\core\module\AbstractModule;
 
 class CoproList extends AbstractModule {
+	//(?<path>.*)
 	protected static $functions = array(
-			'(?<path>.*)' => 'coprolist',
+			'/' => 'coprolist',
+			'/(?<commission>.+)' => 'commissie',
 	);
 	
 /* 	public function playground($params) {
@@ -22,18 +24,45 @@ class CoproList extends AbstractModule {
 		//TODO: get copro's from LDAP and create objects
 		
 		//let's first make some ourselves
-		$copro1 = new Copro('Yørn de Jong','pietjepuk.jpg',array(new Commission('WWW-commissie'),new Commission('Het allertofste bestuur ooit')));
-		$copro2 = new Copro('Zoë Meijer','pietjepuk.jpg',array(new Commission('MeisciAPC'),new Commission('Kandidaatbestuur')));
+		$copro1 = new Copro('Yørn de Jong','pietjepuk.jpg',array(new Commission('WWW-commissie',0),new Commission('Het allertofste bestuur ooit',0)));
+		$copro2 = new Copro('Zoë Meijer','pietjepuk.jpg',array(new Commission('MeisciAPC',0),new Commission('Kandidaatbestuur',0)));
 		
 		//TODO: return this list of copro's to the template
-		$content->addLoop('coproItem', $copro1);
-		$content->addLoop('coproItem', $copro2);
+		//$content->addLoop('coproItem', $copro1);
+		//$content->addLoop('coproItem', $copro2);
 		
+		$ldap = new LDAP();
+		
+		//$commissions = $ldap->getAllCommissions();
+		//$asdf = $ldap->getAllCommissionsAsText($commissions);
+		
+		//$coprotest = $ldap->getCoprosFromCommission($commissions[1]);	//start with 1, 0 is the root
+		$coprotest = $ldap->getAllCopros();
+		
+		foreach ($coprotest as $c){
+			$content->addLoop('coproItem',$c);
+		}
+
+		
+		//$content->putVariable('test', $asdf);
 		return new BlockOutput($this, $content);
 	}
 	
-	public function getTitle($void){
+	public function getTitle($params){
 		return 'Onze lieve coöperanten <3';
+	}
+	
+	public function commissie($input){
+		$commissionName = $input['commission'];
+		$content = new Content();
+		$ldap = new LDAP();
+		
+		$commission = new Commission($commissionName, 'CN='.$commissionName.',OU=Commissies,OU=IAPC,DC=iapc,DC=utwente,DC=nl');
+		$copros = $ldap->getCoprosFromCommission($commission);
+		foreach ($copros as $c){
+			$content->addLoop('coproItem',$c);
+		}
+		return new BlockOutput($this, $content);
 	}
 	
 }

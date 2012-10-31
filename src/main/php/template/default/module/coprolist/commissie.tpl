@@ -7,7 +7,7 @@
 	</li>
 	<ul>
 		<!-- for coproItem.commissions -->
-			<li><a href="{coproItem.commissions.link}>{coproItem.commissions.name}</a></li>
+			<li>{coproItem.commissions.name}</li>
 		<!-- /for coproItem.commissions -->
 		</ul>
 <!-- /for coproItem -->
