@@ -163,7 +163,7 @@
 			if (!s.theme_advanced_buttons1) {
 				s = extend({
 					theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,styleselect,formatselect",
-					theme_advanced_buttons2 : "bullist,numlist,|,outdent,indent,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code",
+					theme_advanced_buttons2 : "bullist,numlist,|,outdent,indent,|,undo,redo,|,link,unlink,anchor,image,cleanup,code",
 					theme_advanced_buttons3 : "hr,removeformat,visualaid,|,sub,sup,|,charmap"
 				}, s);
 			}
@@ -1422,69 +1422,27 @@
 			if (ed.dom.getAttrib(ed.selection.getNode(), 'class', '').indexOf('mceItem') != -1)
 				return;
 
-			var w = ed.windowManager.open({
-				url : ed.settings.image_href ? ed.settings.image_href : this.url + '/image.htm',
+			ed.windowManager.open({
+				url : this.url + '/image.htm',
 				width : 355 + parseInt(ed.getLang('advanced.image_delta_width', 0)),
 				height : 275 + parseInt(ed.getLang('advanced.image_delta_height', 0)),
-				inline : true,
-				//name : "image"
+				inline : true
 			}, {
 				theme_url : this.url
 			});
-			var url = this.url;
-			var iframe = document.getElementById(w.iframeElement.id);
-			iframe.onload = function() {
-				var links = [];
-				var callback = new RegExp('\\bcallback\\b');
-				var elem = iframe.contentDocument.getElementsByTagName('a');
-				for (var i = 0; i < elem.length; i++) {
-					var classes = elem[i].className;
-					if (callback.test(classes)) elem[i].rel = "imageCallback";
-				}
-				
-				var head = iframe.contentDocument.getElementsByTagName("head")[0];
-				var script = document.createElement("script");
-				script.setAttribute('src', url + '/../../tiny_mce_popup.js');
-				head.appendChild(script);
-				script = document.createElement("script");
-				script.setAttribute('src', url + '/js/exxprezzo.js');
-				head.appendChild(script);
-			};
 		},
 
 		_mceLink : function(ui, val) {
 			var ed = this.editor;
-			//var n = "link" + new Date().getTime();
-			var n = 'link';
 
-			var w = ed.windowManager.open({
-				url : ed.settings.link_href ? ed.settings.link_href : this.url + '/link.htm',
+			ed.windowManager.open({
+				url : this.url + '/link.htm',
 				width : 310 + parseInt(ed.getLang('advanced.link_delta_width', 0)),
 				height : 200 + parseInt(ed.getLang('advanced.link_delta_height', 0)),
-				inline : true,
-				name : 'link'
+				inline : true
 			}, {
 				theme_url : this.url
 			});
-			var url = this.url;
-			var iframe = document.getElementById(w.iframeElement.id);
-			iframe.onload = function() {
-				var links = [];
-				var callback = new RegExp('\\bcallback\\b');
-				var elem = iframe.contentDocument.getElementsByTagName('a');
-				for (var i = 0; i < elem.length; i++) {
-					var classes = elem[i].className;
-					if (callback.test(classes)) elem[i].rel = "linkCallback";
-				}
-				
-				var head = iframe.contentDocument.getElementsByTagName("head")[0];
-				var script = document.createElement("script");
-				script.setAttribute('src', url + '/../../tiny_mce_popup.js');
-				head.appendChild(script);
-				script = document.createElement("script");
-				script.setAttribute('src', url + '/js/exxprezzo.js');
-				head.appendChild(script);
-			};
 		},
 
 		_mceNewDocument : function() {
