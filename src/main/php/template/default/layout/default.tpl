@@ -10,7 +10,8 @@
 	{menu.CONTENT}
 <!-- /FOR menu -->
 
+<div style="display:block !important">
 <!-- FOR content -->
 	{content.CONTENT}
 <!-- /FOR content -->
-
+</div>
