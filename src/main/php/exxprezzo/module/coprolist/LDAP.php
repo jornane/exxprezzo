@@ -23,11 +23,11 @@ class LDAP{
 	}
 	
 	/*
-	 * Get all Commissions in LDAP format
-	 * @returns an array of Commission with the Name
+	 * Get all members of this LDAP group
+	 * @returns an array of Commission which is actually an LDAP Group in this case (don't ask)
 	 */
-	public function getAllCommissions(){
-		$search = $this->ldap->search('OU=Commissies,OU=IAPC,DC=iapc,DC=utwente,DC=nl');
+	public function getAllFromGroup($ou){
+		$search = $this->ldap->search($ou);
 		
 		// Test for search errors:
 		if ($search instanceof Net_LDAP2_Error) {
@@ -37,15 +37,21 @@ class LDAP{
 		$len = $search->count();
 		$searchsorted = $search->sorted();
 		
-		$commissions = array($len);
-		for ($i = 0 ; $i<$len;$i++){
-			$commissions[$i] = new Commission($searchsorted[$i]->getValue('CN', 'single'),$searchsorted[$i]->getValue('distinguishedName', 'single'));
+		$commissions = array();
+		for ($i = 1 ; $i<$len;$i++){
+			$DN = $searchsorted[$i]->getValue('distinguishedName', 'single');
+			$CN = $searchsorted[$i]->getValue('CN', 'single');
+			//Skip Oud Bestuur because it's stupid
+			if (strcmp($CN,'Oud Bestuur')){
+				$commissions[$i-1] = new Commission($CN,$DN);
+			}
 		}
 		
 		return $commissions;
-	}
+	}	
 
 	public function getAllCopros(){
+		//echo('getting all copro\'s');
 		$search = $this->ldap->search('OU=Copros,OU=IAPC,DC=iapc,DC=utwente,DC=nl');
 		$searchsorted = $search->sorted();
 		$searchsorted[0] = false; //remove the root
@@ -63,7 +69,6 @@ class LDAP{
 				$i++;
 			}
 		}
-		
 		return $copros; 
 	}
 	

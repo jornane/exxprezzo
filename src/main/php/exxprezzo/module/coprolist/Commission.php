@@ -19,7 +19,7 @@ class Commission
 	}
 	
 	public function getLink(){
-		return '/'.$this->name;
+		return $this->name;
 	}
 	
 	public function getDN(){

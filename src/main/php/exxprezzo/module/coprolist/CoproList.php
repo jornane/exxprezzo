@@ -13,38 +13,24 @@ class CoproList extends AbstractModule {
 			'/(?<commission>.+)' => 'commissie',
 	);
 	
-/* 	public function playground($params) {
-		$content = new Content();
-		$content->putVariable('imgHref', 'https://a248.e.akamai.net/camo.github.com/a312a1f49d93c7ebf86172aa61ff0afc823c01a6/687474703a2f2f6769746875622e73332e616d617a6f6e6177732e636f6d2f626c6f672f7265642d706f6c6f2e6a7067');
-		return new BlockOutput($this, $content);
-	} */
-	
 	public function coprolist($params){
+		//The OU is given as a module parameter.
+		//Besturen points to the besturenpage, coprolist to the commissies.
+		$ou = $this->getModuleParam();
+		
 		$content = new Content();
-		//TODO: get copro's from LDAP and create objects
-		
-		//let's first make some ourselves
-		$copro1 = new Copro('Yørn de Jong','pietjepuk.jpg',array(new Commission('WWW-commissie',0),new Commission('Het allertofste bestuur ooit',0)));
-		$copro2 = new Copro('Zoë Meijer','pietjepuk.jpg',array(new Commission('MeisciAPC',0),new Commission('Kandidaatbestuur',0)));
-		
-		//TODO: return this list of copro's to the template
-		//$content->addLoop('coproItem', $copro1);
-		//$content->addLoop('coproItem', $copro2);
-		
 		$ldap = new LDAP();
+		$copros = $ldap->getAllCopros();
+		//$commissies = $ldap->getAllCommissions();
+		$commissies = $ldap->getAllFromGroup($ou);
 		
-		//$commissions = $ldap->getAllCommissions();
-		//$asdf = $ldap->getAllCommissionsAsText($commissions);
-		
-		//$coprotest = $ldap->getCoprosFromCommission($commissions[1]);	//start with 1, 0 is the root
-		$coprotest = $ldap->getAllCopros();
-		
-		foreach ($coprotest as $c){
-			$content->addLoop('coproItem',$c);
+		foreach($commissies as $c){
+			$content->addLoop('commissieItem',$c);
 		}
-
 		
-		//$content->putVariable('test', $asdf);
+		//set the Base URL for links
+		$content->putVariable('baseURL',Core::getURLManager()->mkurl($this->getHostGroup(), '/'.$this->getModulePath().'/', array(), FALSE, FALSE));
+
 		return new BlockOutput($this, $content);
 	}
 	
@@ -56,14 +42,15 @@ class CoproList extends AbstractModule {
 		$commissionName = $input['commission'];
 		$content = new Content();
 		$ldap = new LDAP();
+		$ou = $this->getModuleParam();
 		
-		$commission = new Commission($commissionName, 'CN='.$commissionName.',OU=Commissies,OU=IAPC,DC=iapc,DC=utwente,DC=nl');
+		$commission = new Commission($commissionName, 'CN='.$commissionName.','.$ou);
 		$copros = $ldap->getCoprosFromCommission($commission);
 		foreach ($copros as $c){
 			$content->addLoop('coproItem',$c);
 		}
+		$content->putVariable('baseURL',Core::getURLManager()->mkurl($this->getHostGroup(), '/'.$this->getModulePath().'/', array(), FALSE, FALSE));
 		return new BlockOutput($this, $content);
-	}
-	
+	}	
 }
 ?>
