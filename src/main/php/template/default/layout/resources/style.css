@@ -24,7 +24,7 @@ html {
 }
 @media only screen and (max-width: 950px) {
 	html {
-		font-size: 0.7em;
+		font-size: 0.75em;
 	}
 }
 @media only screen and (min-width: 1300px) {
@@ -231,4 +231,151 @@ hr {
 #footer span {
 	margin: 0 2em;
 	white-space: nowrap;
+}
+
+
+/* Copro stuff */
+
+.copro:nth-child(n), .copro ul a:nth-child(n), .copro p.pic:nth-child(n) {
+	-webkit-transform:rotate(-.5deg);
+	-moz-transform:rotate(-.5deg);
+	-o-transform:rotate(-.5deg);
+	-ms-transform:rotate(-.5deg);
+}
+.copro:nth-child(n+1), .copro ul a:nth-child(n+1), .copro p.pic:nth-child(n+1) {
+	-webkit-transform:rotate(.25deg);
+	-moz-transform:rotate(.25deg);
+	-o-transform:rotate(.25deg);
+	-ms-transform:rotate(.25deg);
+}
+.copro:nth-child(n+2), .copro ul a:nth-child(n+2), .copro p.pic:nth-child(n+2) {
+	-webkit-transform:rotate(1deg);
+	-moz-transform:rotate(1deg);
+	-o-transform:rotate(1deg);
+	-ms-transform:rotate(1deg);
+}
+.copro:nth-child(n+4), .copro ul a:nth-child(n+3), .copro p.pic:nth-child(n+3) {
+	-webkit-transform:rotate(-.75deg);
+	-moz-transform:rotate(-.75deg);
+	-o-transform:rotate(-.75deg);
+	-ms-transform:rotate(-.75deg);
+}
+.copro {
+	list-style: none;
+	width: 22.5em;
+	height: 13.875em;
+	float: left;
+
+/*
+	-webkit-transition: all .2s ease-in-out;
+	-moz-transition: all .2s ease-in-out;
+	-o-transition: all .2s ease-in-out;
+	-ms-transition: all .2s ease-in-out;
+	*/
+
+	background: #f6f6f6 url('watermark.png');
+	background-size: 15em 15em;
+	background-repeat: no-repeat;
+	background-position: 140% 200%;
+  
+	border-radius: 1em;
+	border-top: 0.1em solid white;
+	border-bottom: 0.1em solid gray;
+	box-shadow: 0 0.125em 0.25em 0em gray;
+	padding: 1em;
+	margin: 0 0.7em 2em 0.7em;
+}
+.copro.board {
+	background: #a00 url('boardwatermark.png');
+	background-size: cover;
+	background-position: 100% 100%;
+	background-repeat: no-repeat;
+	color: #fff;
+}
+.copro h3, .copro p {
+	position: relative;
+	bottom: -10.5em;
+	width: 9em;
+	height: 2em;
+	font-size: 1em;
+	text-align: center;
+	font-family: "Bradley Hand ITC", "Bradley Hand ITC TT", "Chalkduster", sans-serif;
+	color: #24a;
+	z-index: 1;
+}
+.copro.board h3 {
+	color: #fff;
+	font-family: "Courier New", monospace;
+}
+.copro.board p.board {
+	left: 0;
+	width: 15em;
+	text-align: right;
+	bottom: -5.5em;
+	color: #fff;
+	font-family: "Eras" sans-serif;
+	font-size: 1.5em;
+	cursor: default;
+	z-index: 0;
+}
+.copro p.pic {
+	bottom: 0;
+	box-shadow: .1em .1em .25em rgba(0,0,0,.66);
+	width: 9em;
+	height: 11em;
+	padding: 0;
+	margin: 0;
+	margin-top: -4em;
+	
+	background-size: cover;
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+}
+.copro.board p.pic {
+	-webkit-transform:rotate(0deg);
+	-moz-transform:rotate(0deg);
+	-o-transform:rotate(0deg);
+	-ms-transform:rotate(0deg);
+	
+	border-radius: 0.5em;
+	box-shadow: inset .05em .1em .25em rgba(0,0,0,.66);
+	bottom: 5em;
+}
+.copro img {
+	position: relative;
+	width: 9em;
+	max-height: 11em;
+}
+.copro ul:before {
+	font-family: "Courier New", monospace;
+	content: "Is a member of:";
+}
+.copro.board ul:before {
+	content: "";
+}
+.copro ul {
+	display: block;
+	margin-left: 10em;
+	margin-top: -11em;
+	list-style: none;
+}
+.copro.board ul {
+	margin-left: 10em;
+	margin-top: -16.5em;
+}
+.copro ul li {
+	border-bottom: 0.1em solid #aaa;
+}
+.copro.board ul li {
+	border: none;
+}
+.copro ul li a {
+	font-family: "Bradley Hand ITC", "Bradley Hand ITC TT", "Chalkduster", sans-serif;
+	text-decoration: none;
+	color: #24a;
+}
+.copro.board ul li a {
+	font-family: "Courier New", monospace;
+	text-shadow: #000 0 0 1px;
+	color: #fff;
 }
