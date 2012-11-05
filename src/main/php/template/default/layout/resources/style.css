@@ -273,12 +273,11 @@ hr {
 	-ms-transition: all .2s ease-in-out;
 	*/
 
-	background: #f6f6f6 url('watermark.png');
+	background: #fafafa url('watermark.png');
 	background-size: 15em 15em;
 	background-repeat: no-repeat;
 	background-position: 140% 200%;
   
-	border-radius: 1em;
 	border-top: 0.1em solid white;
 	border-bottom: 0.1em solid gray;
 	box-shadow: 0 0.125em 0.25em 0em gray;
@@ -286,6 +285,7 @@ hr {
 	margin: 0 0.7em 2em 0.7em;
 }
 .copro.board {
+	border-radius: 1em;
 	background: #a00 url('boardwatermark.png');
 	background-size: cover;
 	background-position: 100% 100%;
@@ -313,7 +313,7 @@ hr {
 	text-align: right;
 	bottom: -5.5em;
 	color: #fff;
-	font-family: "Eras" sans-serif;
+	font-family: "Eras", "Lucida Grande", "Helvetica", "Arial", sans-serif;
 	font-size: 1.5em;
 	cursor: default;
 	z-index: 0;
@@ -376,6 +376,5 @@ hr {
 }
 .copro.board ul li a {
 	font-family: "Courier New", monospace;
-	text-shadow: #000 0 0 1px;
 	color: #fff;
 }
