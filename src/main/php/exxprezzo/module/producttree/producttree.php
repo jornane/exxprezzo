@@ -47,15 +47,14 @@ class ProductTree extends AbstractModule
 	    	if( isset($child['contents']) )
 	    	{
 	    		$child['href'] = $this->mkurl('getWebgroup', array('id'=>$child['id']));
-		    	//$output->addLoop('webgroup', $child);
+		    	$output->addLoop('webgroup', $child);
 		    }
 		    else
 		    {
 			    $product = $this->skrol->getArticle($child['id']);
-			    //$output->addLoop('product', $product);
+			    $output->addLoop('product', $product);
 		    }
 	    }
-	    $output->putVariable('webgroup', $children);
 	    return new BlockOutput($this, $output);
     }
 }
