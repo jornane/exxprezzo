@@ -378,3 +378,39 @@ hr {
 	font-family: "Courier New", monospace;
 	color: #fff;
 }
+
+
+#producttree
+{
+	float: left;
+	width: 300px;
+}	
+
+	#producttree span
+	{
+		z-index: 9999;
+	}
+
+	#producttree span
+	{
+		cursor: pointer;
+		padding: 7px;
+		list-style: none;
+		overflow: hidden;
+		display: block;
+	}
+	
+		#producttree span:hover
+		{
+			background: #fff;
+		}
+	
+		#producttree li > ul.contents
+		{
+			display: none;
+		}
+		
+		#producttree li.expanded > ul.contents
+		{
+			display: block;
+		}
