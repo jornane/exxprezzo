@@ -236,6 +236,7 @@ hr {
 
 /* Copro stuff */
 
+/*
 .copro:nth-child(n), .copro ul a:nth-child(n), .copro p.pic:nth-child(n) {
 	-webkit-transform:rotate(-.5deg);
 	-moz-transform:rotate(-.5deg);
@@ -260,6 +261,7 @@ hr {
 	-o-transform:rotate(-.75deg);
 	-ms-transform:rotate(-.75deg);
 }
+*/
 .copro {
 	list-style: none;
 	width: 22.5em;
