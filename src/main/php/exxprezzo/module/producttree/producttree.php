@@ -6,6 +6,8 @@ use \exxprezzo\core\output\BlockOutput;
 
 use \exxprezzo\core\module\AbstractModule;
 
+use \exxprezzo\core\output\JSONOutput;
+
 class ProductTree extends AbstractModule
 {
     /**
@@ -35,27 +37,30 @@ class ProductTree extends AbstractModule
     
     public function fullPriceList()
     {
-    	var_dump($this->skrol->getTotalPriceList());
-    }
-    
-    public function getWebgroup($input)
-    {
-	    $output = new Content();
-	    $children = $this->skrol->getWebgroupChildrenOf($input['id'])['children'];
+    	$output = new Content();
+	    $webgroup = $this->skrol->getWebgroupChildrenOf(0);
+	    $output->putVariable('webgroup', $webgroup);
+	    
+	    $children = $webgroup['contents'];
+	    
 	    foreach($children as $child)
 	    {
 	    	if( isset($child['contents']) )
 	    	{
 	    		$child['href'] = $this->mkurl('getWebgroup', array('id'=>$child['id']));
-		    	//$output->addLoop('webgroup', $child);
-		    }
-		    else
-		    {
-			    $product = $this->skrol->getArticle($child['id']);
-			    //$output->addLoop('product', $product);
+		    	$output->addLoop('contents', $child);
 		    }
 	    }
-	    $output->putVariable('webgroup', $children);
+	    
 	    return new BlockOutput($this, $output);
+    }
+    
+    public function getWebgroup($input)
+    {
+	    $output = new Content();
+	    $webgroup = $this->skrol->getWebgroupChildrenOf($input['id']);
+	    $children = $webgroup['contents'];
+	    $output->putVariable('webgroup', $webgroup);
+	    return new JSONOutput($this, $output);
     }
 }
