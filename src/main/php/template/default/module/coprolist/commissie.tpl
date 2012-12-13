@@ -4,7 +4,7 @@
 	<li class="copro <!-- if coproItem.board -->board<!-- /if coproItem.board -->">
 		<h3>{coproItem.name}</h3>
 <!-- if coproItem.board -->
-		<p class="board" onselectstart="return false;">Board {coproItem.board}</p>
+		<p class="board" onselectstart="return false;">{coproItem.board}</p>
 <!-- /if coproItem.board -->
 		<p class="pic"><img src="{coproItem.photoUrl}"></p>
 	<ul>
