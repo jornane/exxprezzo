@@ -6,8 +6,6 @@ use \Net_LDAP2;
 use \PEAR;
 
 class LDAP{
-	
-	
 	public function __construct(){
 		$config = array(
 				'binddn' => 'vercie@iapc.utwente.nl',
@@ -58,85 +56,101 @@ class LDAP{
 		
 		$copros = array();
 		
-		$i=0;
 		foreach($searchsorted as $searchentry){
 			if ($searchentry){
-				$name = $searchentry->getValue('name');
-				$photo = $searchentry->getValue('sAMAccountName').'.jpg';
-				$commissions = $this->retrieveCommissions($searchentry->getValue('memberOf'));
-				if (!empty($commissions))
-					$copros[$i] = new Copro($name, $photo, $commissions);
-				$i++;
+				$copro = $this->retrieveCopro($searchentry);
+				//put this in a temp value for empty()
+				$cc = $copro->getCommissions();
+				if (!empty($cc))
+					$copros[] = $copro;
 			}
 		}
 		return $copros; 
 	}
 	
-	//give this a string array with DNs. It will select the
-	//values that contain OU=Commissies, and return
-	//an array of the Commission class
-	public function retrieveCommissions($dnlist){
+	//returns a Copro-object from a searchentry
+	//this includes the commissions, photo URL,
+	//board and name.
+	//returns null if no Copro is found with this name
+	//should probably only be used if the search entry is
+	//really a copro
+	public function retrieveCopro($searchentry){
+		$name = $searchentry->getValue('name');
+		$photo = $searchentry->getValue('sAMAccountName').'.jpg';
 		$commissions = array();
+		$board = null;
 		
+		$dnlist = $searchentry->getValue('memberOf');
 		
 		if (!is_array($dnlist)){
 			$dnlist = array($dnlist);	
 		}
 		
-		$j = 0;
 		for($i=0;$i<count($dnlist);$i++){
 			$dn = $dnlist[$i];
 			if (strpos($dn,'OU=Commissies')){
 				//filter out the CN from the DN
-				$start = strpos($dn,'CN=')+2;
-				$sub1 = substr($dn,$start);
-				$end = strpos($sub1,',')-1;
-				$name = substr($sub1,1,$end);
-				$commissions[$j] = new Commission($name,$dn);
-				$j++;
+				$cname = $this->getBetween($dn,'CN=',',');
+				$commissions[] = new Commission($cname,$dn);
+			}
+			if (strpos($dn,'OU=Besturen')){
+				//filter out the CN from the DN
+				$board = $this->getBetween($dn,'CN=',',');
 			}
 		}
 		
-		if (!empty($commissions)){
-			return $commissions;
-		} else return false;
+		$copro = new Copro($name,$photo,$commissions,$board);
+		return $copro;
+	}
+	
+	//returns the first string found between $startstring and $endstring
+	//not safe right now, use if you know it will return something
+	public function getBetween($mainstring,$startstring,$endstring){
+		$start = strpos($mainstring,$startstring)+strlen($startstring)-1;
+		$sub1 = substr($mainstring,$start);
+		$end = strpos($sub1,$endstring)-1;
+		$result = substr($sub1,1,$end);
+		return $result;
 	}
 	
 	public function getCopro($dn){
 		//echo('Searching for copro with DN '.$dn.'<br />');
-		$search = $this->ldap->search($dn);
+		$search = $this->ldap->search($dn);	
+		//var_dump($dn);
 		$searchentry = $search->shiftEntry();
-		$name = $searchentry->getValue('name');
-		$photo = $searchentry->getValue('sAMAccountName').'.jpg';
-		$commissions = $this->retrieveCommissions($searchentry->getValue('memberOf'));
-		$copro = new Copro($name, $photo, $commissions);
-		
+		$copro = $this->retrieveCopro($searchentry);		
 		return $copro;
 	}
 	
 	public function getTestCopro($dn){
-		new Copro('Marissa Hoek','mhoek.jpg',array(new Commission('WWW-commissie',0),new Commission('Het allertofste bestuur ooit',0),new Commission('MeiscIAPC',0)));
+		new Copro('Marissa Hoek','mhoek.jpg',array(new Commission('WWW-commissie',0),new Commission('Het allertofste bestuur ooit',0),new Commission('MeiscIAPC',0)),null);
 	}
 	
 	public function getCoprosFromCommission($commission){
 		$dn = $commission->getDN();
 		//echo('Getting copros for '.$dn.'<br />');
 		$search = $this->ldap->search($dn,null,array('attributes','member'));
-		// Test for search errors:
-		//if ($this->ldap->isError($search)) {
-		//	die("could not connect to ldap: ".$search->getMessage());
-		//}
-
+		//Test for search errors:
+		if (!strcmp(get_class($search),'NET_LDAP2_Error')) {
+			die("could not connect to ldap: ".$search->getMessage());
+		}
 		//Pop an entry from the searchlist and get the members from this entry
 		$searchentry = $search->shiftEntry();
-		$searchsorted = $searchentry->getValue('member');
-		$len = count($searchsorted);
-		$copros = array($len);
-		for ($i = 0 ; $i<$len;$i++){
-			//echo($searchsorted[$i]);
-			$copros[$i] = $this->getCopro($searchsorted[$i]);
-		}
 		
+		$copros = array();
+		//Als er een foutmelding is moet dit niet uitgevoerd worden
+		if (strcmp(get_class($searchentry),'PEAR_Error')){
+			$searchsorted = $searchentry->getValue('member');
+			//var_dump($searchsorted);
+			if (!is_array($searchsorted)){
+				$copros[] = $this->getCopro($searchsorted);
+			}
+			else {
+				foreach($searchsorted as $result){
+					$copros[] = $this->getCopro($result);
+				}
+			}
+		}
 		return $copros;
 	}
 	

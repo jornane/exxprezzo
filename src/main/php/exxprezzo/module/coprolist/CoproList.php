@@ -35,7 +35,7 @@ class CoproList extends AbstractModule {
 	}
 	
 	public function getTitle($params){
-		return 'Onze lieve coöperanten <3';
+		return 'Onze lieve coÃ¶peranten <3';
 	}
 	
 	public function commissie($input){
