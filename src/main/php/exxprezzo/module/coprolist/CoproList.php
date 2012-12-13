@@ -24,6 +24,20 @@ class CoproList extends AbstractModule {
 		//$commissies = $ldap->getAllCommissions();
 		$commissies = $ldap->getAllFromGroup($ou);
 		
+		/* Maak de pagina anders op als het de besturenpagina is */
+		if ($this->startsWith($ou,'OU='.'Besturen')){
+			// begin met het meest recente bestuur
+			arsort($commissies);
+			$currentbestuur = array_shift($commissies);
+			$copros = $ldap->getCoprosFromCommission($currentbestuur);
+			foreach ($copros as $c){
+				$content->addLoop('coproItem',$c);
+			}
+		}
+		
+		
+		//var_dump($commissies);
+		
 		foreach($commissies as $c){
 			$content->addLoop('commissieItem',$c);
 		}
@@ -51,6 +65,12 @@ class CoproList extends AbstractModule {
 		}
 		$content->putVariable('baseURL',Core::getURLManager()->mkurl($this->getHostGroup(), '/'.$this->getModulePath().'/', array(), FALSE, FALSE));
 		return new BlockOutput($this, $content);
-	}	
+	}
+
+	function startsWith($haystack, $needle)
+	{
+		return !strncmp($haystack, $needle, strlen($needle));
+	}
+	
 }
 ?>
