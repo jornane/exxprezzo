@@ -1,18 +1,24 @@
 <?php namespace exxprezzo\module\databasepasswd;
 
-use \ArrayAccess;
-use \ArrayIterator;
-use \Countable;
-use \IteratorAggregate;
+use \exxprezzo\core\module\AbstractModule;
 
 use \exxprezzo\module\passwd\User;
 
-class DatabaseUser implements User, IteratorAggregate, ArrayAccess, Countable {
+class DatabaseUser implements User {
 
+	/** Login name of the user */
 	protected $username = NULL;
+	/** Database ID of the user */
 	protected $id = 0;
-	protected $data = array();
+	/**
+	 * Custom fields for this user
+	 * Two dimensional array, first key is the module,
+	 * second key is the variable name
+	 */
+	protected $userField = array();
+	/** Non-committed changes in $userField */
 	protected $changes = array();
+	/** Non-committed removes in $userField */
 	protected $removes = array();
 	
 	/** @var \exxprezzo\core\db\SQL */
@@ -32,23 +38,51 @@ class DatabaseUser implements User, IteratorAggregate, ArrayAccess, Countable {
 		$this->id = $id;
 	}
 	
-	public function __set($key, $value) {
-		$this->changes[$key] = $value;
-		unset($this->removes[$key]);
+	public function set($module, $key, $value) {
+		if (is_object($module) && $module instanceof AbstractModule)
+			$module = $module->getInstanceId();
+		$this->changes[$module][$key] = $value;
+		unset($this->removes[$module][$key]);
 	}
-	public function __get($key) {
+	public function get($module, $key) {
+		if (is_object($module) && $module instanceof AbstractModule)
+			$module = $module->getInstanceId();
 		$this->lazyLoad();
-		if (isset($this->changes[$key]))
-			return $this->changes[$key];
-		if (isset($this->data[$key]))
-			return $this->data[$key];
+		if (isset($this->changes[$module][$key]))
+			return $this->changes[$module][$key];
+		if (isset($this->userField[$module][$key]))
+			return $this->userField[$module][$key];
 	}
-	public function __isset($key) {
+	public function __get($module) {
+		if (is_object($module) && $module instanceof AbstractModule)
+			$module = $module->getInstanceId();
 		$this->lazyLoad();
-		return !isset($this->removes[$key]) && (isset($this->data[$key]) || isset($this->changes[$key]));
+		if (isset($this->changes[$module]))
+			$result = array_merge($this->userField[$module], $this->changes[$module]);
+		else
+			$result = $this->userField[$module];
+		if (isset($this->removes[$module]))
+			foreach($this->removes[$module] as $remove)
+				unset($result[$remove]);
+		return $result;
 	}
-	public function __unset($key) {
-		$this->removes[$key] = $key;
+	public function getModule($module) {
+		if (is_object($module) && $module instanceof AbstractModule)
+			$module = $module->getInstanceId();
+		$this->lazyLoad();
+		return $this->userField[$module];
+	}
+	public function exists($module, $key) {
+		if (is_object($module) && $module instanceof AbstractModule)
+			$module = $module->getInstanceId();
+		$this->lazyLoad();
+		return !isset($this->removes[$module][$key]) && (isset($this->userField[$module][$key]) || isset($this->changes[$module][$key]));
+	}
+	public function remove($module, $key) {
+		if (is_object($module) && $module instanceof AbstractModule)
+			$module = $module->getInstanceId();
+		$this->removes[$module][$key] = $key;
+		unset($this->changes[$module][$key]);
 	}
 	
 	public function destroy() {
@@ -77,23 +111,29 @@ class DatabaseUser implements User, IteratorAggregate, ArrayAccess, Countable {
 			$this->id = $this->db->insert('user', array(
 					'username' => $this->username,
 				));
-		foreach($this->removes as $remove) {
-			unset($this->data[$remove]);
-			unset($this->changes[$remove]);
-			unset($this->removes[$remove]);
-			$this->db->delete('userfield', array(
-					'user' => $this->id,
-					'key' => $remove,
-				));
+		foreach($this->removes as $module => $removes) {
+			foreach($removes as $remove) {
+				unset($this->userField[$module][$remove]);
+				unset($this->changes[$module][$remove]);
+				unset($this->removes[$module][$remove]);
+				$this->db->delete('userfield', array(
+						'module' => $module,
+						'user' => $this->id,
+						'key' => $remove,
+					));
+			}
 		}
-		foreach($this->changes as $key => $value) {
-			unset($this->changes[$key]);
-			$this->data[$key] = $value;
-			$this->db->replace('userfield', array(
-					'user' => $this->id,
-					'key' => $key,
-					'value' => $value,
-				));
+		foreach($this->changes as $module => $changes) {
+			foreach($changes as $key => $value) {
+				unset($this->changes[$module][$key]);
+				$this->userField[$module][$key] = $value;
+				$this->db->replace('userfield', array(
+						'module' => $module,
+						'user' => $this->id,
+						'key' => $key,
+						'value' => $value,
+					));
+			}
 		}
 	}
 	public function setLastLogin($time=NULL) {
@@ -176,7 +216,6 @@ class DatabaseUser implements User, IteratorAggregate, ArrayAccess, Countable {
 		$salt .= base64_encode(pack('LLL', mt_rand(), mt_rand(), mt_rand()));
 		$salt .= '$';
 		$crypt = preg_replace('_\$([^\$]+)\$(?=[^\$]+$)_', '$$', crypt($password, $salt));
-		//die($crypt);
 		return $crypt;
 	}
 	
@@ -216,6 +255,8 @@ class DatabaseUser implements User, IteratorAggregate, ArrayAccess, Countable {
 			$this->getUserName();
 		}
 		assert(isset($this->realname));
+		if (!$this->realname)
+			$this->realname = $this->getUserName();
 		return $this->realname;
 	}
 	
@@ -228,42 +269,17 @@ class DatabaseUser implements User, IteratorAggregate, ArrayAccess, Countable {
 				$this->id = (int)$users[0]['id'];
 				$this->realname = $users[0]['realname'];
 				if (isset($users[0]['accountExpires']) && $users[0]['accountExpires'] < time())
-					user_error('Account ".$this->username." is expired.');
+					user_error('Account "'.$this->username.'" is expired.');
 			}
 		}
 		
 		if (isset($this->id)) {
-			$data = $this->db->query('SELECT `key`, `value` FROM `userfield` WHERE `user` = $id', array(
+			$userField = $this->db->query('SELECT `key`, `value`, `module` FROM `userfield` WHERE `user` = $id', array(
 					'id' => $this->id,
 				));
-			foreach($data as $entry)
-				$this->data[$entry['key']] = $entry['value'];
+			foreach($userField as $entry)
+				$this->userField[$entry['module']][$entry['key']] = $entry['value'];
 		}
-	}
-	
-	
-	/// IteratorAggregate
-	public function getIterator() {
-		return new ArrayIterator($this->data);
-	}
-	
-	/// ArrayAccess
-	public function offsetExists($offset) {
-		return $this->__isset($offset);
-	}
-	public function offsetGet($offset) {
-		return $this->__get($offset);
-	}
-	public function offsetSet($offset, $value) {
-		return $this->__set($offset, $value);
-	}
-	public function offsetUnset($offset) {
-		return $this->__unset($offset);
-	}
-	
-	/// Countable
-	public function count() {
-		return count($this->data);
 	}
 
 }
