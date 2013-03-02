@@ -96,7 +96,7 @@ class DatabasePasswd extends Passwd {
 	}
 	/**
 	 * (non-PHPdoc)
-	 * @see exxprezzo\module\passwd.Passwd::getUserByName()
+	 * @see \exxprezzo\module\passwd.Passwd::getUserByName()
 	 * @return DatabaseUser
 	 */
 	public function getUserByName($name) {
@@ -124,6 +124,7 @@ class DatabasePasswd extends Passwd {
 		
 		$content->putVariables(array(
 				'realName' => $user->getRealName(),
+				'moduleData' => $user->getModule($this),
 				'userData' => $user,
 			));
 		$pageData = $this->db->query('SELECT `content` FROM `userpage` WHERE `page` = $page', array(

@@ -36,10 +36,10 @@ abstract class AbstractModule implements Runnable {
 	private static $instances = array();
 		
 	/**
-	 * 
-	 * @param HostGroup $hostGroup
-	 * @param string $internalPath
-	 * @return AbstractModule
+	 * Get the module instance associated with this hostGroup and internalPath
+	 * @param HostGroup $HostGroup	the hostgroup
+	 * @param string $internalPath	the requested path, without the path to the Exxprezzo installation
+	 * @return AbstractModule	The module instance
 	 */
 	public static function getInstanceFor($hostGroup, $internalPath) {
 		assert('$hostGroup instanceof \exxprezzo\core\url\HostGroup');
@@ -71,8 +71,10 @@ abstract class AbstractModule implements Runnable {
 	}
 	
 	/**
-	 * @param int $moduleInstanceId
-	 * @return AbstractModule
+	 * Get the module instance by ID, given the mainFunctionPath provided
+	 * @param int $moduleInstanceId	the ID of the module instance to return
+	 * @param string $mainFunctionPath	Give the instance this path, indicating it's main function
+	 * @return AbstractModule	The module instance
 	 */
 	public static function getInstance($moduleInstanceId = NULL, $mainFunctionPath = NULL) {
 		assert('is_null($moduleInstanceId) || is_numeric($moduleInstanceId)');
