@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<title>{TITLE} — Exxprezzo</title>
+<title>{TITLE}</title>
 
 <link rel="stylesheet" type="text/css" href="././resources/style.css" />
 <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
