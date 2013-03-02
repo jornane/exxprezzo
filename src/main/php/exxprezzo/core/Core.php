@@ -252,14 +252,21 @@ final class Core {
 				$key = implode($delim, $segments);
 				$last = array_pop($segments);
 				$method = 'get'.ucfirst($key);
-				if (is_array($var) && isset($var[$key]))
-					$result = $var[$key];
-				else if (is_object($var) && $var instanceof \ArrayAccess && $var->offsetExists($key))
-					$result = $var->offsetGet($key);
-				else if (is_object($var) && isset($var->$key))
-					$result = $var->$key;
-				else if (!strpos($method, $delim) && is_object($var) && method_exists($var, $method))
-					$result = $var->$method();
+				if (is_array($var) && isset($var[$key])) try {
+					$result = $var[$key]; // Primitive array
+				} catch (Exception $e) {}
+				else if (is_object($var) && isset($var->$key)) try {
+					$result = $var->$key; // Direct object access
+				} catch (Exception $e) {}
+				else if (is_object($var) && $var instanceof \ArrayAccess && $var->offsetExists($key)) try {
+					$result = $var->offsetGet($key); // Object implementing ArrayAccess
+				} catch (Exception $e) {}
+				else if (is_object($var) && method_exists($var, '__get')) try {
+						$result = $var->__get($key); // Overloaded object access
+				} catch (Exception $e) {}
+				else if (!strpos($method, $delim) && is_object($var) && method_exists($var, $method)) try {
+					$result = $var->$method(); // Object with getter
+				} catch (Exception $e) {}
 			}
 			for($i=0;$i<count($segments)+1;$i++)
 				array_shift($remaining);
