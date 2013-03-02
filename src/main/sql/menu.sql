@@ -1,16 +1,3 @@
-# ************************************************************
-# Sequel Pro SQL dump
-# Version 3408
-#
-# http://www.sequelpro.com/
-# http://code.google.com/p/sequel-pro/
-#
-# Host: localhost (MySQL 5.5.23)
-# Database: exxprezzo
-# Generation Time: 2012-07-12 09:31:18 +0000
-# ************************************************************
-
-
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -28,20 +15,11 @@ DROP TABLE IF EXISTS `menu_menu`;
 CREATE TABLE `menu_menu` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `moduleInstance` int(10) unsigned DEFAULT NULL,
-  `path` varchar(255) NOT NULL DEFAULT '',
-  `caption` varchar(255) NOT NULL DEFAULT '',
+  `path` varchar(255) CHARACTER SET latin1 NOT NULL DEFAULT '',
+  `caption` varchar(255) CHARACTER SET latin1 NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-LOCK TABLES `menu_menu` WRITE;
-/*!40000 ALTER TABLE `menu_menu` DISABLE KEYS */;
-
-INSERT INTO `menu_menu` (`id`, `moduleInstance`, `path`, `caption`)
-VALUES
-	(1,1,'','Home');
-
-/*!40000 ALTER TABLE `menu_menu` ENABLE KEYS */;
-UNLOCK TABLES;
 
 
 

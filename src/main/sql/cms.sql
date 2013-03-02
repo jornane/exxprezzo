@@ -1,16 +1,3 @@
-# ************************************************************
-# Sequel Pro SQL dump
-# Version 3408
-#
-# http://www.sequelpro.com/
-# http://code.google.com/p/sequel-pro/
-#
-# Host: localhost (MySQL 5.5.23)
-# Database: exxprezzo
-# Generation Time: 2012-07-02 13:09:05 +0000
-# ************************************************************
-
-
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -23,17 +10,21 @@
 # Dump of table cms_files
 # ------------------------------------------------------------
 
+DROP TABLE IF EXISTS `cms_files`;
+
 CREATE TABLE `cms_files` (
-  `path` varchar(255) NOT NULL DEFAULT '',
-  `filename` varchar(128) NOT NULL DEFAULT '',
+  `path` varchar(255) CHARACTER SET latin1 NOT NULL DEFAULT '',
+  `filename` varchar(128) CHARACTER SET latin1 NOT NULL DEFAULT '',
   `file` int(10) unsigned NOT NULL,
   PRIMARY KEY (`filename`,`path`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 
 # Dump of table cms_pages
 # ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `cms_pages`;
 
 CREATE TABLE `cms_pages` (
   `path` varchar(255) NOT NULL DEFAULT '',

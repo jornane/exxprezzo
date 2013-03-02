@@ -1,16 +1,3 @@
-# ************************************************************
-# Sequel Pro SQL dump
-# Version 3408
-#
-# http://www.sequelpro.com/
-# http://code.google.com/p/sequel-pro/
-#
-# Host: localhost (MySQL 5.5.23)
-# Database: exxprezzo
-# Generation Time: 2012-07-12 10:03:04 +0000
-# ************************************************************
-
-
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -27,16 +14,16 @@ DROP TABLE IF EXISTS `config`;
 
 CREATE TABLE `config` (
   `key` varchar(255) CHARACTER SET ascii NOT NULL DEFAULT '',
-  `value` varchar(255) NOT NULL DEFAULT '',
+  `value` varchar(255) CHARACTER SET latin1 NOT NULL DEFAULT '',
   PRIMARY KEY (`key`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 LOCK TABLES `config` WRITE;
 /*!40000 ALTER TABLE `config` DISABLE KEYS */;
 
 INSERT INTO `config` (`key`, `value`)
 VALUES
-	('timeZone','Etc/GMT+0'),
+	('timeZone','Europe/Oslo'),
 	('urlManager','QueryString');
 
 /*!40000 ALTER TABLE `config` ENABLE KEYS */;
@@ -54,7 +41,7 @@ CREATE TABLE `hostGroup` (
   `type` enum('primary','slave','redirect') CHARACTER SET ascii NOT NULL DEFAULT 'slave',
   PRIMARY KEY (`hostGroupId`,`hostName`),
   UNIQUE KEY `hostName` (`hostName`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 LOCK TABLES `hostGroup` WRITE;
 /*!40000 ALTER TABLE `hostGroup` DISABLE KEYS */;
@@ -67,6 +54,20 @@ VALUES
 UNLOCK TABLES;
 
 
+# Dump of table hostGroupAlias
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `hostGroupAlias`;
+
+CREATE TABLE `hostGroupAlias` (
+  `hostGroupId` int(11) unsigned NOT NULL,
+  `hostName` varchar(255) CHARACTER SET latin1 NOT NULL DEFAULT '',
+  PRIMARY KEY (`hostGroupId`,`hostName`),
+  UNIQUE KEY `hostName` (`hostName`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
 # Dump of table layout
 # ------------------------------------------------------------
 
@@ -75,17 +76,17 @@ DROP TABLE IF EXISTS `layout`;
 CREATE TABLE `layout` (
   `layoutId` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `theme` varchar(255) CHARACTER SET ascii NOT NULL,
-  `name` varchar(255) NOT NULL DEFAULT '',
+  `name` varchar(255) CHARACTER SET latin1 NOT NULL DEFAULT '',
   `defaultBox` varchar(255) CHARACTER SET ascii NOT NULL DEFAULT '',
   PRIMARY KEY (`layoutId`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 LOCK TABLES `layout` WRITE;
 /*!40000 ALTER TABLE `layout` DISABLE KEYS */;
 
 INSERT INTO `layout` (`layoutId`, `theme`, `name`, `defaultBox`)
 VALUES
-	(1,'default','default','content');
+	(1,'tinymce','default','content');
 
 /*!40000 ALTER TABLE `layout` ENABLE KEYS */;
 UNLOCK TABLES;
@@ -98,13 +99,13 @@ DROP TABLE IF EXISTS `moduleInstance`;
 
 CREATE TABLE `moduleInstance` (
   `moduleInstanceId` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `module` varchar(255) NOT NULL DEFAULT '',
-  `root` varchar(255) DEFAULT '',
+  `module` varchar(255) CHARACTER SET latin1 NOT NULL DEFAULT '',
+  `root` varchar(255) CHARACTER SET latin1 DEFAULT '',
   `hostGroup` int(11) unsigned NOT NULL,
-  `param` text,
+  `param` text CHARACTER SET latin1,
   PRIMARY KEY (`moduleInstanceId`),
   UNIQUE KEY `mountpoint` (`root`,`hostGroup`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 LOCK TABLES `moduleInstance` WRITE;
 /*!40000 ALTER TABLE `moduleInstance` DISABLE KEYS */;
@@ -112,9 +113,32 @@ LOCK TABLES `moduleInstance` WRITE;
 INSERT INTO `moduleInstance` (`moduleInstanceId`, `module`, `root`, `hostGroup`, `param`)
 VALUES
 	(1,'CMS','',1,'exxprezzo://localhost/core#cms'),
-	(2,'Menu',NULL,1,'exxprezzo://localhost/core#cms');
+	(2,'Menu',NULL,1,'exxprezzo://localhost/core#menu');
 
 /*!40000 ALTER TABLE `moduleInstance` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+# Dump of table moduleParam
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `moduleParam`;
+
+CREATE TABLE `moduleParam` (
+  `moduleInstanceId` int(11) unsigned NOT NULL,
+  `key` varchar(255) CHARACTER SET latin1 NOT NULL DEFAULT '',
+  `value` blob NOT NULL,
+  PRIMARY KEY (`moduleInstanceId`,`key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+LOCK TABLES `moduleParam` WRITE;
+/*!40000 ALTER TABLE `moduleParam` DISABLE KEYS */;
+
+INSERT INTO `moduleParam` (`moduleInstanceId`, `key`, `value`)
+VALUES
+	(1,'','');
+
+/*!40000 ALTER TABLE `moduleParam` ENABLE KEYS */;
 UNLOCK TABLES;
 
 
@@ -131,7 +155,7 @@ CREATE TABLE `page` (
   `preferredFunctionTemplate` varchar(255) CHARACTER SET ascii DEFAULT NULL,
   PRIMARY KEY (`pageId`),
   UNIQUE KEY `moduleInstanceId` (`moduleInstanceId`,`pageId`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 LOCK TABLES `page` WRITE;
 /*!40000 ALTER TABLE `page` DISABLE KEYS */;
@@ -142,23 +166,6 @@ VALUES
 
 /*!40000 ALTER TABLE `page` ENABLE KEYS */;
 UNLOCK TABLES;
-
-
-# Dump of table session_session
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `session_session`;
-
-CREATE TABLE `session_session` (
-  `id` varchar(128) NOT NULL DEFAULT '',
-  `touched` int(8) NOT NULL,
-  `lifetime` int(4) NOT NULL,
-  `ip` varchar(22) NOT NULL DEFAULT '',
-  `userAgent` varchar(255) NOT NULL DEFAULT '',
-  `data` longtext NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
 
 
 # Dump of table widget
@@ -174,17 +181,17 @@ CREATE TABLE `widget` (
   `preferredFunctionTemplate` varchar(255) CHARACTER SET ascii DEFAULT NULL,
   `box` varchar(255) CHARACTER SET ascii NOT NULL DEFAULT '',
   `priority` int(11) unsigned NOT NULL,
-  `param` text,
+  `param` text CHARACTER SET latin1,
   PRIMARY KEY (`widgetId`),
   KEY `pageId` (`pageId`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 LOCK TABLES `widget` WRITE;
 /*!40000 ALTER TABLE `widget` DISABLE KEYS */;
 
 INSERT INTO `widget` (`widgetId`, `pageId`, `moduleInstanceId`, `function`, `preferredFunctionTemplate`, `box`, `priority`, `param`)
 VALUES
-	(1,NULL,2,'menu',NULL,'menu',1,NULL);
+	(1,1,2,'menu',NULL,'menu',0,NULL);
 
 /*!40000 ALTER TABLE `widget` ENABLE KEYS */;
 UNLOCK TABLES;
