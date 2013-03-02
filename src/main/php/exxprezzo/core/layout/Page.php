@@ -45,8 +45,9 @@ final class Page extends AbstractOutput {
 				FROM `page`
 				JOIN `layout` ON `layout`.`layoutId` = `page`.`layoutId`
 				WHERE (`moduleInstanceId` = :moduleInstanceId OR `moduleInstanceId` IS NULL)
-				AND (`function` = :function OR `function` IS NULL)
-				ORDER BY (`moduleInstanceId`!="" AND `function`!=""), `moduleInstanceId`!=""
+					AND (`function` = :function OR `function` IS NULL)
+				ORDER BY (`moduleInstanceId` IS NOT NULL AND `function` IS NOT NULL) DESC,
+					`moduleInstanceId` IS NULL
 				LIMIT 1', array(
 						'moduleInstanceId' => $this->mainModule->getInstanceId(),
 						'function' => $this->mainModule->getFunctionName(),
