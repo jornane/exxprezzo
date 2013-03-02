@@ -2,11 +2,6 @@
 
 interface User {
 
-	function __set($name, $value);
-	function __get($name);
-	function __isset($name);
-	function __unset($name);
-	
 	function getId();
 	function getUserName();
 	
