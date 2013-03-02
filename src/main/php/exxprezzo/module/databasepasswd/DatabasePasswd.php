@@ -126,7 +126,7 @@ class DatabasePasswd extends Passwd {
 				'realName' => $user->getRealName(),
 				'userData' => $user,
 			));
-		$pageData = $this->db->query('SELECT `content` FROM `page` WHERE `page` = $page', array(
+		$pageData = $this->db->query('SELECT `content` FROM `userpage` WHERE `page` = $page', array(
 				'page' => $params['page']
 			));
 		if (!isset($pageData[0]))
