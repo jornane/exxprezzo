@@ -4,13 +4,13 @@ use \exxprezzo\core\output\FormattableOutput;
 use \exxprezzo\core\output\AbstractOutput;
 
 abstract class AbstractFormattableOutput extends AbstractOutput implements FormattableOutput {
-	
+
 	/** @var Content $content */
 	protected $content;
 	protected $preferredTemplate;
-	
+
 	/**
-	 * 
+	 *
 	 * @param AbstractModule $source
 	 * @param Content $content
 	 * @param string $preferredTemplate
@@ -20,13 +20,13 @@ abstract class AbstractFormattableOutput extends AbstractOutput implements Forma
 		$this->content = $content;
 		$this->preferredTemplate = $preferredTemplate;
 	}
-	
+
 	public function getPreferredTemplate() {
 		return $this->preferredTemplate;
 	}
-	
+
 	public function getContentObject() {
 		return clone $this->content;
 	}
-	
+
 }

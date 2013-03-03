@@ -17,24 +17,24 @@ abstract class AbstractModule implements Runnable {
 	private $mainFunctionPath;
 	/** @var string */
 	private $modulePath;
-	
+
 	/** @var boolean */
 	protected $isMain;
 	/** @var string */
 	private $functionName;
 	/** @var string[] */
 	private $pathParameters;
-	
+
 	/** @var int */
 	private $instanceId;
 	/** @var HostGroup */
 	private $hostGroup;
 	/** @var mixed */
 	private $moduleParam;
-	
+
 	/** @var AbstractModule[] */
 	private static $instances = array();
-		
+
 	/**
 	 * Get the module instance associated with this hostGroup and internalPath
 	 * @param HostGroup $HostGroup	the hostgroup
@@ -44,7 +44,7 @@ abstract class AbstractModule implements Runnable {
 	public static function getInstanceFor($hostGroup, $internalPath) {
 		assert('$hostGroup instanceof \exxprezzo\core\url\HostGroup');
 		assert('is_string($internalPath)');
-		
+
 		$path = ltrim($internalPath, '/');
 		$dbh = Core::getDatabaseConnection();
 		$options = AbstractUrlManager::pathOptions($path);
@@ -69,7 +69,7 @@ abstract class AbstractModule implements Runnable {
 		// Make me a 404
 		user_error('Unable to find suitable module.');
 	}
-	
+
 	/**
 	 * Get the module instance by ID, given the mainFunctionPath provided
 	 * @param int $moduleInstanceId	the ID of the module instance to return
@@ -79,7 +79,7 @@ abstract class AbstractModule implements Runnable {
 	public static function getInstance($moduleInstanceId = NULL, $mainFunctionPath = NULL) {
 		assert('is_null($moduleInstanceId) || is_numeric($moduleInstanceId)');
 		assert('is_null($mainFunctionPath) || is_string($mainFunctionPath)');
-		
+
 		$dbh = Core::getDatabaseConnection();
 		// TODO Find which instance should be returned, right now it's the first that pops up.
 		if (is_null($moduleInstanceId)) {
@@ -119,9 +119,9 @@ abstract class AbstractModule implements Runnable {
 		else
 			user_error('There is no module with instance '.$moduleInstanceId);
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $class
 	 * @return SingletonModule
 	 */
@@ -130,9 +130,9 @@ abstract class AbstractModule implements Runnable {
 		assert('is_subclass_of($class, \'\\\\exxprezzo\\\\core\\\\module\\\\SingletonModule\'');
 		return $instance;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $module
 	 * @param int $instanceId
 	 * @param HostGroup $hostGroup
@@ -152,9 +152,9 @@ abstract class AbstractModule implements Runnable {
 		$result->init();
 		return $result;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param mixed $moduleParameter
 	 * @throws \Exception
 	 */
@@ -167,12 +167,12 @@ abstract class AbstractModule implements Runnable {
 			return SQL::createConnection($moduleParameter);
 		}
 	}
-	
+
 	/**
 	 * @return string
 	 */
 	public abstract function getTitle($params);
-	
+
 	/**
 	 * Will set if the module is main
 	 * If true and no function has been determined earlier,
@@ -201,7 +201,7 @@ abstract class AbstractModule implements Runnable {
 	public function isMain() {
 		return $this->isMain;
 	}
-		
+
 	/**
 	 * Retrieves a path that will result in a call to the given function
 	 * with the given arguments. This function uses a static field named $paths
@@ -221,7 +221,7 @@ abstract class AbstractModule implements Runnable {
 	public static function mkFunctionPath($function, $args) {
 		assert('is_string($function);');
 		assert('is_array($args);');
-		
+
 		if(!isset(static::$paths))
 			user_error('This module has no usable paths');
 		if(!isset(static::$paths[$function]))
@@ -288,22 +288,22 @@ abstract class AbstractModule implements Runnable {
 		}
 		return array_keys($result);
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string[] $params
 	 */
 	protected function setPathParameters($params){
 		$this->pathParameters = $params;
 	}
-	
+
 	/**
 	 * @return string[]
 	 */
 	public function getParameters(){
 		return $this->pathParameters;
 	}
-	
+
 	/**
 	 * Get the module path (the part of the internal path that points to this module)
 	 * @return string
@@ -317,9 +317,9 @@ abstract class AbstractModule implements Runnable {
 	public final function getHostGroup() {
 		return $this->hostGroup;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $name
 	 */
 	protected function setFunctionName($name){
@@ -328,7 +328,7 @@ abstract class AbstractModule implements Runnable {
 		else
 			user_error('Module '.$this->getName().' does not contain a function '.$name);
 	}
-	
+
 	/**
 	 * @return string
 	 */
@@ -386,9 +386,9 @@ abstract class AbstractModule implements Runnable {
 		$content->putVariables(Core::getUrlManager()->getRawPost());
 		return $this->$name($this->getParameters(), $content);
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $function
 	 * @param array $moduleParam
 	 * @param boolean $fullUrl
@@ -404,13 +404,13 @@ abstract class AbstractModule implements Runnable {
 			user_error('Module '.$this->__toString().' is not exposed and as such no url can be made pointing to it.');
 		if (is_null($fullUrl))
 			$fullUrl = false;
-		
+
 		assert('is_string($function);');
 		assert('is_array($moduleParam);');
 		assert('is_bool($fullUrl);');
 		assert('is_array($get);');
 		assert('is_bool($noGetForce);');
-		
+
 		$functionPath = static::mkFunctionPath($function, $moduleParam);
 		assert('is_string($functionPath)');
 		assert('strlen($functionPath) > 0');
@@ -424,9 +424,9 @@ abstract class AbstractModule implements Runnable {
 				$noGetForce
 			);
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $function
 	 * @param array $moduleParam
 	 * @param array $get
@@ -436,15 +436,15 @@ abstract class AbstractModule implements Runnable {
 		header('Location: '.$this->mkurl($function, $moduleParam, true, $get, $noGetForce));
 		exit;
 	}
-	
+
 	/**
 	 * Module path is the part of the Internal URL which does not indicate the module.
-	 * @return string	The module path 
+	 * @return string	The module path
 	 */
 	public function getMainFunctionPath() {
 		return $this->mainFunctionPath;
 	}
-	
+
 	/**
 	 * The module parameter is a variable that is provided to this instance of the module.
 	 * There are no rules for this variable,
@@ -455,14 +455,14 @@ abstract class AbstractModule implements Runnable {
 	public function getModuleParam() {
 		return $this->moduleParam;
 	}
-	
+
 	/**
 	 * @return int	The instance number of this module instance
 	 */
 	public final function getInstanceId() {
 		return $this->instanceId;
 	}
-	
+
 	/**
 	 * @return string	The name of this module
 	 */
@@ -470,7 +470,7 @@ abstract class AbstractModule implements Runnable {
 		$class = get_called_class();
 		return substr($class, strrpos($class, '\\')+1);
 	}
-	
+
 	/**
 	 * @return string	String which can be used to identify this instance
 	 */

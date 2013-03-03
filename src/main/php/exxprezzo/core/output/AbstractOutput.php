@@ -1,8 +1,8 @@
 <?php namespace exxprezzo\core\output;
 
-use \DateTime;
-
 use \exxprezzo\core\module\AbstractModule;
+
+use \DateTime;
 
 abstract class AbstractOutput implements Output {
 	

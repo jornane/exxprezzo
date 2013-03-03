@@ -9,12 +9,12 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 	protected $vars = array();
 	/** @var Content[] */
 	protected $namespaces = array();
-	
+
 	public function __construct($initialValue=NULL) {
 		if (!is_null($initialValue))
 			$this->putVariables($initialValue);
 	}
-	
+
 	public function putVariable($key, $value) {
 		if (is_array($value))
 			$this->vars[$key] = new Content($value);
@@ -28,9 +28,9 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 	public function removeVariable($key) {
 		unset($this->vars[$key]);
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $loopName
 	 */
 	protected function &getLoop($loopName) {
@@ -43,7 +43,7 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 		}
 		return $root[$last];
 	}
-	
+
 	public function putLoop($loopName, $loop) {
 		$loops = explode('.', $loopName);
 		$last = array_pop($loops);
@@ -55,7 +55,7 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 		$root[$last] = $loop;
 	}
 	/**
-	 * 
+	 *
 	 * @param string $loopName
 	 * @param string[]|object $loop
 	 */
@@ -68,11 +68,11 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 		} else {
 			user_error('Invalid type for $loop: '.gettype($loop));
 		}
-		
+
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $name
 	 */
 	public function getVariableString($name) {
@@ -93,15 +93,15 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 			return null;
 		user_error('The variable {'.$name.'} is of type '.gettype($var).', must be string or object with __toString() method');
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string|Content[]|object $name
 	 */
 	public function getVariable($name) {
 		return Core::resolve($this->vars, $name);
 	}
-	
+
 	/**
 	 * This method is namespace protected
 	 * @access protected
@@ -120,9 +120,9 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 			$result->vars[$loopName.'.'.$key] = $value;
 		return $result;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $name
 	 * @param Content $content
 	 */
@@ -132,14 +132,14 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 		else
 			user_error('$content should be of type Content');
 	}
-	
+
 	public function getNamespace($name) {
 		if (isset($this->namespaces[strtolower($name)]))
 			return $this->namespaces[strtolower($name)];
 		else
 			return null;
 	}
-	
+
 	/**
 	 * Retrieves an array containing the names
 	 * of the variables and loops contained in this
@@ -150,11 +150,11 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 	public function getVariableNames(){
 		return array_keys($this->vars);
 	}
-	
+
 	public function jsonSerialize() {
 		return $this->vars;
 	}
-	
+
 	public function offsetExists($offset) {
 		return isset($this->vars[$offset]);
 	}
@@ -170,6 +170,6 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 	public function getIterator() {
 		return new ArrayObject($this->vars);
 	}
-	
-	
+
+
 }

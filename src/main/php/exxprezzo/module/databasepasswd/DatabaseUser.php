@@ -20,24 +20,24 @@ class DatabaseUser implements User {
 	protected $changes = array();
 	/** Non-committed removes in $userField */
 	protected $removes = array();
-	
+
 	/** @var \exxprezzo\core\db\SQL */
 	protected $db;
 	/** @var DatabasePasswd */
 	protected $passwd;
-	
+
 	public function __construct($dbPasswd, $username, $id) {
 		assert('$dbPasswd instanceof \exxprezzo\module\databasepasswd\DatabasePasswd');
 		assert('!is_null($username) || !is_null($id)');
 		assert('is_null($username) || is_string($username)');
 		assert('is_null($id) || is_numeric($id)');
-		
+
 		$this->passwd = $dbPasswd;
 		$this->db = $dbPasswd->db;
 		$this->username = $username;
 		$this->id = $id;
 	}
-	
+
 	public function set($module, $key, $value) {
 		if (is_object($module) && $module instanceof AbstractModule)
 			$module = $module->getInstanceId();
@@ -84,7 +84,7 @@ class DatabaseUser implements User {
 		$this->removes[$module][$key] = $key;
 		unset($this->changes[$module][$key]);
 	}
-	
+
 	public function destroy() {
 		$this->lazyLoad();
 		$users = $this->db->query('SELECT `username`, `id` FROM `user` WHERE `id` = $id AND `username` = $username;', array(
@@ -218,20 +218,20 @@ class DatabaseUser implements User {
 		$crypt = preg_replace('_\$([^\$]+)\$(?=[^\$]+$)_', '$$', crypt($password, $salt));
 		return $crypt;
 	}
-	
+
 	public function isInGroup($group) {
-		
+
 	}
 	public function addToGroup($group) {
-		
+
 	}
 	public function removeFromGroup($group) {
-		
+
 	}
 	public function getGroups() {
-		
+
 	}
-	
+
 	public function getId() {
 		$this->lazyLoad();
 		return $this->id;
@@ -259,7 +259,7 @@ class DatabaseUser implements User {
 			$this->realname = $this->getUserName();
 		return $this->realname;
 	}
-	
+
 	protected function lazyLoad() {
 		if (!isset($this->id)) {
 			$users = $this->db->query('SELECT `id`, `realname`, `accountExpires` FROM `user` WHERE `username` = $username;', array(
@@ -272,7 +272,7 @@ class DatabaseUser implements User {
 					user_error('Account "'.$this->username.'" is expired.');
 			}
 		}
-		
+
 		if (isset($this->id)) {
 			$userField = $this->db->query('SELECT `key`, `value`, `module` FROM `userfield` WHERE `user` = $id', array(
 					'id' => $this->id,
