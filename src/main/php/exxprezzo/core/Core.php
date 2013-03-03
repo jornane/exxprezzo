@@ -14,28 +14,28 @@ use \exxprezzo\core\layout\Page;
 use \exxprezzo\core\db\SQL;
 
 final class Core {
-	
+
 	/** @var (string)[] */
 	private static $config = array();
-	
+
 	/** @var string */
 	private static $basedir;
-	
+
 	/** @var SQL */
 	private static $database;
-	
+
 	/** @var string */
 	private static $errorPage;
-	
+
 	/** @var AbstractUrlManager */
 	private static $urlManager;
-	
+
 	/** @var \exxprezzo\core\page\Page */
 	private static $pageManager;
-	
+
 	/** @var \exxprezzo\core\module\AbstractModule */
 	private static $mainModule;
-	
+
 	public static function run() {
 		self::$errorPage = $GLOBALS['errorPage'];
 		try {
@@ -44,25 +44,25 @@ final class Core {
 			set_error_handler(array('\exxprezzo\core\Core', 'handleError'));
 			// Set assertion handler
 			assert_options(ASSERT_CALLBACK, array('\exxprezzo\core\Core', 'handleAssertion'));
-			
+
 			define('PHPVERSION', (real)preg_replace("_^([0-9]+)\.([0-9]+)(.*)_", "\\1.\\2", phpversion()));
 			assert('PHPVERSION >= 5.4');
-			
+
 			// Read config file
 			self::readConfigFile();
-			
+
 			// Read config from database (implicit connect to database)
 			self::readConfigFromDB();
-			
+
 			assert_options(ASSERT_ACTIVE, (!isset($config['debug'])||$config['debug'])?1:0);
-			
+
 			date_default_timezone_set(self::$config['timeZone']);
-			
+
 			// Parse URL
 			/** @var string */
 			$urlManager = 'exxprezzo\\core\\url\\'.self::$config['urlManager'].'UrlManager';
 			self::$urlManager = new $urlManager();
-			
+
 			// Instantiate main module
 			self::$mainModule = AbstractModule::getInstanceFor(
 					self::$urlManager->getHostGroup(),
@@ -70,7 +70,7 @@ final class Core {
 				);
 			self::$mainModule->setMain(true);
 			self::$urlManager->registerMainModule();
-			
+
 			// Invoke main module
 			try {
 				/** @var \exxprezzo\core\Output */
@@ -88,7 +88,7 @@ final class Core {
 				// Send headers
 				self::$pageManager->run();
 			} else $outputObject->run();
-			
+
 			// Cleanup
 			if (!headers_sent() && ob_get_length() == 0)
 				trigger_error('No errors occurred, but no output was generated either.');
@@ -97,24 +97,24 @@ final class Core {
 			exit;
 		}
 	}
-	
+
 	/**
 	 * @return \exxprezzo\core\url\AbstractUrlManager
 	 */
 	public static function getUrlManager() {
 		return self::$urlManager;
 	}
-	
+
 	public static function getMainModule() {
 		return self::$mainModule;
 	}
-	
+
 	private static function readConfigFile() {
 		$contents = file_get_contents('exxprezzo/Config.php');
 		$pos = strpos($contents, '?>', 0);
 		self::$config = json_decode(substr($contents, $pos+2), true);
 	}
-	
+
 	private static function readConfigFromDB() {
 			foreach(self::getDatabaseConnection()->query('SELECT `key`, `value` from `config`') as $entry) {
 			if (isset(self::$config[$entry['key']]))
@@ -126,7 +126,7 @@ final class Core {
 			}
 		}
 	}
-	
+
 	public static function loadClass($className) {
 		if (class_exists($className) || interface_exists($className)) return; // Class already exists, our work here is done
 		$path = self::$basedir.DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR, $className).'.php';
@@ -139,7 +139,7 @@ final class Core {
 			exit;
 		}
 	}
-	
+
 	// Is public, but is only intended for use in the core namespace.
 	/**
 	 * @return \exxprezzo\core\db\SQL
@@ -149,7 +149,7 @@ final class Core {
 			self::$database = SQL::createConnection(self::$config['db']);
 		return self::$database;
 	}
-	
+
 	public static function handleError($errno, $errstr, $errfile, $errline, $context) {
 		// Don't handle errors from external libraries
 		if (self::$basedir != substr($errfile, 0, strlen(self::$basedir)))
@@ -160,7 +160,7 @@ final class Core {
 	public static function handleAssertion($file, $line, $assertion) {
 		self::handleException(new \Exception('The following assertion was not met: '.$assertion));
 	}
-	
+
 	/**
 	 * Display an Exception as HTML
 	 *
@@ -171,7 +171,7 @@ final class Core {
 	 */
 	public static function handleException($e, $return=false, $handleHttpCode=false) {
 		$output = NULL;
-		
+
 		// Get the title of the error
 		if (get_class($e) == 'ErrorException') {
 			$title = 'PHP'; // Otherwise ErrorException would display as Error Error, now it displays as PHP Error
@@ -186,7 +186,7 @@ final class Core {
 				$title .= $className{$i};
 			}
 		}
-		
+
 		// Build a stacktrace
 		$trace = "\n";
 		$tracestart = 0;
@@ -210,7 +210,7 @@ final class Core {
 				$trace .= '#'.($id-$tracestart).' '.substr($t['file'], strlen(self::$basedir)).'('.$t['line'].'): '
 					.$t['function'].'('.implode(',',array_map('gettype',$t['args'])).")\n";
 		}
-		
+
 		// Try to render an errorpage
 		if (!$output && !is_null(self::$errorPage) && file_exists(self::$errorPage) && is_readable(self::$errorPage)) {
 			$output = str_ireplace(array(
@@ -227,7 +227,7 @@ final class Core {
 		if (!$output) {
 			$output = '<h1>'.htmlspecialchars($title)." Error</h1>\n<p>".nl2br($e->getMessage()).'</p><pre>'.$trace.'</pre>';
 		}
-		
+
 		if (isset($output)) {
 			if ($return)
 				return $output;
