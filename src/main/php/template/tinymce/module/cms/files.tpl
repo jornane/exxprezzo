@@ -1,4 +1,6 @@
+<!-- IF upload -->
 <p>Upload new file: {input:file} <input type="submit" /></p>
+<!-- /IF upload -->
 <p>Note: uploading a file which has the same name as a file that already exists,<br />
 will overwrite the existing file</p>
 <!-- IF file -->

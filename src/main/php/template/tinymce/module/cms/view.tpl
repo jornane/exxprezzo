@@ -1,4 +1,4 @@
 {content}
-<!--  IF editHref -->
+<!-- IF editHref -->
 <p><a href="{editHref}">Edit</a></p>
-<!--  /IF editHref -->
+<!-- /IF editHref -->
