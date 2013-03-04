@@ -131,6 +131,8 @@ class Template {
 	 * 
 	 */
 	public function render() {
+		assert('is_object($this->content)');
+		assert('$this->content instanceof \\exxprezzo\\core\\Content');
 		$templateCode = $this->templateCode;
 		$this->tempVars = array();
 		$templateCode = preg_replace($this->extraReplacePattern, $this->extraReplaceReplacement, $templateCode);
@@ -153,6 +155,8 @@ class Template {
 		$content = $this->content;
 		foreach($namespacePath as $namespace) {
 			$content = $content->getNamespace($namespace);
+			if (is_null($content))
+				user_error('Invalid namespace: '.implode(':', $namespacePath).($this->filename?' (file '.$this->filename.')':''));
 		}
 		$tpl = clone $this;
 		$tpl->templateCode = $matches[self::CONTENT];
