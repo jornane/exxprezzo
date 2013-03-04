@@ -4,10 +4,10 @@ use \DateTime;
 use \DateTimeZone;
 
 class Template {
-	
+
 	/** @var string */
 	protected $templateCode;
-	
+
 	/** @var string[] */
 	protected $blockKeywords;
 	/** @var string[] */
@@ -19,34 +19,34 @@ class Template {
 	private function __clone() {
 		unset($this->blockKeywords, $this->annotations, $this->blocks, $this->variables);
 	}
-	
+
 	/** @var \exxprezzo\core\Content */
 	protected $content;
 	/** @var object[] */
 	protected $objects = array();
-	
+
 	/** @var string */
 	protected $filename;
-	
+
 	/** @var string[] */
 	private $tempVars;
 	/** @var string[] */
 	private $validPrefixes = array();
-	
+
 	private $extraReplacePattern = array();
 	private $extraReplaceReplacement = array();
-	
+
 	const REGEX_BLOCK = '_\\<\\!\\-\\- ([a-z0-9\\_\\-\s]+)\s([a-z0-9\\.\\_\\-]+) \\-\\-\\>(.*?)\\<\\!\\-\\- /\\1 \\2 \\-\\-\\>_msi';
 	const REGEX_ANNOTATION = '_\\<\\!\\-\\- ([a-z0-9\\.\\_\\-]+) ([a-z0-9\\.\\_\\-]+) \\-\\-\\>_i';
 	const KEYWORD = 1;
 	const BLOCKNAME = 2;
 	const CONTENT = 3;
-	
+
 	const REGEX_VAR = '_\\{(#?[a-z0-9\\.\\_:]*?)\\}_i'; // {VAR} and {iteration.VAR}
 	const VARNAME = 1;
-	
+
 	const REGEX_COMMENT = '_\\<\\!\\-\\- (.*) \\-\\-\\>_i';
-	
+
 	public static function templateFromFile($filename, $resourceName='./.') {
 		if (!is_string($resourceName) || !$resourceName)
 			$resourceName = 'resources';
@@ -56,18 +56,18 @@ class Template {
 		$filenameSplice = explode('/', $filename);
 		$result->extraReplaceReplacement[] = Core::getUrlManager()->getBaseUrl() .
 			implode('/', array_slice($filenameSplice, 0, array_search('template', $filenameSplice)+2)).'/';
-		
+
 		return $result;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $templateCode
 	 */
 	public function __construct($templateCode) {
 		$this->templateCode = $templateCode;
 	}
-	
+
 	/**
 	 * @return string[]	a one-dimensional array containing all blocks
 	 * 	as they appear in the template
@@ -81,7 +81,7 @@ class Template {
 			$this->blockKeywords = array_unique($matches[self::KEYWORD]);
 		return $this->blocks = array_unique($matches[self::BLOCKNAME]);
 	}
-	
+
 	/**
 	 * @return string[] an indexed array containing all annotations
 	 * 	as they appear in the template (key => value)
@@ -97,7 +97,7 @@ class Template {
 			unset($result[$key]);
 		return $this->annotations = $result;
 	}
-	
+
 	/**
 	 * @return string[] a list containing all variables as they appear in the template
 	 * @todo namespace support
@@ -108,27 +108,27 @@ class Template {
 		preg_match_all(self::REGEX_VAR, $this->templateCode, $matches);
 		return $this->variables = array_unique($matches[self::VARNAME]);
 	}
-	
+
 	/**
 	 * Set the content used by #render()
-	 * 
+	 *
 	 * @param Content $content
 	 */
 	public function setContent($content) {
 		$this->content = $content;
 	}
-	
+
 	public function __toString() {
 		$result = $this->render();
 		return $result;
 	}
-	
+
 	public function getFilename() {
 		return $this->filename;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 */
 	public function render() {
 		assert('is_object($this->content)');
@@ -143,9 +143,9 @@ class Template {
 		$templateCode = preg_replace('_([\s]{2,})_', "\n", $templateCode);
 		return $templateCode;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string[][] $matches
 	 * @return string
 	 */
@@ -167,7 +167,7 @@ class Template {
 			return '{#'.(count($this->tempVars)-1).'}';
 		} user_error('Invalid keyword: '.$keyword);
 	}
-	
+
 	private function matchVar($matches) {
 		if ($matches[self::VARNAME]{0} == '#')
 			return $this->tempVars[substr($matches[self::VARNAME], 1)];
@@ -175,7 +175,7 @@ class Template {
 		$varName = array_pop($namespacePath);
 		$content = $this->content;
 		foreach($namespacePath as $namespace)
-			$content = $content->getNamespace($namespace);			
+			$content = $content->getNamespace($namespace);
 		$result = $content->getVariableString($varName);
 		if (is_null($result))
 			$result = $this->getValueFromObject($varName);
@@ -188,13 +188,13 @@ class Template {
 		}
 		return $result;
 	}
-	
+
 	protected function getValueFromObject($varName) {
 		return Core::resolve($this->objects, $varName);
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $templateCode
 	 * @param string $blockName
 	 */
@@ -205,11 +205,11 @@ class Template {
 		$this->validPrefixes = array_merge($this->validPrefixes, array($blockName => $blockName));
 		$result = '';
 		if (is_array($blocks)) foreach($blocks as $iteration => $block) {
-			
+
 			$oldContent = $this->content;
 			$oldObjects = $this->objects;
 			$oldVar = $this->content->getVariable($blockName);
-			
+
 			if (is_object($block) && $block instanceof Content) {
 				$this->content = $this->content->loopMerge($blockName, $iteration);
 				unset($this->objects[$blockName]);
@@ -222,19 +222,19 @@ class Template {
 						unset($this->objects[$key]);
 					}
 				}*/
-				$this->objects[$blockName] = $block; 
+				$this->objects[$blockName] = $block;
 			}
 			$result .= $this->render();
-				
+
 			$this->objects = $oldObjects;
 			$this->content = $oldContent;
-			
+
 		}
 		return $result;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $templateCode
 	 * @param string $block
 	 */
@@ -250,7 +250,7 @@ class Template {
 			return $this->render();
 		}
 	}
-	
+
 	/**
 	 *
 	 * @param string $templateCode
@@ -263,7 +263,7 @@ class Template {
 			return $this->render();
 		}
 	}
-	
+
 	/**
 	 *
 	 * @param string $templateCode
@@ -279,9 +279,9 @@ class Template {
 			return $this->render();
 		}
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $templateCode
 	 * @param string $block
 	 * @param Content $content
@@ -291,5 +291,5 @@ class Template {
 		if (!($this->content->getVariable($block)))
 			return $this->render();
 	}
-	
+
 }
