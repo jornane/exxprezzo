@@ -10,24 +10,24 @@ use \exxprezzo\core\output\BlockOutput;
 use \exxprezzo\core\module\AbstractModule;
 
 class Menu extends AbstractModule {
-	
+
 	/**	@var SQL */
 	protected $db;
 	/** @var string[] */
 	protected $params;
-	
+
 	protected static $functions = array();
-	
+
 	public function init() {
 		parent::init();
 		$this->db = $this->getModuleParam();
 		$this->params = $this->getParameters();
 	}
-	
+
 	public function getTitle($params) {
 		return $this->getName();
 	}
-	
+
 	public function menu() {
 		$content = new Content();
 		$this->db->execute('SELECT `moduleInstance`, `path`, `caption` FROM `menu`');
@@ -42,5 +42,5 @@ class Menu extends AbstractModule {
 		}
 		return new BlockOutput($this, $content);
 	}
-	
+
 }

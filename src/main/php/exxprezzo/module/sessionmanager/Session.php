@@ -5,7 +5,7 @@ use \exxprezzo\core\db\SQL;
 use \exxprezzo\core\Core;
 
 class Session {
-	
+
 	/** @var \exxprezzo\module\sessionmanager\SessionManager */
 	protected $sessionManager;
 	/** @var string */
@@ -16,7 +16,7 @@ class Session {
 	protected $defaultLifetime = 3600;
 	/** @var SQL */
 	protected $db;
-	
+
 	public function __construct($sessionManager, $moduleId, $sid=NULL) {
 		assert('$sessionManager instanceof \exxprezzo\module\sessionmanager\SessionManager');
 		assert('is_numeric($moduleId)');
@@ -25,7 +25,7 @@ class Session {
 		$this->sid = $sid;
 		$this->db = $sessionManager->db;
 	}
-	
+
 	public function __set($key, $value) {
 		if (is_null($this->sid))
 			$this->sid = $this->randomString(64);
@@ -78,7 +78,7 @@ class Session {
 			));
 		$this->updateCookie();
 	}
-	
+
 	public function setLifetime($key, $lifetime) {
 		if (is_null($this->sid))
 			return;
@@ -91,7 +91,7 @@ class Session {
 		));
 		$this->updateCookie();
 	}
-	
+
 	protected static function randomString($length) {
 		mt_srand();
 		$str = '';
@@ -99,7 +99,7 @@ class Session {
 			$str .= chr(mt_rand(0,255));
 		return base64_encode($str);
 	}
-	
+
 	protected function updateCookie() {
 		if (is_null($this->sid))
 			return;

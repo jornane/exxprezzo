@@ -2,8 +2,8 @@
 
 class Size implements \JsonSerializable {
 	
-	protected $count;
-	protected static $unit = array('B','kB','MB','GB','TB','PB','EB','ZB','YB');
+	private $count;
+	private static $unit = array('B','kB','MB','GB','TB','PB','EB','ZB','YB');
 	
 	public function __construct($count) {
 		$this->count = $count;

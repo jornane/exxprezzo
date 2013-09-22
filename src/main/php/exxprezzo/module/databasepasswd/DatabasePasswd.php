@@ -22,20 +22,20 @@ use \exxprezzo\module\passwd\Passwd;
 use \DateTime;
 
 class DatabasePasswd extends Passwd {
-	
+
 	protected static $functions = array(
 			'/login.html' => 'login',
 			'/register.html' => 'register',
 			'/password.html' => 'password',
-			'/users/(?<user>.*)/(?<page>[^/]*)' => 'viewUser',
-			'/groups/(?<group>.*)/(?<page>[^/]*)' => 'viewUser',
+			'/users/(?<user>.*)/(?<path>[^/]*)' => 'viewUser',
+			'/groups/(?<group>.*)/(?<path>[^/]*)' => 'viewUser',
 	);
 	protected static $paths = array(
 			'login' => array('login.html'),
 			'register' => array('register.html'),
 			'viewUser' => array('users/{user}'),
 		);
-	
+
 	/** @var DatabaseUser[] */
 	protected $usersByName, $usersById;
 	/** @var DatabaseGroup[] */
@@ -44,16 +44,16 @@ class DatabasePasswd extends Passwd {
 	public $db;
 	/** @var boolean */
 	protected $usersFullyLoaded, $groupsFullyLoaded = false;
-	
+
 	public function init() {
 		parent::init();
 		$this->db = $this->getModuleParam();
 	}
-	
+
 	public function getTitle($params) {
 		return 'Login';
 	}
-	
+
 	public function getUsers() {
 		$users = $this->db->query('SELECT `id`, `username` FROM `user`;');
 		foreach($users as $userData) {
@@ -111,31 +111,31 @@ class DatabasePasswd extends Passwd {
 			$this->groupByName[$name] = new DatabaseUser($this, $name, NULL);
 		return $this->groupByName[$name];
 	}
-	
+
 	public function getCurrentUser() {
 		$session = SessionManager::getInstance()->getSession($this);
-		if (is_numeric($session->user_id));
-		return $this->getUserById($session->user_id);
+		if (is_numeric($session->user_id))
+			return $this->getUserById($session->user_id);
 	}
-	
+
 	public function viewUser($params, $content) {
 		$content = new Content();
 		$user = $this->getUserByName($params['user']);
-		
+
 		$content->putVariables(array(
 				'realName' => $user->getRealName(),
 				'moduleData' => $user->getModule($this),
 				'userData' => $user,
 			));
-		$pageData = $this->db->query('SELECT `content` FROM `userpage` WHERE `page` = $page', array(
-				'page' => $params['page']
+		$pageData = $this->db->query('SELECT `content` FROM `userpage` WHERE `path` = $path', array(
+				'path' => $params['path']
 			));
 		if (!isset($pageData[0]))
 			user_error('The page "'.$params['page'].'" does not exist.');
 		return new BlockOutput($this, $content, new Template($pageData[0]['content']));
 	}
 	public function viewGroup($params, $content) {
-		
+
 	}
 	public function login($params, $input) {
 		if (Core::getUrlManager()->isPost()) {
@@ -157,7 +157,7 @@ class DatabasePasswd extends Passwd {
 			$login = new Content();
 			$logout = new Content();
 			$input = new Content();
-			
+
 			if ($session->user_id) {
 				$user = $this->getUserById($session->user_id);
 				$content->putNamespace('logout', $logout);
@@ -174,7 +174,7 @@ class DatabasePasswd extends Passwd {
 						'password' => new PasswordInput('password'),
 					));
 			}
-			
+
 			return new PostOutput(new BlockOutput($this, $content), $this->mkurl('login'), true);
 		}
 	}
@@ -187,7 +187,7 @@ class DatabasePasswd extends Passwd {
 				user_error('A user with that name already exists.');
 			$user->save();
 			$user->setPassword(Core::getUrlManager()->getPost('password'));
-			
+
 			$session = SessionManager::getInstance()->getSession($this);
 			$session->user_id = $user->getId();
 			$this->redirect('login');
@@ -203,5 +203,5 @@ class DatabasePasswd extends Passwd {
 			return new PostOutput(new BlockOutput($this, $content), $this->mkurl('register'), true);
 		}
 	}
-	
+
 }

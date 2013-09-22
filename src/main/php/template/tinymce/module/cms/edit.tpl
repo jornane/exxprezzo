@@ -4,10 +4,10 @@ tinyMCE.init({
 		// General options
 		mode : "textareas",
 		theme : "exxprezzo",
-		
+
 		plugins : "inlinepopups,autoresize,exxprezzo",
 		inlinepopups_skin : "redmond",
-		
+
 		theme_advanced_resizing : true,
 
 		link_href : "{fileManager.href}",
