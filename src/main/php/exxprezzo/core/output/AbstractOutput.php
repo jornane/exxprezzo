@@ -80,7 +80,13 @@ abstract class AbstractOutput implements Output {
 	}
 	
 	public final function __toString() {
-		return $this->getContent();
+		try {
+			return $this->getContent();
+		} catch (Exception $e) {
+			// FIXME: Hack to work around PHP not allowing __toString() to throw an exception.
+			// That's why we just call the handler from here instead of throwing the exception further.
+			Core::handleException($e, false, true);
+		}
 	}
 	
 }
