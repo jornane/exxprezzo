@@ -211,9 +211,6 @@ class DatabaseUser implements User {
 		}
 		mt_srand($lastChange);
 		$salt .= base64_encode(pack('LLL', mt_rand(), mt_rand(), mt_rand()));
-		$salt .= base64_encode(pack('LLL', mt_rand(), mt_rand(), mt_rand()));
-		$salt .= base64_encode(pack('LLL', mt_rand(), mt_rand(), mt_rand()));
-		$salt .= base64_encode(pack('LLL', mt_rand(), mt_rand(), mt_rand()));
 		$salt .= '$';
 		$crypt = preg_replace('_\$([^\$]+)\$(?=[^\$]+$)_', '$$', crypt($password, $salt));
 		return $crypt;
