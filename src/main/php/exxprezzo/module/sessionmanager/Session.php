@@ -20,7 +20,6 @@ class Session {
 	public function __construct($sessionManager, $moduleId, $sid=NULL) {
 		assert('$sessionManager instanceof \exxprezzo\module\sessionmanager\SessionManager');
 		assert('is_numeric($moduleId)');
-		assert('is_string($moduleId)');
 		$this->sessionManager = $sessionManager;
 		$this->moduleId = $moduleId;
 		$this->sid = $sid;
