@@ -228,12 +228,19 @@ abstract class AbstractModule implements Runnable {
 			user_error('This function has no paths in this module');
 		$paths = static::$paths[$function];
 		$result = NULL;
-		foreach($paths as $path) {
-			$vars = static::extractVars($path);
-			if($vars === array_keys($args)) {
-				$temp = '/'.ltrim(static::buildFunctionPath($path, $args), '/');
-				if(is_null($result) || strlen($temp) < strlen($result) )
-					$result = $temp;
+		foreach($paths as $candidate) {
+			$vars = static::extractVars($candidate);
+			$candidateOK = true;
+			foreach($vars as $var) {
+				if (!isset($args[$var])) {
+					$candidateOK = false;
+					break;
+				}
+			}
+			if($candidateOK) {
+				$path = '/'.ltrim(static::buildFunctionPath($candidate, $args), '/');
+				if(is_null($result) || strlen($path) < strlen($result) )
+					$result = $path;
 			}
 		}
 		if(is_null($result))
