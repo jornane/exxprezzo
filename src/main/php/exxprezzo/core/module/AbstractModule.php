@@ -41,7 +41,7 @@ abstract class AbstractModule implements Runnable {
 	 * @param string $internalPath	the requested path, without the path to the Exxprezzo installation
 	 * @return AbstractModule	The module instance
 	 */
-	public static function getInstanceFor($hostGroup, $internalPath) {
+	public static function getInstanceFor(HostGroup $hostGroup, $internalPath) {
 		assert('$hostGroup instanceof \exxprezzo\core\url\HostGroup');
 		assert('is_string($internalPath)');
 
@@ -140,7 +140,7 @@ abstract class AbstractModule implements Runnable {
 	 * @param string $mainFunctionPath
 	 * @param mixed $param
 	 */
-	private static function _instantiate($module, $instanceId, $hostGroup, $modulePath, $mainFunctionPath, $param) {
+	private static function _instantiate($module, $instanceId, HostGroup $hostGroup, $modulePath, $mainFunctionPath, $param) {
 		$moduleFQN = '\\exxprezzo\\module\\'.strtolower($module).'\\'.$module;
 		/** @var \exxprezzo\core\module\AbstractModule */
 		$result = new $moduleFQN;
@@ -218,7 +218,7 @@ abstract class AbstractModule implements Runnable {
 	 * @return string A path that maps to a call to $function with $args
 	 * as its arguments
 	 */
-	public static function mkFunctionPath($function, $args) {
+	public static function mkFunctionPath($function, array $args) {
 		assert('is_string($function);');
 		assert('is_array($args);');
 
@@ -261,7 +261,7 @@ abstract class AbstractModule implements Runnable {
 	 * @return $path with all occurences of named parameters
 	 * replaced by values from $args
 	 */
-	private static function buildFunctionPath($path, $args) {
+	private static function buildFunctionPath($path, array $args) {
 		// Build the needle and replace
 		$needle = array();
 		$replace = array();
@@ -300,14 +300,14 @@ abstract class AbstractModule implements Runnable {
 	 *
 	 * @param string[] $params
 	 */
-	protected function setPathParameters($params){
+	protected function setPathParameters($params) {
 		$this->pathParameters = $params;
 	}
 
 	/**
 	 * @return string[]
 	 */
-	public function getParameters(){
+	public function getPathParameters() {
 		return $this->pathParameters;
 	}
 
@@ -384,14 +384,14 @@ abstract class AbstractModule implements Runnable {
 	 * in init() (@see #init())
 	 */
 	public final function run() {
-		$name = $this->getFunctionName();
-		if (is_null($name))
+		$function = $this->getFunctionName();
+		if (is_null($function))
 			user_error('No function set');
-		if (!method_exists($this, $name))
-			user_error('Invalid function '.$name.' for module '.$this->getName());
+		if (!method_exists($this, $function))
+			user_error('Invalid function '.$function.' for module '.$this->getName());
 		$content = new Content();
 		$content->putVariables(Core::getUrlManager()->getRawPost());
-		return $this->$name($this->getParameters(), $content);
+		return $this->$function($this->getPathParameters(), $content);
 	}
 
 	/**
@@ -402,7 +402,7 @@ abstract class AbstractModule implements Runnable {
 	 * @param array $get
 	 * @param boolean $noGetForce
 	 */
-	public final function mkurl($function, $moduleParam=NULL, $fullUrl=false, $get=array(), $noGetForce=false) {
+	public final function mkurl($function, array $moduleParam=NULL, $fullUrl=false, array $get=array(), $noGetForce=false) {
 		if (is_null($moduleParam))
 			$moduleParam = $this->getPathParameters();
 		elseif (is_array($this->getPathParameters()))
@@ -439,7 +439,7 @@ abstract class AbstractModule implements Runnable {
 	 * @param array $get
 	 * @param boolean $noGetForce
 	 */
-	public final function redirect($function, $moduleParam=NULL, $get=array(), $noGetForce=true) {
+	public final function redirect($function, array $moduleParam=NULL, array $get=array(), $noGetForce=true) {
 		header('Location: '.$this->mkurl($function, $moduleParam, true, $get, $noGetForce));
 		exit;
 	}
@@ -467,7 +467,7 @@ abstract class AbstractModule implements Runnable {
 	 * @return int	The instance number of this module instance
 	 */
 	public final function getInstanceId() {
-		return $this->instanceId;
+		return (int)$this->instanceId;
 	}
 
 	/**
