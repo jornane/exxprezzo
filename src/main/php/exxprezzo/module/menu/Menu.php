@@ -20,8 +20,8 @@ class Menu extends AbstractModule {
 
 	public function init() {
 		parent::init();
-		$this->db = $this->getModuleParam();
-		$this->params = $this->getParameters();
+		$this->db = $this->getModuleParam('db');
+		$this->params = $this->getPathParameters();
 	}
 
 	public function getTitle($params) {
@@ -30,13 +30,13 @@ class Menu extends AbstractModule {
 
 	public function menu() {
 		$content = new Content();
-		$this->db->execute('SELECT `moduleInstance`, `path`, `caption` FROM `menu`');
+		$this->db->execute('SELECT `moduleInstance`, `function`, `vars`, `caption` FROM `menu`');
 		while($entry = $this->db->fetchrow()) {
 			if (is_null($entry['moduleInstance']))
 				$entry['url'] = $entry['path'];
 			else {
 				$module = AbstractModule::getInstance($entry['moduleInstance']);
-				$entry['url'] = Core::getUrlManager()->mkurl($module->getHostGroup(), $module->getModulePath()).ltrim($entry['path'], '/');
+				$entry['url'] = $module->mkurl($entry['function'], unserialize($entry['vars']));
 			}
 			$content->addLoop('menuItem', $entry);
 		}

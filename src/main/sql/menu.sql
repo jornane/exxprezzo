@@ -15,7 +15,8 @@ DROP TABLE IF EXISTS `menu_menu`;
 CREATE TABLE `menu_menu` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `moduleInstance` int(10) unsigned DEFAULT NULL,
-  `path` varchar(255) CHARACTER SET latin1 NOT NULL DEFAULT '',
+  `function` varchar(255) CHARACTER SET latin1 NOT NULL DEFAULT '',
+  `vars` text,
   `caption` varchar(255) CHARACTER SET latin1 NOT NULL DEFAULT '',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
