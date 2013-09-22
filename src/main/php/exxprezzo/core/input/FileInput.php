@@ -1,6 +1,8 @@
 <?php namespace exxprezzo\core\input;
 
-class FileInput extends AbstractInput {
+use \exxprezzo\core\type\SafeHtml;
+
+class FileInput extends AbstractInput implements SafeHtml {
 
 	public function __construct($name) {
 		parent::__construct($name, NULL);

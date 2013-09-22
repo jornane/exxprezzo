@@ -1,6 +1,8 @@
 <?php namespace exxprezzo\core\input;
 
-class PasswordInput extends AbstractInput {
+use \exxprezzo\core\type\SafeHtml;
+
+class PasswordInput extends AbstractInput implements SafeHtml {
 
 	public function __construct($name, $value='') {
 		parent::__construct($name, $value);

@@ -66,7 +66,7 @@ class CMS extends AbstractModule {
 		static::$pages[$path] = $this->db->fetchrow();
 		if (static::$pages[$path]) {
 			static::$pages[$path]['rawcontent'] = static::$pages[$path]['content'];
-			static::$pages[$path]['content'] = preg_replace(
+			static::$pages[$path]['content'] = new TrustedHtml(preg_replace(
 					'_(?<=["\'])././(.*?)\\1_',
 					$this->mkurl('view'),
 					static::$pages[$path]['content']

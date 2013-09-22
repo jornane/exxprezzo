@@ -1,8 +1,10 @@
 <?php namespace exxprezzo\core\output;
 
+use \exxprezzo\core\type\SafeHtml;
+
 use \exxprezzo\core\Runnable;
 
-interface Output extends Runnable {
+interface Output extends Runnable, SafeHtml {
 	
 	/**
 	 * Send this Output to the browser rightaway

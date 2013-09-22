@@ -1,6 +1,8 @@
 <?php namespace exxprezzo\core\input;
 
-class LongTextInput extends AbstractInput {
+use \exxprezzo\core\type\SafeHtml;
+
+class LongTextInput extends AbstractInput implements SafeHtml {
 
 	/**
 	 * (non-PHPdoc)
