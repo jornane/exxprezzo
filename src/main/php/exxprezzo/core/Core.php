@@ -433,7 +433,7 @@ final class Core {
 		elseif (is_object($haystack) && $haystack instanceof IteratorAggregate)
 			return static::checkHas($needle, $haystack->getIterator());
 		elseif (is_object($haystack) && $haystack instanceof Iterator)
-			for($haystack as $key => $value) {
+			foreach($haystack as $key => $value) {
 				if ($key == $needle)
 					return true;
 			}
