@@ -2,7 +2,10 @@
 
 use \exxprezzo\core\module\AbstractModule;
 
+use \exxprezzo\core\Core;
+
 use \DateTime;
+use \Exception;
 
 abstract class AbstractOutput implements Output {
 	
