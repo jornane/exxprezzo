@@ -8,10 +8,9 @@ use \exxprezzo\core\Core;
 use \exxprezzo\core\exception\PermissionException;
 
 use \exxprezzo\core\module\AbstractModule;
+use \exxprezzo\core\module\SingletonModule;
 
-class ACL extends AbstractModule {
-
-	private static $debug = false;
+class ACL extends SingletonModule {
 
 	// Permission Types definitions
 	const AT_COMP = 'c'; // Compare
@@ -82,20 +81,34 @@ class ACL extends AbstractModule {
 	 * @param array $prevacls	ACLs already being checked while recursing
 	 * @return boolean Whether the permission is granted
 	 */
-	static private function checkACL($name, $module, $defaultAccess, $extravars = array(), $prevacls = array()) {
+	static private function checkACL($name, $module, $defaultAccess, $extravars = array(), $prevacls = array(), $debug = false) {
+		$db = Core::getDatabaseConnection();
+		if ($module instanceof AbstractModule)
+			$module = $module->getInstanceId();
+		assert('is_numeric($module) || is_null($module)');
 		if (in_array($name, $prevacls)) return false; // If this ACL is called by itself (maybe by recusion)
-		$sqlresult = Core::getDatabaseConnection()->execute('SELECT
-			`a`.`checkall`, `r`.`id`, `r`.`comptype`,
+		$sqlresult = $db->execute('SELECT
+			`a`.`checkall`, `r`.`id`, `r`.`comptype`, `a`.`debug`,
 			`r`.`type1`, `r`.`data1`,
 			`r`.`type2`, `r`.`data2`
 			FROM `acl_acl` `a`, `acl_rule` `r`
 			WHERE `a`.`name` = $name
 			AND `r`.`acl` = `a`.`id`
-		', array('name' => $name));
+			AND (`a`.`moduleInstance` = $moduleInstanceId OR `a`.`moduleInstance` IS NULL)
+			ORDER BY `a`.`moduleInstance` IS NULL
+		', array(
+			'name' => $name,
+			'moduleInstanceId' => $module,
+		));
 		$result = 0;
 		$checks = 0;
-		if (self::$debug) echo '<fieldset style="background:white;color:black;text-align:left"><legend>'.htmlspecialchars($name).'</legend>';
-		while ($row = Core::getDatabaseConnection()->fetchrow($sqlresult)) {
+		if ($debug)
+			echo '<fieldset style="background:white;color:black;text-align:left"><legend>'.htmlspecialchars($name).'</legend>';
+		while ($row = $db->fetchrow($sqlresult)) {
+			if ($row['debug'] && !$debug) {
+				echo '<fieldset style="background:white;color:black;text-align:left"><legend>'.htmlspecialchars($name).'</legend>';
+				$debug = true;
+			}
 			for($i=1;$i<=2;$i++) {
 				$var = 'var'.$i;
 				$$var = NULL;
@@ -103,18 +116,25 @@ class ACL extends AbstractModule {
 				$data = $row['data'.$i];
 
 				if($type == self::AT_COMP) $$var = unserialize($data); // @TODO catch error
-				if($type == self::AT_VAR) $$var = Core::resolve($extravars, $data, '.');
+				if($type == self::AT_VAR) $$var = Core::resolve($data, $extravars, '.');
 				if($type == self::AT_ACL)
-					$$var = self::checkACL($data, $module, $defaultAccess, array_merge($extravars, array('parentAcl' => $name)), array_merge($prevacls, array($name)));
+					$$var = self::checkACL(
+						$data,
+						$module,
+						$defaultAccess,
+						array_merge($extravars, array('parentAcl' => $name)),
+						array_merge($prevacls, array($name)),
+						$debug
+					);
 			}
 
-			if (self::$debug) {
-				if ($row['comptype'] == self::AC_GT) { echo '<i>'.var_export($var1,true).'</i> &gt; <i>'.var_export($var2,true)."</i><br><b style=\"color:\n".($var1 > $var2?'green">gran':'red">rejec')."ted</b><br>\n<br>\n"; }
-				if ($row['comptype'] == self::AC_LT) { echo '<i>'.var_export($var1,true).'</i> &lt; <i>'.var_export($var2,true)."</i><br><b style=\"color:\n".($var1 < $var2?'green">gran':'red">rejec')."ted</b><br>\n<br>\n"; }
-				if ($row['comptype'] == self::AC_GE) { echo '<i>'.var_export($var1,true).'</i> ≥ <i>'.var_export($var2,true)."</i><br><b style=\"color:\n".($var1 >= $var2?'green">gran':'red">rejec')."ted</b><br>\n<br>\n"; }
-				if ($row['comptype'] == self::AC_LE) { echo '<i>'.var_export($var1,true).'</i> ≤ <i>'.var_export($var2,true)."</i><br><b style=\"color:\n".($var1 <= $var2?'green">gran':'red">rejec')."ted</b><br>\n<br>\n"; }
-				if ($row['comptype'] == self::AC_EQ) { echo '<i>'.var_export($var1,true).'</i> = <i>'.var_export($var2,true)."</i><br><b style=\"color:\n".($var1 == $var2?'green">gran':'red">rejec')."ted</b><br>\n<br>\n"; }
-				if ($row['comptype'] == self::AC_NE) { echo '<i>'.var_export($var1,true).'</i> ≠ <i>'.var_export($var2,true)."</i><br><b style=\"color:\n".($var1 != $var2?'green">granCore':'red">rejec')."ted</b><br>\n<br>\n"; }
+			if ($debug) {
+				if ($row['comptype'] == self::AC_GT) { echo '<i>'.Core::describe($var1).'</i> &gt; <i>'.Core::describe($var2)."</i><br><b style=\"color:\n".($var1 > $var2?'green">gran':'red">rejec')."ted</b><br>\n<br>\n"; }
+				if ($row['comptype'] == self::AC_LT) { echo '<i>'.Core::describe($var1).'</i> &lt; <i>'.Core::describe($var2)."</i><br><b style=\"color:\n".($var1 < $var2?'green">gran':'red">rejec')."ted</b><br>\n<br>\n"; }
+				if ($row['comptype'] == self::AC_GE) { echo '<i>'.Core::describe($var1).'</i> ≥ <i>'   .Core::describe($var2)."</i><br><b style=\"color:\n".($var1 >= $var2?'green">gran':'red">rejec')."ted</b><br>\n<br>\n"; }
+				if ($row['comptype'] == self::AC_LE) { echo '<i>'.Core::describe($var1).'</i> ≤ <i>'   .Core::describe($var2)."</i><br><b style=\"color:\n".($var1 <= $var2?'green">gran':'red">rejec')."ted</b><br>\n<br>\n"; }
+				if ($row['comptype'] == self::AC_EQ) { echo '<i>'.Core::describe($var1).'</i> = <i>'   .Core::describe($var2)."</i><br><b style=\"color:\n".($var1 == $var2?'green">gran':'red">rejec')."ted</b><br>\n<br>\n"; }
+				if ($row['comptype'] == self::AC_NE) { echo '<i>'.Core::describe($var1).'</i> ≠ <i>'   .Core::describe($var2)."</i><br><b style=\"color:\n".($var1 != $var2?'green">gran':'red">rejec')."ted</b><br>\n<br>\n"; }
 			}
 
 			switch($row['comptype']) {
@@ -140,9 +160,9 @@ class ACL extends AbstractModule {
 				case self::AC_NH:if(Core::checkHas($var1, $var2)) $result++;break;
 			}
 			$checks++;
-			if (self::$debug) {
+			if ($debug) {
 				if ($row['checkall'] == '0' and $result > 0) echo '<b style="color:green">Granted</b></fieldset>';
-				if ($row['checkall'] == '1' and $result != $checks) echo '<b style="color:red">Rejected</fieldset>';
+				if ($row['checkall'] == '1' and $result != $checks) echo '<b style="color:red">Rejected</b></fieldset>';
 			}
 
 			if ($row['checkall'] == '0' and $result > 0) return true;
@@ -153,9 +173,34 @@ class ACL extends AbstractModule {
 			// Understanding this, it's obvious that the result is equal to wether all rules should be true.
 			$final = ($row['checkall'] == '1');
 		}
-		if (self::$debug and $checks == 0) die('ACL '.htmlspecialchars($name).' contains no rules, <b style="color:">'.($final?'green">gran':'red">rejec').'t</b>');
+		if ($checks == 0 && !is_null($module)) {
+			$aclRec = $db->query('SELECT id FROM acl_acl WHERE name = $name AND moduleInstance = $moduleInstance', array(
+				'name' => $name,
+				'moduleInstance' => $module
+			));
+			if ($aclRec) {
+				//$id = $aclRec[0]['id'];
+			} else {
+				$db->insert('acl_acl', array(
+					'name' => $name,
+					'moduleInstance' => $module,
+					'debug' => '0'
+				));
+				$id = $db->lastid();
+			}
+			/*
+			if ($id)
+				$db->insert('acl_rule', array(
+					'acl' => $id,
+					'type1' => 'c',
+					'data1' => serialize((boolean) $defaultAccess),
+					'type2' => 'c',
+					'data2' => 'b:1;',
+				));
+			*/
+		}
 		if ($checks == 0) return $defaultAccess;
-		if (self::$debug) echo '<b style="color:'.($final?'green">gran':'red">rejec').'ted</b></fieldset>';
+		if ($debug) echo '<b style="color:'.($final?'green">gran':'red">rejec').'ted</b></fieldset>';
 		return $final;
 	}
 
