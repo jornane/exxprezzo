@@ -1,6 +1,6 @@
 var Exxprezzo = {
 	
-	linkCallback : function(linkDest) {
+	linkCallback : function(linkDest, pageId) {
 		var ed = tinyMCEPopup.editor, e, b, href = linkDest;
 
 		tinyMCEPopup.restoreSelection();
@@ -54,7 +54,7 @@ var Exxprezzo = {
 		tinyMCEPopup.close();
 	},
 	
-	imageCallback : function(imgDest) {
+	imageCallback : function(imgDest, fileId) {
 		var ed = tinyMCEPopup.editor, args = {}, el;
 
 		tinyMCEPopup.restoreSelection();
@@ -72,11 +72,15 @@ var Exxprezzo = {
 		if (ed.settings.inline_styles)
 			args.style = this.styleVal;
 
+		if (fileId.substring(0, 4) == 'file')
+			fileId = fileId.substring(4);
+		else
+			fileId = '';
+
 		tinymce.extend(args, {
 			src : imgDest,
-			alt : null,
-			width : null,
-			height : null,
+			alt : '',
+			id : fileId
 		});
 
 		el = ed.selection.getNode();
@@ -92,6 +96,7 @@ var Exxprezzo = {
 					}
 				});
 
+			alert(JSON.stringify(args));
 			ed.execCommand('mceInsertContent', false, tinyMCEPopup.editor.dom.createHTML('img', args), {skip_undo : 1});
 			ed.undoManager.add();
 		}
@@ -108,8 +113,8 @@ for (var i = 0; i < elem.length; i++) {
 	var classes = elem[i].className;
 	if (callback.test(classes)) {
 		if (elem[i].rel == "imageCallback")
-			elem[i].onclick = function(){Exxprezzo.imageCallback(this.href);return false;};
+			elem[i].onclick = function(){Exxprezzo.imageCallback(this.href, this.id);return false;};
 		if (elem[i].rel == "linkCallback")
-			elem[i].onclick = function(){Exxprezzo.linkCallback(this.href);return false;};
+			elem[i].onclick = function(){Exxprezzo.linkCallback(this.href, this.id);return false;};
 	}
 }
