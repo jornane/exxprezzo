@@ -22,7 +22,6 @@ abstract class AbstractOutput implements Output {
 	/**
 	 * Send this Output to the browser rightaway
 	 * 
-	 * (non-PHPdoc)
 	 * @see exxprezzo\core.Runnable::run()
 	 */
 	public function run() {
