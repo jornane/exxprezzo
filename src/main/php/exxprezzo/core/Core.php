@@ -11,6 +11,7 @@ use \Exception;
 use \exxprezzo\core\module\AbstractModule;
 use \exxprezzo\core\layout\Page;
 
+use \exxprezzo\core\exception\ExxprezzoException;
 use \exxprezzo\core\db\SQL;
 
 final class Core {
@@ -72,22 +73,29 @@ final class Core {
 			self::$urlManager->registerMainModule();
 
 			// Invoke main module
-			try {
+			if (self::$urlManager->isGet()) try {
 				/** @var \exxprezzo\core\Output */
 				$outputObject = self::$mainModule->run();
 			} catch (Exception $e) {
-				Core::handleException($e, false, true);
-				exit;
+				if ($e instanceof ExxprezzoException)
+					$e->writeErrorHeader();
+				else
+					header('HTTP/1.0 500 Internal Server Error', true, 500);
 				$outputObject = new ExceptionOutput(self::$mainModule, $e);
+			} else {
+				self::$mainModule->run();
+				throw new ConstraintsException('No redirect after a non-GET request.');
 			}
-			
-			if ($outputObject instanceof Output) if (Page::supportsOutput($outputObject)) {
-				// Prepare output
-				self::$pageManager = new Page($outputObject);
-				
-				// Send headers
-				self::$pageManager->run();
-			} else $outputObject->run();
+
+			if ($outputObject instanceof Output) {
+				if (Page::supportsOutput($outputObject)) {
+					// Prepare output
+					self::$pageManager = new Page($outputObject);
+
+					// Send headers
+					self::$pageManager->run();
+				} else $outputObject->run();
+			}
 
 			// Cleanup
 			if (!headers_sent() && ob_get_length() == 0)
