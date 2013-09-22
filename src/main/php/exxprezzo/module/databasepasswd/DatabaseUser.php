@@ -70,7 +70,8 @@ class DatabaseUser implements User {
 		if (is_object($module) && $module instanceof AbstractModule)
 			$module = $module->getInstanceId();
 		$this->lazyLoad();
-		return $this->userField[$module];
+		if (isset($this->userField[$module]))
+			return $this->userField[$module];
 	}
 	public function exists($module, $key) {
 		if (is_object($module) && $module instanceof AbstractModule)
