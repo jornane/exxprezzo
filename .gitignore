@@ -1,5 +1,2 @@
-.buildpath
-.project
-.settings/org.eclipse.php.core.prefs
 src/main/php/exxprezzo/Config.php
 src/main/php/upload
