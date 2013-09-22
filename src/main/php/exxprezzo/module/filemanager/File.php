@@ -140,7 +140,6 @@ class File implements \JsonSerializable{
 		$result = array();
 		while ($filedata = $db->fetchrow()) {
 			$filedata['path'] = FileManager::$storedir.AbstractModule::getInstance($filedata['moduleInstance'])->getName().DIRECTORY_SEPARATOR.$filedata['moduleInstance'].DIRECTORY_SEPARATOR.$filedata['id'];
-			//$filedata['path'] = FileManager::$storedir.$filedata['id'];
 			if (is_readable($filedata['path'])) {
 				$filedata['filesize'] = filesize($filedata['path']);
 				$id = $filedata['id'];
