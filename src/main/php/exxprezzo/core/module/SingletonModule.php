@@ -1,7 +1,6 @@
 <?php namespace exxprezzo\core\module;
 
-class SingletonModule extends AbstractModule{	
-	
+abstract class SingletonModule extends AbstractModule{	
 	
 	
 }
