@@ -9,6 +9,9 @@ use \exxprezzo\core\module\AbstractModule;
 use \exxprezzo\core\output\AbstractOutput;
 use \exxprezzo\core\output\BlockOutput;
 use \exxprezzo\core\output\PartialOutput;
+use \exxprezzo\core\output\ExceptionOutput;
+
+use \Exception;
 
 final class Page extends AbstractOutput {
 
