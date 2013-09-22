@@ -1,9 +1,14 @@
 <?php namespace exxprezzo\core;
 
+use \ArrayAccess;
 use \DateTime;
 use \DateTimeZone;
+use \IteratorAggregate;
+use \JsonSerializable;
 
-class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
+use \exxprezzo\core\type\SafeHtml;
+
+class Content implements JsonSerializable, ArrayAccess, IteratorAggregate {
 
 	/** @var (string|\exxprezzo\core\Content[]|object)[] */
 	protected $vars = array();
@@ -75,23 +80,24 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 	 *
 	 * @param string $name
 	 */
-	public function getVariableString($name) {
+	public function getHTMLSafeString($name) {
 		$var = $this->getVariable($name);
 		if (is_object($var)) {
-			if (method_exists($var, '__toString'))
+			if ($var instanceof SafeHtml)
 				return $var->__toString();
+			if (method_exists($var, '__toString'))
+				return htmlspecialchars($var->__toString());
 			if ($var instanceof DateTime) {
 				$var->setTimezone(new DateTimeZone(date_default_timezone_get()));
-				return $var->format(DATE_RFC2822);
+				return htmlspecialchars($var->format(DATE_RFC2822));
 			}
-			return 'Object';
+			return json_encode($var);
 		} elseif (is_string($var))
-			return $var;
+			return htmlspecialchars($var);
 		elseif (is_numeric($var))
 			return '' . $var;
-		elseif (is_null($var))
-			return null;
-		user_error('The variable {'.$name.'} is of type '.gettype($var).', must be string or object with __toString() method');
+		return json_encode($var);
+		//user_error('The variable {'.$name.'} is of type '.gettype($var).', must be string or object with __toString() method');
 	}
 
 	/**
@@ -99,10 +105,14 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 	 * @param string|Content[]|object $name
 	 */
 	public function getVariable($name) {
-		return Core::resolve($this->vars, $name);
+		return Core::resolve($name, $this->vars);
 	}
 
 	/**
+	 * Generate a copy of this object and add all variables from $loopName[$iteration]
+	 * in the form $loopName.$variable.
+	 * In other words; {foo.bar} will resolve to the value of $foo[$iteration]->$bar
+	 *
 	 * This method is namespace protected
 	 * @access protected
 	 *
@@ -133,6 +143,12 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 			user_error('$content should be of type Content');
 	}
 
+	/**
+	 * Get the Content object for the named namespace.
+	 * 
+	 * @param	name	Name of namespace
+	 * @return Content
+	 */
 	public function getNamespace($name) {
 		if (isset($this->namespaces[strtolower($name)]))
 			return $this->namespaces[strtolower($name)];
@@ -151,25 +167,30 @@ class Content implements \JsonSerializable, \ArrayAccess, \IteratorAggregate {
 		return array_keys($this->vars);
 	}
 
+	/** @inheiritDoc */
 	public function jsonSerialize() {
 		return $this->vars;
 	}
 
+	/** @inheiritDoc */
 	public function offsetExists($offset) {
 		return isset($this->vars[$offset]);
 	}
+	/** @inheiritDoc */
 	public function offsetGet($offset) {
 		return $this->vars[$offset];
 	}
+	/** @inheiritDoc */
 	public function offsetSet($offset, $value) {
 		$this->vars[$offset] = $value;
 	}
+	/** @inheiritDoc */
 	public function offsetUnset($offset) {
 		unset($this->vars[$offset]);
 	}
+	/** @inheiritDoc */
 	public function getIterator() {
 		return new ArrayObject($this->vars);
 	}
-
 
 }

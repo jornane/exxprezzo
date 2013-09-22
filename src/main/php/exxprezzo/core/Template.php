@@ -1,8 +1,5 @@
 <?php namespace exxprezzo\core;
 
-use \DateTime;
-use \DateTimeZone;
-
 class Template {
 
 	/** @var string */
@@ -16,14 +13,16 @@ class Template {
 	protected $blocks;
 	/** @var string[] */
 	protected $variables;
+
 	private function __clone() {
 		unset($this->blockKeywords, $this->annotations, $this->blocks, $this->variables);
 	}
 
-	/** @var \exxprezzo\core\Content */
+	/** 
+	 * Raw recursive key-value content
+	 * @var \exxprezzo\core\Content 
+	 */
 	protected $content;
-	/** @var object[] */
-	protected $objects = array();
 
 	/** @var string */
 	protected $filename;
@@ -47,17 +46,34 @@ class Template {
 
 	const REGEX_COMMENT = '_\\<\\!\\-\\- (.*) \\-\\-\\>_i';
 
+	/**
+	 * Instantiate a new template from a file
+	 * This method is recommended over constructing it yourself,
+	 * because it will set the location of the template file,
+	 * allowing for relative links in the template file.
+	 */
 	public static function templateFromFile($filename, $resourceName='./.') {
 		if (!is_string($resourceName) || !$resourceName)
 			$resourceName = 'resources';
-		$result = new Template(file_get_contents($filename));
-		$result->filename = $filename;
-		$result->extraReplacePattern[] = '_(?<=["\'])'.$resourceName.'/(.*?)\\1_';
-		$filenameSplice = explode('/', $filename);
-		$result->extraReplaceReplacement[] = Core::getUrlManager()->getBaseUrl() .
-			implode('/', array_slice($filenameSplice, 0, array_search('template', $filenameSplice)+2)).'/';
+		$template = new Template(file_get_contents($filename));
+		$template->filename = $filename;
 
-		return $result;
+		$template->registerLocalResourcePath($filename, $resourceName);
+
+		return $template;
+	}
+
+	/**
+	 * Add a custom replacement which will allow pointing to local 
+	 * files by prepending them with the resourceName.
+	 * The standard resourceName is ./. so you can prepend ././ to a path 
+	 * to make it resolve to a file local to the template.
+	 */
+	private function registerLocalResourcePath($filename, $resourceName) {
+		$this->extraReplacePattern[] = '_(?<=["\'])'.$resourceName.'/(.*?)\\1_';
+		$filenameSplice = explode('/', $filename);
+		$this->extraReplaceReplacement[] = Core::getUrlManager()->getBaseUrl() .
+			implode('/', array_slice($filenameSplice, 0, array_search('template', $filenameSplice)+2)).'/';
 	}
 
 	/**
@@ -69,6 +85,8 @@ class Template {
 	}
 
 	/**
+	 * Get all blocks in this template
+	 *
 	 * @return string[]	a one-dimensional array containing all blocks
 	 * 	as they appear in the template
 	 * @todo namespace support
@@ -83,6 +101,8 @@ class Template {
 	}
 
 	/**
+	 * Get all annotations in this template
+	 *
 	 * @return string[] an indexed array containing all annotations
 	 * 	as they appear in the template (key => value)
 	 */
@@ -99,6 +119,8 @@ class Template {
 	}
 
 	/**
+	 * Get all variables in this template
+	 *
 	 * @return string[] a list containing all variables as they appear in the template
 	 * @todo namespace support
 	 */
@@ -145,22 +167,31 @@ class Template {
 	}
 
 	/**
-	 *
-	 * @param string[][] $matches
-	 * @return string
+	 * Replace a block with its template output.
+	 * 
+	 * @param	string[][]	$matches
+	 * @return	string
 	 */
 	private function matchBlock($matches) {
 		$namespacePath = preg_split('/[\s,]+/', $matches[self::KEYWORD]);
 		$keyword = array_pop($namespacePath);
+		
+		// Push current content object, as we're going to change it.
 		$content = $this->content;
+		
+		// Resolve the namespace
 		foreach($namespacePath as $namespace) {
 			$content = $content->getNamespace($namespace);
 			if (is_null($content))
 				user_error('Invalid namespace: '.implode(':', $namespacePath).($this->filename?' (file '.$this->filename.')':''));
 		}
+
+		// Clone the current object to use as a workspace for parsing
 		$tpl = clone $this;
 		$tpl->templateCode = $matches[self::CONTENT];
 		$tpl->content = $content;
+		
+		// Call block-specific render functions
 		$function = 'render'.ucfirst(strtolower($keyword)).'Block';
 		if (method_exists($tpl, $function)) {
 			$this->tempVars[] = $tpl->$function($matches[self::BLOCKNAME]);
@@ -168,6 +199,13 @@ class Template {
 		} user_error('Invalid keyword: '.$keyword);
 	}
 
+	/**
+	 * Replace a variable with the corresponding
+	 * value from the $this->content object.
+	 * 
+	 * @param	string[][]	$matches
+	 * @return	string
+	 */
 	private function matchVar($matches) {
 		if ($matches[self::VARNAME]{0} == '#')
 			return $this->tempVars[substr($matches[self::VARNAME], 1)];
@@ -176,103 +214,76 @@ class Template {
 		$content = $this->content;
 		foreach($namespacePath as $namespace)
 			$content = $content->getNamespace($namespace);
-		$result = $content->getVariableString($varName);
-		if (is_null($result))
-			$result = $this->getValueFromObject($varName);
-		if (is_object($result)) {
-			if ($result instanceof DateTime) {
-				$result->setTimezone(new DateTimeZone(date_default_timezone_get()));
-				$result = $result->format(DATE_RFC2822);
-			} else
-				$result = $result->__toString();
-		}
-		return $result;
-	}
 
-	protected function getValueFromObject($varName) {
-		return Core::resolve($this->objects, $varName);
+		return $content->getHTMLSafeString($varName);
 	}
 
 	/**
+	 * Render a for-block by iterating over all elements 
+	 * and rendering the block for each of them, 
+	 * returning all results contactinated.
 	 *
-	 * @param string $templateCode
-	 * @param string $blockName
+	 * @param	string	$blockName
+	 * @result 	string
 	 */
 	protected function renderForBlock($blockName) {
 		$blocks = $this->content->getVariable($blockName);
-		if (!$blocks) $blocks = $this->getValueFromObject($blockName);
-		if (!$blocks) $blocks = array();
 		$this->validPrefixes = array_merge($this->validPrefixes, array($blockName => $blockName));
 		$result = '';
+		$oldContent = $this->content;
+
 		if (is_array($blocks)) foreach($blocks as $iteration => $block) {
-
-			$oldContent = $this->content;
-			$oldObjects = $this->objects;
 			$oldVar = $this->content->getVariable($blockName);
-
-			if (is_object($block) && $block instanceof Content) {
+			if (is_object($block) || is_array($block)) {
+				if (!($block instanceof Content))
+					$block = new Content($block);
 				$this->content = $this->content->loopMerge($blockName, $iteration);
-				unset($this->objects[$blockName]);
 				$this->content->putVariable($blockName.'.RECURSE', $this->renderForBlock($blockName));
 				$this->content->putVariable($blockName, $oldVar);
-			} elseif (is_object($block)) {
-				/*$this->content->removeVariable($blockName);
-				foreach(array_keys($this->objects) as $key) {
-					if (substr($key, 0, $blockName+1) == $blockName+'.') {
-						unset($this->objects[$key]);
-					}
-				}*/
-				$this->objects[$blockName] = $block;
 			}
 			$result .= $this->render();
 
-			$this->objects = $oldObjects;
-			$this->content = $oldContent;
-
 		}
+		$this->content = $oldContent;
 		return $result;
 	}
 
 	/**
+	 * Only display the contents of this block when 
+	 * the value of $variable resolves to true according to PHP.
 	 *
-	 * @param string $templateCode
-	 * @param string $block
+	 * @see Template::renderNotBlock($block)
+	 * @param string $variableName
 	 */
-	protected function renderIfBlock($block) {
-		$var = $this->content->getVariable($block);
-		if (is_null($var))
-			$var = $this->getValueFromObject($block);
+	protected function renderIfBlock($variableName) {
+		$var = $this->content->getVariable($variableName);
 		if (!is_null($var)) {
 			if (is_array($var))
 				$this->content->putVariables($var);
-			elseif (is_object($var))
-				$this->objects[$block] = $var;
 			return $this->render();
 		}
 	}
 
 	/**
+	 * Only display the contents of this block
+	 * when the named namespace exists.
 	 *
-	 * @param string $templateCode
 	 * @param string $block
-	 * @param Content $content
-	 * @param string[] $validPrefixes
 	 */
-	protected function renderIfnsBlock($block) {
-		if ($this->content->getNamespace($block)) {
+	protected function renderIfnsBlock($namespace) {
+		if ($this->content->getNamespace($namespace)) {
 			return $this->render();
 		}
 	}
 
 	/**
+	 * Switch the namespace context to the named namespace and render the block using this context.
+	 * The original namespace will be available as namespace "parent".
 	 *
-	 * @param string $templateCode
-	 * @param string $block
-	 * @param Content $content
-	 * @param string[] $validPrefixes
+	 * @param string $namespace
 	 */
-	protected function renderNsBlock($block) {
-		if ($newContent = $this->content->getNamespace($block)) {
+	protected function renderNsBlock($namespace) {
+		if ($newContent = $this->content->getNamespace($namespace)) {
 			$origContent = $this->content;
 			$this->content = clone $newContent;
 			$this->content->putNamespace('parent', $origContent);
@@ -281,14 +292,14 @@ class Template {
 	}
 
 	/**
+	 * Only display the contents of this block when 
+	 * the value of $variable resolves to false according to PHP.
 	 *
-	 * @param string $templateCode
-	 * @param string $block
-	 * @param Content $content
-	 * @param string[] $validPrefixes
+	 * @see Template::renderIfBlock($block)
+	 * @param string $variableName
 	 */
-	protected function renderNotBlock($block) {
-		if (!($this->content->getVariable($block)))
+	protected function renderNotBlock($variableName) {
+		if (!($this->content->getVariable($variableName)))
 			return $this->render();
 	}
 
