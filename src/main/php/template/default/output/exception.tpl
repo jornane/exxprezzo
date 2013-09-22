@@ -1,0 +1,1 @@
+<fieldset><legend>{title} error</legend><p>{message}</p><pre>{stacktrace}</pre></fieldset>
