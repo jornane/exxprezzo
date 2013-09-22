@@ -1,8 +1,8 @@
 <!-- IF upload -->
 <p>Upload new file: {input:file} <input type="submit" /></p>
-<!-- /IF upload -->
 <p>Note: uploading a file which has the same name as a file that already exists,<br />
 will overwrite the existing file</p>
+<!-- /IF upload -->
 <!-- IF file -->
 <table>
 	<tr>
@@ -13,10 +13,10 @@ will overwrite the existing file</p>
 	</tr>
 <!-- FOR file -->
 	<tr>
-		<td><a href="{file.href}" class="callback">{file.file.filename}</a></td>
-		<td>{file.file.created}</td>
-		<td>{file.file.updated}</td>
-		<td>{file.file.size}</td>
+		<td><a href="{file.href}" id="file{file.fileId}" class="callback">{file.filename}</a></td>
+		<td>{file.created}</td>
+		<td>{file.updated}</td>
+		<td>{file.size}</td>
 	</tr>
 <!-- /FOR file -->
 </table>
